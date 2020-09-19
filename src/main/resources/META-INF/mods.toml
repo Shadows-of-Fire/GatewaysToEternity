@@ -1,0 +1,41 @@
+modLoader="javafml" #mandatory
+
+loaderVersion="[28,)" #mandatory
+
+authors="Shadows_of_Fire" #optional
+
+license="MIT License" #mandatory
+
+[[mods]] #mandatory
+
+modId="gateways" #mandatory
+
+version="${file.jarVersion}" #mandatory
+
+displayName="Gateways To Eternity" #mandatory
+
+description='''
+Invoke that from the dark beyond.  Let it pour into this world.
+A mod about creating temporary mob spawners in the form of portals.
+'''
+
+[[dependencies.gateways]] #optional
+    modId="forge" #mandatory
+    mandatory=true #mandatory
+    versionRange="[31.2.0,)" #mandatory
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.gateways]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.15.2,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.gateways]]
+    modId="placebo"
+    mandatory=true
+    versionRange="[3.0,)"
+    ordering="NONE"
+    side="BOTH"

@@ -1,0 +1,11 @@
+Gateways to Eternity, a mod about enabling players to create temporary mob spawners to allow for ease of access to mobs and their drops.
+
+No more difficulty in finding rate mobs such as ghasts when you can simply invoke them from another plane.
+
+The player will create certain items that are attuned to a mob (recipes not yet determined).  This item will be able to spawn a portal entity that acts as a mob spawner.
+This portal will spawn mobs at (x time frame) and will eventually close.  A portal's lifespan can be extended using (portal lifespan extender item).
+
+The longer a portal is active, the stronger the spawned mobs will get, but their loot pools will also be higher (as opposed to spawning additional mobs).
+The portal will act on a wave system, so new mobs will not clutter the area.  New mobs will only spawn once the other ones have either died or gone too far from the portal.
+
+Mobs created by these portals are unstable, and if not killed within a certain time will vanish back to their original plane of existance.
