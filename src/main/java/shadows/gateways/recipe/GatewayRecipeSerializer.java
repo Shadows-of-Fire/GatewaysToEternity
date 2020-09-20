@@ -16,6 +16,7 @@ public class GatewayRecipeSerializer extends ShapedRecipe.Serializer {
 
 	public static final GatewayRecipeSerializer INSTANCE = new GatewayRecipeSerializer();
 
+	@Override
 	public GatewayRecipe read(ResourceLocation id, JsonObject json) {
 		ShapedRecipe recipe = super.read(id, json);
 		ItemStack gateway = recipe.getRecipeOutput();
@@ -29,21 +30,15 @@ public class GatewayRecipeSerializer extends ShapedRecipe.Serializer {
 
 	public static CompoundNBT toNBT(JsonObject data) {
 		String name = data.has("name") ? data.get("name").getAsString() : "";
-		byte maxWaves = data.has("max_waves") ? data.get("max_waves").getAsByte() : 0b101;
-		byte entitiesPerWave = data.has("entities_per_wave") ? data.get("entities_per_wave").getAsByte() : 0b11;
-		byte spawnRange = data.has("spawn_range") ? data.get("spawn_range").getAsByte() : 0b101;
 		ResourceLocation entity = new ResourceLocation(data.get("entity").getAsString());
 		int completionXP = data.has("completion_xp") ? data.get("completion_xp").getAsInt() : 150;
-		short wavePauseTime = data.has("wave_pause_time") ? data.get("wave_pause_time").getAsShort() : (short) 140;
+		int maxWaveTime = data.has("max_wave_time") ? data.get("max_wave_time").getAsInt() : 600;
 		CompoundNBT tag = new CompoundNBT();
 		tag.putString("name", name);
-		tag.putByte("max_waves", maxWaves);
-		tag.putByte("entities_per_wave", entitiesPerWave);
-		tag.putByte("spawn_range", spawnRange);
 		WeightedSpawnerEntity ws = new WeightedSpawnerEntity(1, TagBuilder.getDefaultTag(ForgeRegistries.ENTITIES.getValue(entity)));
 		tag.put("entity", ws.toCompoundTag());
 		tag.putInt("completion_xp", completionXP);
-		tag.putShort("wave_pause_time", wavePauseTime);
+		tag.putInt("max_wave_time", maxWaveTime);
 		return tag;
 	}
 

@@ -15,9 +15,9 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec3d;
 import shadows.gateways.GatewaysToEternity;
-import shadows.gateways.entity.GatewayEntity;
+import shadows.gateways.entity.AbstractGatewayEntity;
 
-public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
+public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
 
 	public static final ResourceLocation TEXTURE = new ResourceLocation(GatewaysToEternity.MODID, "textures/entity/temp.png");
 
@@ -26,12 +26,12 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
 	}
 
 	@Override
-	public ResourceLocation getEntityTexture(GatewayEntity entity) {
+	public ResourceLocation getEntityTexture(AbstractGatewayEntity entity) {
 		return TEXTURE;
 	}
 
 	@Override
-	public void render(GatewayEntity entity, float unknown, float partialTicks, MatrixStack matrix, IRenderTypeBuffer buf, int packedLight) {
+	public void render(AbstractGatewayEntity entity, float unknown, float partialTicks, MatrixStack matrix, IRenderTypeBuffer buf, int packedLight) {
 		matrix.push();
 		PlayerEntity player = Minecraft.getInstance().player;
 		Vec3d playerV = player.getEyePosition(partialTicks);
@@ -56,10 +56,10 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
 	}
 
 	public static double angleOf(Vec3d p1, Vec3d p2) {
-		final double deltaY = (p2.z - p1.z);
-		final double deltaX = (p2.x - p1.x);
+		final double deltaY = p2.z - p1.z;
+		final double deltaX = p2.x - p1.x;
 		final double result = Math.toDegrees(Math.atan2(deltaY, deltaX));
-		return (result < 0) ? (360d + result) : result;
+		return result < 0 ? 360d + result : result;
 	}
 
 }

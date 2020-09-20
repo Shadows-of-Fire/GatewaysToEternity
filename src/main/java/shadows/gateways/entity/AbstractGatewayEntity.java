@@ -14,6 +14,7 @@ import net.minecraft.entity.ILivingEntityData;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.MobEntity;
 import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.effect.LightningBoltEntity;
 import net.minecraft.entity.item.ExperienceOrbEntity;
 import net.minecraft.entity.item.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -22,14 +23,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.IPacket;
-import net.minecraft.potion.EffectInstance;
-import net.minecraft.potion.Effects;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.WeightedSpawnerEntity;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TranslationTextComponent;
-import net.minecraft.world.BossInfo;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerBossInfo;
 import net.minecraft.world.server.ServerWorld;
@@ -39,28 +38,28 @@ import shadows.gateways.GatewaysToEternity;
 import shadows.gateways.util.TagBuilder;
 import shadows.placebo.util.ReflectionHelper;
 
-public class GatewayEntity extends Entity {
+public abstract class AbstractGatewayEntity extends Entity {
 
-	protected final ServerBossInfo bossInfo = new ServerBossInfo(this.getDefaultName(), BossInfo.Color.BLUE, BossInfo.Overlay.PROGRESS);;
+	protected final ServerBossInfo bossInfo = this.createBossInfo();
+	protected final GatewayStats stats = this.createStats();
 
-	protected int maxWaves = 6;
-	protected int wave = 0;
-	protected int entitiesPerWave = 3;
-	protected int spawnRange = 5;
 	protected WeightedSpawnerEntity entity = new WeightedSpawnerEntity(1, TagBuilder.getDefaultTag(EntityType.ZOMBIE));
 	protected final Set<LivingEntity> currentWaveEntities = new HashSet<>();
 	protected final Set<UUID> unresolvedWaveEntities = new HashSet<>();
+	protected int completionXP = 150;
+	protected int maxWaveTime = 600;
+	protected UUID summonerId;
+
 	protected boolean waveActive = false;
 	protected int ticksInactive = 0;
-	protected int completionXP = 150;
-	protected int wavePauseTime = 140;
-	protected UUID summonerId;
+	protected int currentWaveTicks = 0;
+	protected int wave = 0;
 
 	/**
 	 * Primary constructor.
 	 */
-	public GatewayEntity(World world, PlayerEntity placer, ItemStack source) {
-		super(GatewaysToEternity.GATEWAY_ENTITY, world);
+	public AbstractGatewayEntity(EntityType<?> type, World world, PlayerEntity placer, ItemStack source) {
+		super(type, world);
 		CompoundNBT tag = source.getTag().getCompound("gateway_data");
 		this.readAdditional(tag);
 		this.summonerId = placer.getUniqueID();
@@ -69,59 +68,8 @@ public class GatewayEntity extends Entity {
 	/**
 	 * Client/Load constructor.
 	 */
-	public GatewayEntity(EntityType<?> type, World world) {
+	public AbstractGatewayEntity(EntityType<?> type, World world) {
 		super(type, world);
-	}
-
-	@Override
-	protected void registerData() {
-	}
-
-	@Override
-	protected void readAdditional(CompoundNBT tag) {
-		this.maxWaves = tag.getByte("max_waves");
-		this.wave = tag.getByte("wave");
-		this.entitiesPerWave = tag.getByte("entities_per_wave");
-		this.spawnRange = tag.getByte("spawn_range");
-		this.entity = new WeightedSpawnerEntity(tag.getCompound("entity"));
-		long[] entities = tag.getLongArray("wave_entities");
-		for (int i = 0; i < entities.length; i += 2) {
-			unresolvedWaveEntities.add(new UUID(entities[i], entities[i + 1]));
-		}
-		this.waveActive = tag.getBoolean("active");
-		this.ticksInactive = tag.getShort("ticks_inactive");
-		this.completionXP = tag.getInt("completion_xp");
-		this.wavePauseTime = tag.getShort("wave_pause_time");
-		this.summonerId = tag.getUniqueId("summoner");
-		this.bossInfo.setName(new TranslationTextComponent(tag.getString("name")));
-	}
-
-	@Override
-	protected void writeAdditional(CompoundNBT tag) {
-		tag.putByte("max_waves", (byte) this.maxWaves);
-		tag.putByte("wave", (byte) this.wave);
-		tag.putByte("entities_per_wave", (byte) this.entitiesPerWave);
-		tag.putByte("spawn_range", (byte) this.spawnRange);
-		tag.put("entity", this.entity.toCompoundTag());
-		long[] ids = new long[this.currentWaveEntities.size() * 2];
-		int idx = 0;
-		for (LivingEntity e : this.currentWaveEntities) {
-			UUID id = e.getUniqueID();
-			ids[idx++] = id.getMostSignificantBits();
-			ids[idx++] = id.getLeastSignificantBits();
-		}
-		tag.putLongArray("wave_entities", ids);
-		tag.putBoolean("active", this.waveActive);
-		tag.putShort("ticks_inactive", (short) this.ticksInactive);
-		tag.putInt("completion_xp", this.completionXP);
-		tag.putShort("wave_pause_time", (short) this.wavePauseTime);
-		tag.putUniqueId("summoner", this.summonerId);
-		tag.putString("name", this.bossInfo.getName() == null ? "entity.gateways.gateway" : ((TranslationTextComponent) this.bossInfo.getName()).getKey());
-	}
-
-	@Override
-	public IPacket<?> createSpawnPacket() {
-		return NetworkHooks.getEntitySpawningPacket(this);
 	}
 
 	@Override
@@ -137,19 +85,25 @@ public class GatewayEntity extends Entity {
 			}
 
 			if (waveActive) {
-				float progress = 1F - (this.wave - 1F) / this.maxWaves;
-				progress -= ((this.entitiesPerWave - (float) this.currentWaveEntities.stream().filter(Entity::isAlive).count()) / this.entitiesPerWave) * (1F / this.maxWaves);
+				float progress = 1F - (this.wave - 1F) / this.stats.maxWaves;
+				progress -= (float) this.currentWaveTicks / this.maxWaveTime * (1F / this.stats.maxWaves);
 				this.bossInfo.setPercent(progress);
+				if (this.currentWaveTicks++ > this.maxWaveTime) {
+					this.onWaveTimerElapsed(this.wave, this.currentWaveEntities);
+				}
 			}
+
 			if (waveActive && this.currentWaveEntities.stream().noneMatch(Entity::isAlive)) {
 				this.onWaveEnd(this.wave);
+				this.bossInfo.setPercent(1F - (float) this.wave / this.stats.maxWaves);
 				this.currentWaveEntities.clear();
 				this.waveActive = false;
-				if (this.wave == this.maxWaves) {
+				if (this.wave == this.stats.maxWaves) {
 					this.onPortalCompletion();
 				}
+				this.currentWaveTicks = 0;
 			} else if (!waveActive) {
-				if (this.ticksInactive++ > this.wavePauseTime) {
+				if (this.ticksInactive++ > this.stats.pauseTime) {
 					this.spawnWave();
 				}
 			}
@@ -157,22 +111,10 @@ public class GatewayEntity extends Entity {
 
 	}
 
-	@Override
-	public void addTrackingPlayer(ServerPlayerEntity player) {
-		super.addTrackingPlayer(player);
-		this.bossInfo.addPlayer(player);
-	}
-
-	@Override
-	public void removeTrackingPlayer(ServerPlayerEntity player) {
-		super.removeTrackingPlayer(player);
-		this.bossInfo.removePlayer(player);
-	}
-
 	public void spawnWave() {
 		BlockPos blockpos = this.getPosition();
 
-		for (int i = 0; i < this.entitiesPerWave; ++i) {
+		for (int i = 0; i < this.stats.entitiesPerWave; ++i) {
 			CompoundNBT compoundnbt = this.entity.getNbt();
 			Optional<EntityType<?>> optional = EntityType.readEntityType(compoundnbt);
 			if (!optional.isPresent()) {
@@ -184,13 +126,13 @@ public class GatewayEntity extends Entity {
 			ListNBT listnbt = compoundnbt.getList("Pos", 6);
 			int j = listnbt.size();
 			int tries = 0;
-			double x = j >= 1 ? listnbt.getDouble(0) : blockpos.getX() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.spawnRange + 0.5D;
+			double x = j >= 1 ? listnbt.getDouble(0) : blockpos.getX() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.stats.spawnRange + 0.5D;
 			double y = j >= 2 ? listnbt.getDouble(1) : (double) (blockpos.getY() + world.rand.nextInt(3) - 1);
-			double z = j >= 3 ? listnbt.getDouble(2) : blockpos.getZ() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.spawnRange + 0.5D;
+			double z = j >= 3 ? listnbt.getDouble(2) : blockpos.getZ() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.stats.spawnRange + 0.5D;
 			while (!world.doesNotCollide(optional.get().func_220328_a(x, y, z))) {
-				x = j >= 1 ? listnbt.getDouble(0) : blockpos.getX() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.spawnRange + 0.5D;
+				x = j >= 1 ? listnbt.getDouble(0) : blockpos.getX() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.stats.spawnRange + 0.5D;
 				y = j >= 2 ? listnbt.getDouble(1) : (double) (blockpos.getY() + world.rand.nextInt(3) - 1);
-				z = j >= 3 ? listnbt.getDouble(2) : blockpos.getZ() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.spawnRange + 0.5D;
+				z = j >= 3 ? listnbt.getDouble(2) : blockpos.getZ() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.stats.spawnRange + 0.5D;
 				if (tries++ >= 4) {
 					break;
 				}
@@ -255,10 +197,10 @@ public class GatewayEntity extends Entity {
 
 	}
 
-	Method dropLoot;
+	static Method dropLoot;
 
 	protected void onWaveEnd(int wave) {
-		PlayerEntity p = (PlayerEntity) world.getPlayerByUuid(summonerId);
+		PlayerEntity p = world.getPlayerByUuid(summonerId);
 		if (dropLoot == null) {
 			dropLoot = ReflectionHelper.findMethod(LivingEntity.class, "dropLoot", "func_213354_a", DamageSource.class, boolean.class);
 		}
@@ -283,8 +225,99 @@ public class GatewayEntity extends Entity {
 		}
 	}
 
-	protected void modifyEntityForWave(int wave, LivingEntity entity) {
-		entity.addPotionEffect(new EffectInstance(Effects.FIRE_RESISTANCE, 20 * 60 * 10));
+	protected abstract void modifyEntityForWave(int wave, LivingEntity entity);
+
+	protected void onWaveTimerElapsed(int wave, Set<LivingEntity> remaining) {
+		world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(this.getPosition()).grow(15)).forEach(AbstractGatewayEntity::spawnLightningOn);
+		remaining.forEach(Entity::remove);
+		this.remove();
+	}
+
+	protected abstract ServerBossInfo createBossInfo();
+
+	protected abstract GatewayStats createStats();
+
+	protected abstract GatewaySize getSize();
+
+	@Override
+	protected void readAdditional(CompoundNBT tag) {
+		this.wave = tag.getByte("wave");
+		this.entity = new WeightedSpawnerEntity(tag.getCompound("entity"));
+		long[] entities = tag.getLongArray("wave_entities");
+		for (int i = 0; i < entities.length; i += 2) {
+			unresolvedWaveEntities.add(new UUID(entities[i], entities[i + 1]));
+		}
+		this.waveActive = tag.getBoolean("active");
+		this.ticksInactive = tag.getShort("ticks_inactive");
+		this.completionXP = tag.getInt("completion_xp");
+		this.summonerId = tag.getUniqueId("summoner");
+		this.bossInfo.setName(new TranslationTextComponent(tag.getString("name")));
+		this.maxWaveTime = tag.getInt("max_wave_time");
+		this.currentWaveTicks = tag.getInt("current_wave_ticks");
+		this.bossInfo.setPercent(1F - (float) this.wave / this.stats.maxWaves);
+	}
+
+	@Override
+	protected void writeAdditional(CompoundNBT tag) {
+		tag.putByte("wave", (byte) this.wave);
+		tag.put("entity", this.entity.toCompoundTag());
+		long[] ids = new long[this.currentWaveEntities.size() * 2];
+		int idx = 0;
+		for (LivingEntity e : this.currentWaveEntities) {
+			UUID id = e.getUniqueID();
+			ids[idx++] = id.getMostSignificantBits();
+			ids[idx++] = id.getLeastSignificantBits();
+		}
+		tag.putLongArray("wave_entities", ids);
+		tag.putBoolean("active", this.waveActive);
+		tag.putShort("ticks_inactive", (short) this.ticksInactive);
+		tag.putInt("completion_xp", this.completionXP);
+		tag.putUniqueId("summoner", this.summonerId);
+		tag.putString("name", this.bossInfo.getName() == null ? "entity.gateways.gateway" : ((TranslationTextComponent) this.bossInfo.getName()).getKey());
+		tag.putInt("max_wave_time", this.maxWaveTime);
+		tag.putInt("current_wave_ticks", this.currentWaveTicks);
+	}
+
+	@Override
+	protected void registerData() {
+	}
+
+	@Override
+	public IPacket<?> createSpawnPacket() {
+		return NetworkHooks.getEntitySpawningPacket(this);
+	}
+
+	@Override
+	public void addTrackingPlayer(ServerPlayerEntity player) {
+		super.addTrackingPlayer(player);
+		this.bossInfo.addPlayer(player);
+	}
+
+	@Override
+	public void removeTrackingPlayer(ServerPlayerEntity player) {
+		super.removeTrackingPlayer(player);
+		this.bossInfo.removePlayer(player);
+	}
+
+	public static void spawnLightningOn(Entity entity) {
+		((ServerWorld) entity.world).addLightningBolt(new LightningBoltEntity(entity.world, entity.getX(), entity.getY(), entity.getZ(), false));
+	}
+
+	public class GatewayStats {
+		protected int maxWaves, entitiesPerWave, spawnRange, pauseTime;
+
+		public GatewayStats(int maxWaves, int entitiesPerWave, int spawnRange, int pauseTime) {
+			this.maxWaves = maxWaves;
+			this.entitiesPerWave = entitiesPerWave;
+			this.spawnRange = spawnRange;
+			this.pauseTime = pauseTime;
+		}
+	}
+
+	public enum GatewaySize {
+		SMALL,
+		MEDIUM,
+		LARGE;
 	}
 
 }
