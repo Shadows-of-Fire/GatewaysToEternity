@@ -1,0 +1,29 @@
+{
+  "type": "gateways:gate_recipe",
+  "group": "gateways",
+  "pattern": [
+    " # ",
+    "#A#",
+    " # "
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:acacia_planks"
+    },
+	"A": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "item": "gateways:gate_opener",
+	"gateway": {
+		"name": "gateways.small_zombie_gate",
+		"max_waves": 5,
+		"entities_per_wave": 3,
+		"spawn_range": 5,
+		"entity": "minecraft:zombie",
+		"completion_xp": 150,
+		"wave_pause_time": 140
+	}
+  }
+}

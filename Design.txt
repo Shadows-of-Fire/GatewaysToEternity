@@ -9,3 +9,16 @@ The longer a portal is active, the stronger the spawned mobs will get, but their
 The portal will act on a wave system, so new mobs will not clutter the area.  New mobs will only spawn once the other ones have either died or gone too far from the portal.
 
 Mobs created by these portals are unstable, and if not killed within a certain time will vanish back to their original plane of existance.
+
+Portals connected to the animal realm have a higher stability and the animals will be retained.
+
+Portal Items:
+
+A portal item "Gateway Item" (Name TBD) holds the information about the portal it is going to create.
+This includes the following data in the following format:
+
+Number of waves (byte)          The base number of waves of this portal.
+Portal Color (integer)          The ARGB color to be applied to this portal during rendering.
+Spawned Monster (compound tag)  The mob spawn data to use.  Note that as waves progress some attributes may be modified, since the mobs will get stronger.
+Spawn Radius (byte)             The spawn radius of the portal.
+Spawn Count (byte)              The amount of mobs spawned per wave.

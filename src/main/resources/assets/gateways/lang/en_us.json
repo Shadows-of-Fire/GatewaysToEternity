@@ -1,3 +1,6 @@
 {
-	"entity.gateways.gateway" : "Gateway to Eternity"
+	"entity.gateways.gateway" : "Gateway to Eternity",
+	"item.gateways.gate_opener": "Gate Opener",
+	"gateways.gate_opener": "Gate Opener - %s",
+	"gateways.small_zombie_gate": "Small Zombie Gate"
 }
