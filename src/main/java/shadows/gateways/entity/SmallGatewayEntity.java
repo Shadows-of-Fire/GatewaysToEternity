@@ -8,13 +8,13 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.world.BossInfo;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerBossInfo;
-import shadows.gateways.GatewaysToEternity;
+import shadows.gateways.GatewayObjects;
 import shadows.placebo.util.AttributeHelper;
 
 public class SmallGatewayEntity extends AbstractGatewayEntity {
 
 	public SmallGatewayEntity(World world, PlayerEntity placer, ItemStack source) {
-		super(GatewaysToEternity.SMALL_GATEWAY, world, placer, source);
+		super(GatewayObjects.SMALL_GATEWAY, world, placer, source);
 	}
 
 	public SmallGatewayEntity(EntityType<?> type, World world) {
@@ -38,11 +38,13 @@ public class SmallGatewayEntity extends AbstractGatewayEntity {
 
 	@Override
 	protected void modifyEntityForWave(int wave, LivingEntity entity) {
-		AttributeHelper.multiplyFinal(entity, SharedMonsterAttributes.MAX_HEALTH, "gateways_gate", (wave - 1) * 0.75F);
-		AttributeHelper.addToBase(entity, SharedMonsterAttributes.ARMOR, "gateways_gate", (wave - 1) * 0.35F);
-		AttributeHelper.multiplyFinal(entity, SharedMonsterAttributes.ATTACK_DAMAGE, "gateways_gate", (wave - 1) * 0.35F);
-		AttributeHelper.multiplyFinal(entity, SharedMonsterAttributes.KNOCKBACK_RESISTANCE, "gateways_gate", (wave - 1) * 0.05F);
-		AttributeHelper.multiplyFinal(entity, SharedMonsterAttributes.MOVEMENT_SPEED, "gateways_gate", (wave - 1) * 0.002F);
+		if (wave == 1) return;
+		wave--;
+		AttributeHelper.multiplyFinal(entity, SharedMonsterAttributes.MAX_HEALTH, "gateways_gate", Math.pow(1.33F, wave) - 1);
+		AttributeHelper.addToBase(entity, SharedMonsterAttributes.ARMOR, "gateways_gate", wave * 3);
+		AttributeHelper.multiplyFinal(entity, SharedMonsterAttributes.ATTACK_DAMAGE, "gateways_gate", Math.pow(1.33F, wave) - 1);
+		AttributeHelper.multiplyFinal(entity, SharedMonsterAttributes.KNOCKBACK_RESISTANCE, "gateways_gate", wave * 0.05F);
+		AttributeHelper.multiplyFinal(entity, SharedMonsterAttributes.MOVEMENT_SPEED, "gateways_gate", wave * 0.01F);
 		entity.setHealth(entity.getMaxHealth());
 	}
 

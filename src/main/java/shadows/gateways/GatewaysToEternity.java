@@ -9,11 +9,13 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.Rarity;
 import net.minecraft.item.crafting.IRecipeSerializer;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvent;
 import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.ObjectHolder;
+import shadows.gateways.client.GatewayTickableSound;
 import shadows.gateways.entity.AbstractGatewayEntity;
 import shadows.gateways.entity.SmallGatewayEntity;
 import shadows.gateways.item.GatewayItem;
@@ -24,12 +26,6 @@ public class GatewaysToEternity {
 
 	public static final String MODID = "gateways";
 	public static final Logger LOGGER = LogManager.getLogger("Gateways to Eternity");
-
-	@ObjectHolder(MODID + ":small_gateway")
-	public static final EntityType<SmallGatewayEntity> SMALL_GATEWAY = null;
-
-	@ObjectHolder(MODID + ":small_gate_opener")
-	public static final GatewayItem SMALL_GATE_OPENER = null;
 
 	public GatewaysToEternity() {
 		FMLJavaModLoadingContext.get().getModEventBus().register(this);
@@ -43,7 +39,11 @@ public class GatewaysToEternity {
 				.setTrackingRange(5)
 				.setUpdateInterval(20)
 				.size(2F, 2.5F)
-				.setCustomClientFactory((se, w) -> new SmallGatewayEntity(SMALL_GATEWAY, w))
+				.setCustomClientFactory((se, w) -> {
+					AbstractGatewayEntity ent = new SmallGatewayEntity(GatewayObjects.SMALL_GATEWAY, w);
+					GatewayTickableSound.startGatewaySound(ent);
+					return ent;
+				})
 				.build("small_gateway")
 				.setRegistryName("small_gateway"));
 		//Formatter::on
@@ -57,6 +57,16 @@ public class GatewaysToEternity {
 	@SubscribeEvent
 	public void registerSerializers(Register<IRecipeSerializer<?>> e) {
 		e.getRegistry().register(GatewayRecipeSerializer.INSTANCE.setRegistryName("gate_recipe"));
+	}
+
+	@SubscribeEvent
+	public void registerSounds(Register<SoundEvent> e) {
+		//Formatter::off
+		e.getRegistry().registerAll(
+				new SoundEvent(new ResourceLocation(MODID, "gate_warp")).setRegistryName("gate_warp"),
+				new SoundEvent(new ResourceLocation(MODID, "gate_ambient")).setRegistryName("gate_ambient")
+		);
+		//Formatter::on
 	}
 
 }

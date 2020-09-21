@@ -23,7 +23,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.IPacket;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.SoundCategory;
 import net.minecraft.util.WeightedSpawnerEntity;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
@@ -33,12 +37,17 @@ import net.minecraft.world.World;
 import net.minecraft.world.server.ServerBossInfo;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.network.NetworkHooks;
+import shadows.gateways.GatewayObjects;
 import shadows.gateways.GatewaysToEternity;
 import shadows.gateways.util.TagBuilder;
-import shadows.placebo.util.ReflectionHelper;
 
 public abstract class AbstractGatewayEntity extends Entity {
+
+	public static final Method DROP_LOOT = ObfuscationReflectionHelper.findMethod(LivingEntity.class, "func_213354_a", DamageSource.class, boolean.class);
+	public static final DataParameter<Boolean> WAVE_ACTIVE = EntityDataManager.createKey(AbstractGatewayEntity.class, DataSerializers.BOOLEAN);
+	public static final DataParameter<Byte> WAVE = EntityDataManager.createKey(AbstractGatewayEntity.class, DataSerializers.BYTE);
 
 	protected final ServerBossInfo bossInfo = this.createBossInfo();
 	protected final GatewayStats stats = this.createStats();
@@ -50,10 +59,10 @@ public abstract class AbstractGatewayEntity extends Entity {
 	protected int maxWaveTime = 600;
 	protected UUID summonerId;
 
-	protected boolean waveActive = false;
+	protected int ticksActive = 0;
 	protected int ticksInactive = 0;
-	protected int currentWaveTicks = 0;
-	protected int wave = 0;
+
+	protected int clientTickCounter = -1;
 
 	/**
 	 * Primary constructor.
@@ -84,27 +93,31 @@ public abstract class AbstractGatewayEntity extends Entity {
 				unresolvedWaveEntities.clear();
 			}
 
-			if (waveActive) {
-				float progress = 1F - (this.wave - 1F) / this.stats.maxWaves;
-				progress -= (float) this.currentWaveTicks / this.maxWaveTime * (1F / this.stats.maxWaves);
+			if (isWaveActive()) {
+				float progress = 1F - (getWave() - 1F) / this.stats.maxWaves;
+				progress -= (float) this.ticksActive / this.maxWaveTime * (1F / this.stats.maxWaves);
 				this.bossInfo.setPercent(progress);
-				if (this.currentWaveTicks++ > this.maxWaveTime) {
-					this.onWaveTimerElapsed(this.wave, this.currentWaveEntities);
+				if (this.ticksActive++ > this.maxWaveTime) {
+					this.onWaveTimerElapsed(getWave(), this.currentWaveEntities);
+					return;
 				}
 			}
 
-			if (waveActive && this.currentWaveEntities.stream().noneMatch(Entity::isAlive)) {
-				this.onWaveEnd(this.wave);
-				this.bossInfo.setPercent(1F - (float) this.wave / this.stats.maxWaves);
+			boolean active = isWaveActive();
+			if (active && this.currentWaveEntities.stream().noneMatch(Entity::isAlive)) {
+				byte wave = getWave();
+				this.onWaveEnd(wave);
+				this.bossInfo.setPercent(1F - (float) wave / this.stats.maxWaves);
 				this.currentWaveEntities.clear();
-				this.waveActive = false;
-				if (this.wave == this.stats.maxWaves) {
+				this.dataManager.set(WAVE_ACTIVE, false);
+				if (wave == this.stats.maxWaves) {
 					this.onPortalCompletion();
 				}
-				this.currentWaveTicks = 0;
-			} else if (!waveActive) {
+				this.ticksActive = 0;
+			} else if (!active) {
 				if (this.ticksInactive++ > this.stats.pauseTime) {
 					this.spawnWave();
+					return;
 				}
 			}
 		}
@@ -152,7 +165,7 @@ public abstract class AbstractGatewayEntity extends Entity {
 					return;
 				}
 
-				modifyEntityForWave(wave + 1, (LivingEntity) entity);
+				modifyEntityForWave(getWave() + 1, (LivingEntity) entity);
 
 				entity.setLocationAndAngles(entity.getX(), entity.getY(), entity.getZ(), world.rand.nextFloat() * 360.0F, 0.0F);
 				if (entity instanceof MobEntity) {
@@ -164,15 +177,16 @@ public abstract class AbstractGatewayEntity extends Entity {
 				}
 
 				this.spawnEntity(entity);
+				this.world.playSound(null, this.getX(), this.getY(), this.getZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 1, 1);
 				this.currentWaveEntities.add((LivingEntity) entity);
 			} else {
 				this.remove();
 			}
 		}
-		this.wave++;
-		this.waveActive = true;
+		this.dataManager.set(WAVE, (byte) (getWave() + 1));
+		this.dataManager.set(WAVE_ACTIVE, true);
 		this.ticksInactive = 0;
-		this.onWaveStart(this.wave, this.currentWaveEntities);
+		this.onWaveStart(getWave(), this.currentWaveEntities);
 	}
 
 	protected void spawnEntity(Entity entity) {
@@ -180,7 +194,6 @@ public abstract class AbstractGatewayEntity extends Entity {
 			for (Entity e : entity.getPassengers()) {
 				this.spawnEntity(e);
 			}
-
 		}
 	}
 
@@ -197,12 +210,10 @@ public abstract class AbstractGatewayEntity extends Entity {
 
 	}
 
-	static Method dropLoot;
-
 	protected void onWaveEnd(int wave) {
-		PlayerEntity p = world.getPlayerByUuid(summonerId);
-		if (dropLoot == null) {
-			dropLoot = ReflectionHelper.findMethod(LivingEntity.class, "dropLoot", "func_213354_a", DamageSource.class, boolean.class);
+		PlayerEntity player = world.getPlayerByUuid(summonerId);
+		if (player == null) {
+			player = world.getClosestPlayer(this, 50);
 		}
 		try {
 			Entity entity = EntityType.func_220335_a(this.entity.getNbt(), world, (p_221408_6_) -> {
@@ -211,9 +222,7 @@ public abstract class AbstractGatewayEntity extends Entity {
 			});
 			List<ItemEntity> items = new ArrayList<>();
 			entity.captureDrops(items);
-			for (int i = 0; i < this.currentWaveEntities.size() * wave; i++) {
-				dropLoot.invoke(entity, DamageSource.causePlayerDamage(p), true);
-			}
+			this.dropBonusLoot(player, (LivingEntity) entity);
 			items.forEach(i -> {
 				i.setPosition(this.getX(), this.getY() + 1.5, this.getZ());
 				i.setVelocity(MathHelper.nextDouble(rand, -0.15, 0.15), 0.4, MathHelper.nextDouble(rand, -0.15, 0.15));
@@ -239,27 +248,33 @@ public abstract class AbstractGatewayEntity extends Entity {
 
 	protected abstract GatewaySize getSize();
 
+	protected void dropBonusLoot(PlayerEntity player, LivingEntity entity) throws Exception {
+		for (int i = 0; i < this.stats.entitiesPerWave * getWave(); i++) {
+			DROP_LOOT.invoke(entity, DamageSource.causePlayerDamage(player), true);
+		}
+	}
+
 	@Override
 	protected void readAdditional(CompoundNBT tag) {
-		this.wave = tag.getByte("wave");
+		this.dataManager.set(WAVE, tag.getByte("wave"));
 		this.entity = new WeightedSpawnerEntity(tag.getCompound("entity"));
 		long[] entities = tag.getLongArray("wave_entities");
 		for (int i = 0; i < entities.length; i += 2) {
 			unresolvedWaveEntities.add(new UUID(entities[i], entities[i + 1]));
 		}
-		this.waveActive = tag.getBoolean("active");
+		this.dataManager.set(WAVE_ACTIVE, tag.getBoolean("active"));
 		this.ticksInactive = tag.getShort("ticks_inactive");
+		this.ticksActive = tag.getInt("ticks_active");
 		this.completionXP = tag.getInt("completion_xp");
 		this.summonerId = tag.getUniqueId("summoner");
 		this.bossInfo.setName(new TranslationTextComponent(tag.getString("name")));
 		this.maxWaveTime = tag.getInt("max_wave_time");
-		this.currentWaveTicks = tag.getInt("current_wave_ticks");
-		this.bossInfo.setPercent(1F - (float) this.wave / this.stats.maxWaves);
+		this.bossInfo.setPercent(1F - (float) getWave() / this.stats.maxWaves);
 	}
 
 	@Override
 	protected void writeAdditional(CompoundNBT tag) {
-		tag.putByte("wave", (byte) this.wave);
+		tag.putByte("wave", getWave());
 		tag.put("entity", this.entity.toCompoundTag());
 		long[] ids = new long[this.currentWaveEntities.size() * 2];
 		int idx = 0;
@@ -269,17 +284,19 @@ public abstract class AbstractGatewayEntity extends Entity {
 			ids[idx++] = id.getLeastSignificantBits();
 		}
 		tag.putLongArray("wave_entities", ids);
-		tag.putBoolean("active", this.waveActive);
-		tag.putShort("ticks_inactive", (short) this.ticksInactive);
+		tag.putBoolean("active", isWaveActive());
+		tag.putInt("ticks_active", getTicksActive());
+		tag.putShort("ticks_inactive", (short) getTicksInactive());
 		tag.putInt("completion_xp", this.completionXP);
 		tag.putUniqueId("summoner", this.summonerId);
 		tag.putString("name", this.bossInfo.getName() == null ? "entity.gateways.gateway" : ((TranslationTextComponent) this.bossInfo.getName()).getKey());
 		tag.putInt("max_wave_time", this.maxWaveTime);
-		tag.putInt("current_wave_ticks", this.currentWaveTicks);
 	}
 
 	@Override
 	protected void registerData() {
+		this.dataManager.register(WAVE_ACTIVE, false);
+		this.dataManager.register(WAVE, (byte) 0);
 	}
 
 	@Override
@@ -299,12 +316,40 @@ public abstract class AbstractGatewayEntity extends Entity {
 		this.bossInfo.removePlayer(player);
 	}
 
+	public int getTicksActive() {
+		return ticksActive;
+	}
+
+	public int getTicksInactive() {
+		return ticksInactive;
+	}
+
+	public boolean isWaveActive() {
+		return this.dataManager.get(WAVE_ACTIVE);
+	}
+
+	public byte getWave() {
+		return this.dataManager.get(WAVE);
+	}
+
+	public GatewayStats getStats() {
+		return stats;
+	}
+
+	public int getClientTicks() {
+		return this.clientTickCounter;
+	}
+
+	public void setClientTicks(int ticks) {
+		this.clientTickCounter = ticks;
+	}
+
 	public static void spawnLightningOn(Entity entity) {
 		((ServerWorld) entity.world).addLightningBolt(new LightningBoltEntity(entity.world, entity.getX(), entity.getY(), entity.getZ(), false));
 	}
 
 	public class GatewayStats {
-		protected int maxWaves, entitiesPerWave, spawnRange, pauseTime;
+		public final int maxWaves, entitiesPerWave, spawnRange, pauseTime;
 
 		public GatewayStats(int maxWaves, int entitiesPerWave, int spawnRange, int pauseTime) {
 			this.maxWaves = maxWaves;

@@ -18,7 +18,7 @@ public class GatewaysToEternityClient {
 	public static void setup(FMLClientSetupEvent e) {
 		DeferredWorkQueue.runLater(() -> {
 			EntityRendererManager mgr = Minecraft.getInstance().getRenderManager();
-			mgr.register(GatewaysToEternity.SMALL_GATEWAY, new GatewayRenderer(mgr));
+			mgr.register(GatewayObjects.SMALL_GATEWAY, new GatewayRenderer(mgr));
 		});
 	}
 

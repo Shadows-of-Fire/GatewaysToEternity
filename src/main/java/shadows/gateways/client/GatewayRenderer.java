@@ -19,7 +19,7 @@ import shadows.gateways.entity.AbstractGatewayEntity;
 
 public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
 
-	public static final ResourceLocation TEXTURE = new ResourceLocation(GatewaysToEternity.MODID, "textures/entity/temp.png");
+	public static final ResourceLocation TEXTURE = new ResourceLocation(GatewaysToEternity.MODID, "textures/entity/temp2.png");
 
 	public GatewayRenderer(EntityRendererManager mgr) {
 		super(mgr);
@@ -37,16 +37,39 @@ public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
 		Vec3d playerV = player.getEyePosition(partialTicks);
 		Vec3d portal = entity.getPositionVec();
 
-		float scale = 1.5F;
+		float scale = 0.35F;
 		double yOffset = 1.5;
 
 		matrix.translate(0, yOffset, 0);
 		matrix.multiply(new Quaternion(new Vector3f(0, 1, 0), 90, true));
 		matrix.multiply(new Quaternion(new Vector3f(0, 1, 0), 180F - (float) angleOf(portal, playerV), true));
-		matrix.scale(scale, scale, scale);
+
+		float progress = ((entity.ticksExisted + partialTicks) % 90) / 90F;
+		scale += (float) Math.cos(2 * Math.PI * progress) / 6F;
+
+		if (!entity.isWaveActive()) {
+			if (entity.getClientTicks() == -1) entity.setClientTicks(entity.ticksExisted);
+		}
+
+		if (entity.getClientTicks() != -1) {
+			progress = (entity.ticksExisted - entity.getClientTicks() + partialTicks) / entity.getStats().pauseTime;
+			if (progress >= 1.3F) entity.setClientTicks(-1);
+			else {
+				if (progress <= 0.45F) {
+					float sin = (float) -Math.sin(Math.PI * progress / 0.45F) / 5F;
+					scale *= (1 + sin);
+				} else {
+					float sin = (float) Math.sin(Math.PI * (progress - 0.35F) * (progress - 0.35F));
+					float sinSq = sin * sin;
+					scale *= (1 + sinSq);
+				}
+			}
+		}
+
+		matrix.scale(scale, scale, 1);
 
 		this.renderManager.textureManager.bindTexture(this.getEntityTexture(entity));
-		IVertexBuilder builder = buf.getBuffer(RenderType.getEntityCutout(getEntityTexture(entity)));
+		IVertexBuilder builder = buf.getBuffer(RenderType.getEntityTranslucent(getEntityTexture(entity)));
 		builder.vertex(matrix.peek().getModel(), -1, -1, 0).color(255, 255, 255, 255).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(packedLight).normal(matrix.peek().getNormal(), 0, 1, 0).endVertex();
 		builder.vertex(matrix.peek().getModel(), -1, 1, 0).color(255, 255, 255, 255).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(packedLight).normal(matrix.peek().getNormal(), 0, 1, 0).endVertex();
 		builder.vertex(matrix.peek().getModel(), 1, 1, 0).color(255, 255, 255, 255).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(packedLight).normal(matrix.peek().getNormal(), 0, 1, 0).endVertex();

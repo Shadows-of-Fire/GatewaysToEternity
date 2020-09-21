@@ -1,0 +1,12 @@
+{
+  "gate_warp": {
+    "category": "hostile",
+    "subtitle": "gateways.subtitle.gate_warp",
+    "sounds": [ "gateways:warp" ]
+  },
+  "gate_ambient": {
+    "category": "hostile",
+    "subtitle": "gateways.subtitle.portal_noise",
+    "sounds": [ "gateways:ambient_loop" ]
+  }
+}

@@ -28,10 +28,11 @@ public class GatewayItem extends Item {
 
 		if (world.isRemote) return ActionResultType.SUCCESS;
 
-		if (!world.getEntitiesWithinAABB(AbstractGatewayEntity.class, new AxisAlignedBB(pos).grow(10, 10, 10)).isEmpty()) return ActionResultType.FAIL;
+		if (!world.getEntitiesWithinAABB(AbstractGatewayEntity.class, new AxisAlignedBB(pos).grow(25, 25, 25)).isEmpty()) return ActionResultType.FAIL;
 
 		AbstractGatewayEntity entity = factory.createGate(world, ctx.getPlayer(), stack);
 		entity.setPosition(pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5);
+		if (!world.doesNotCollide(entity)) return ActionResultType.FAIL;
 		world.addEntity(entity);
 		if (!ctx.getPlayer().isCreative()) stack.shrink(1);
 		return ActionResultType.CONSUME;
