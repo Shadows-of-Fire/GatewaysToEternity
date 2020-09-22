@@ -16,6 +16,7 @@ import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec3d;
 import shadows.gateways.GatewaysToEternity;
 import shadows.gateways.entity.AbstractGatewayEntity;
+import shadows.gateways.util.BossColorMap;
 
 public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
 
@@ -70,7 +71,7 @@ public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
 
 		this.renderManager.textureManager.bindTexture(this.getEntityTexture(entity));
 		IVertexBuilder builder = buf.getBuffer(RenderType.getEntityTranslucent(getEntityTexture(entity)));
-		int color = entity.getBossInfo().getColor().getFormatting().getColor();
+		int color = BossColorMap.getColor(entity.getBossInfo());
 		int r = color >> 16 & 255, g = color >> 8 & 255, b = color & 255;
 		builder.vertex(matrix.peek().getModel(), -1, -1, 0).color(r, g, b, 255).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(packedLight).normal(matrix.peek().getNormal(), 0, 1, 0).endVertex();
 		builder.vertex(matrix.peek().getModel(), -1, 1, 0).color(r, g, b, 255).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(packedLight).normal(matrix.peek().getNormal(), 0, 1, 0).endVertex();

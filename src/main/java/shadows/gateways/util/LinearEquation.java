@@ -1,4 +1,4 @@
-package shadows.gateways.client;
+package shadows.gateways.util;
 
 import net.minecraft.util.math.Vec3d;
 

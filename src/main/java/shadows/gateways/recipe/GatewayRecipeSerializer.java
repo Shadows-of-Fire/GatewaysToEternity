@@ -33,12 +33,14 @@ public class GatewayRecipeSerializer extends ShapedRecipe.Serializer {
 		ResourceLocation entity = new ResourceLocation(data.get("entity").getAsString());
 		int completionXP = data.has("completion_xp") ? data.get("completion_xp").getAsInt() : 150;
 		int maxWaveTime = data.has("max_wave_time") ? data.get("max_wave_time").getAsInt() : 600;
+		String color = data.has("color") ? data.get("color").getAsString() : "blue";
 		CompoundNBT tag = new CompoundNBT();
 		tag.putString("name", name);
 		WeightedSpawnerEntity ws = new WeightedSpawnerEntity(1, TagBuilder.getDefaultTag(ForgeRegistries.ENTITIES.getValue(entity)));
 		tag.put("entity", ws.toCompoundTag());
 		tag.putInt("completion_xp", completionXP);
 		tag.putInt("max_wave_time", maxWaveTime);
+		tag.putString("color", color);
 		return tag;
 	}
 

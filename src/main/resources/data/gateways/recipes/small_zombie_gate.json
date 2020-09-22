@@ -20,7 +20,8 @@
 		"name": "gateways.small_zombie_gate",
 		"entity": "minecraft:zombie",
 		"completion_xp": 150,
-		"max_wave_time": 600
+		"max_wave_time": 600,
+		"color": "blue"
 	}
   }
 }

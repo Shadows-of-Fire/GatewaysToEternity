@@ -26,6 +26,7 @@ import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.IPacket;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -43,14 +44,16 @@ import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
+import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 import net.minecraftforge.fml.network.NetworkHooks;
 import shadows.gateways.GatewayObjects;
 import shadows.gateways.GatewaysToEternity;
 import shadows.gateways.net.ParticleMessage;
+import shadows.gateways.util.BossColorMap;
 import shadows.gateways.util.TagBuilder;
 import shadows.placebo.util.NetworkUtils;
 
-public abstract class AbstractGatewayEntity extends Entity {
+public abstract class AbstractGatewayEntity extends Entity implements IEntityAdditionalSpawnData {
 
 	public static final Method DROP_LOOT = ObfuscationReflectionHelper.findMethod(LivingEntity.class, "func_213354_a", DamageSource.class, boolean.class);
 	public static final DataParameter<Boolean> WAVE_ACTIVE = EntityDataManager.createKey(AbstractGatewayEntity.class, DataSerializers.BOOLEAN);
@@ -300,6 +303,7 @@ public abstract class AbstractGatewayEntity extends Entity {
 		for (INBT inbt : stacks) {
 			undroppedItems.add(ItemStack.read((CompoundNBT) inbt));
 		}
+		this.bossInfo.setColor(Color.byName(tag.getString("color")));
 	}
 
 	@Override
@@ -326,6 +330,7 @@ public abstract class AbstractGatewayEntity extends Entity {
 			stacks.add(s.serializeNBT());
 		}
 		tag.put("queued_stacks", stacks);
+		tag.putString("color", bossInfo.getColor().getName());
 	}
 
 	@Override
@@ -388,7 +393,7 @@ public abstract class AbstractGatewayEntity extends Entity {
 	}
 
 	public void spawnParticle(Color color, double x, double y, double z, int type) {
-		int cInt = color.getFormatting().color;
+		int cInt = BossColorMap.getColor(this.getBossInfo());
 		NetworkUtils.sendToTracking(GatewaysToEternity.CHANNEL, new ParticleMessage(this, x, y, z, cInt, type), (ServerWorld) world, new BlockPos((int) x, (int) y, (int) z));
 	}
 
@@ -398,6 +403,16 @@ public abstract class AbstractGatewayEntity extends Entity {
 		i.setVelocity(MathHelper.nextDouble(rand, -0.15, 0.15), 0.4, MathHelper.nextDouble(rand, -0.15, 0.15));
 		world.addEntity(i);
 		this.world.playSound(null, i.getX(), i.getY(), i.getZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.75F, 2.0F);
+	}
+
+	@Override
+	public void writeSpawnData(PacketBuffer buf) {
+		buf.writeString(this.bossInfo.getColor().getName());
+	}
+
+	@Override
+	public void readSpawnData(PacketBuffer buf) {
+		this.bossInfo.setColor(Color.byName(buf.readString()));
 	}
 
 	public class GatewayStats {

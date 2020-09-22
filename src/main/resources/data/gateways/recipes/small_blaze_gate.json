@@ -17,10 +17,11 @@
   "result": {
     "item": "gateways:small_gate_opener",
 	"gateway": {
-		"name": "gateways.small_zombie_gate",
+		"name": "gateways.small_blaze_gate",
 		"entity": "minecraft:blaze",
 		"completion_xp": 150,
-		"max_wave_time": 600
+		"max_wave_time": 600,
+		"color": "red"
 	}
   }
 }
