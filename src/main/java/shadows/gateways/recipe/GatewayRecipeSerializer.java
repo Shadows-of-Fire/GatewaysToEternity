@@ -1,6 +1,7 @@
 package shadows.gateways.recipe;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.ShapedRecipe;
@@ -10,6 +11,7 @@ import net.minecraft.util.WeightedSpawnerEntity;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.registries.ForgeRegistries;
+import shadows.gateways.item.GatewayItem;
 import shadows.gateways.util.TagBuilder;
 
 public class GatewayRecipeSerializer extends ShapedRecipe.Serializer {
@@ -20,6 +22,9 @@ public class GatewayRecipeSerializer extends ShapedRecipe.Serializer {
 	public GatewayRecipe read(ResourceLocation id, JsonObject json) {
 		ShapedRecipe recipe = super.read(id, json);
 		ItemStack gateway = recipe.getRecipeOutput();
+		if (!(gateway.getItem() instanceof GatewayItem)) {
+			throw new JsonSyntaxException("Gateway Recipe output must be a gate opener item.  Provided: " + gateway.getItem().getRegistryName());
+		}
 		JsonObject gatewayData = json.get("result").getAsJsonObject().get("gateway").getAsJsonObject();
 		CompoundNBT tag = toNBT(gatewayData);
 		gateway.getOrCreateTag().put("gateway_data", tag);
