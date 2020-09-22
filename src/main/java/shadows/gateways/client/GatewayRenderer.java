@@ -19,7 +19,7 @@ import shadows.gateways.entity.AbstractGatewayEntity;
 
 public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
 
-	public static final ResourceLocation TEXTURE = new ResourceLocation(GatewaysToEternity.MODID, "textures/entity/temp2.png");
+	public static final ResourceLocation TEXTURE = new ResourceLocation(GatewaysToEternity.MODID, "textures/entity/temp_gray.png");
 
 	public GatewayRenderer(EntityRendererManager mgr) {
 		super(mgr);
@@ -70,10 +70,12 @@ public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
 
 		this.renderManager.textureManager.bindTexture(this.getEntityTexture(entity));
 		IVertexBuilder builder = buf.getBuffer(RenderType.getEntityTranslucent(getEntityTexture(entity)));
-		builder.vertex(matrix.peek().getModel(), -1, -1, 0).color(255, 255, 255, 255).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(packedLight).normal(matrix.peek().getNormal(), 0, 1, 0).endVertex();
-		builder.vertex(matrix.peek().getModel(), -1, 1, 0).color(255, 255, 255, 255).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(packedLight).normal(matrix.peek().getNormal(), 0, 1, 0).endVertex();
-		builder.vertex(matrix.peek().getModel(), 1, 1, 0).color(255, 255, 255, 255).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(packedLight).normal(matrix.peek().getNormal(), 0, 1, 0).endVertex();
-		builder.vertex(matrix.peek().getModel(), 1, -1, 0).color(255, 255, 255, 255).texture(0, 1).overlay(OverlayTexture.DEFAULT_UV).light(packedLight).normal(matrix.peek().getNormal(), 0, 1, 0).endVertex();
+		int color = entity.getBossInfo().getColor().getFormatting().getColor();
+		int r = color >> 16 & 255, g = color >> 8 & 255, b = color & 255;
+		builder.vertex(matrix.peek().getModel(), -1, -1, 0).color(r, g, b, 255).texture(1, 1).overlay(OverlayTexture.DEFAULT_UV).light(packedLight).normal(matrix.peek().getNormal(), 0, 1, 0).endVertex();
+		builder.vertex(matrix.peek().getModel(), -1, 1, 0).color(r, g, b, 255).texture(1, 0).overlay(OverlayTexture.DEFAULT_UV).light(packedLight).normal(matrix.peek().getNormal(), 0, 1, 0).endVertex();
+		builder.vertex(matrix.peek().getModel(), 1, 1, 0).color(r, g, b, 255).texture(0, 0).overlay(OverlayTexture.DEFAULT_UV).light(packedLight).normal(matrix.peek().getNormal(), 0, 1, 0).endVertex();
+		builder.vertex(matrix.peek().getModel(), 1, -1, 0).color(r, g, b, 255).texture(0, 1).overlay(OverlayTexture.DEFAULT_UV).light(packedLight).normal(matrix.peek().getNormal(), 0, 1, 0).endVertex();
 
 		matrix.pop();
 	}

@@ -23,7 +23,9 @@ public class SmallGatewayEntity extends AbstractGatewayEntity {
 
 	@Override
 	protected ServerBossInfo createBossInfo() {
-		return new ServerBossInfo(this.getDefaultName(), BossInfo.Color.BLUE, BossInfo.Overlay.NOTCHED_6);
+		ServerBossInfo info = new ServerBossInfo(this.getDefaultName(), BossInfo.Color.BLUE, BossInfo.Overlay.NOTCHED_6);
+		info.setCreateFog(true);
+		return info;
 	}
 
 	@Override

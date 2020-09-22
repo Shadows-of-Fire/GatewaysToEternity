@@ -1,10 +1,12 @@
 package shadows.gateways.entity;
 
 import java.lang.reflect.Method;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,6 +23,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.ServerPlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.ListNBT;
 import net.minecraft.network.IPacket;
 import net.minecraft.network.datasync.DataParameter;
@@ -29,19 +32,23 @@ import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.WeightedSpawnerEntity;
-import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.BossInfo;
+import net.minecraft.world.BossInfo.Color;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerBossInfo;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.fml.common.ObfuscationReflectionHelper;
 import net.minecraftforge.fml.network.NetworkHooks;
 import shadows.gateways.GatewayObjects;
 import shadows.gateways.GatewaysToEternity;
+import shadows.gateways.net.ParticleMessage;
 import shadows.gateways.util.TagBuilder;
+import shadows.placebo.util.NetworkUtils;
 
 public abstract class AbstractGatewayEntity extends Entity {
 
@@ -61,8 +68,8 @@ public abstract class AbstractGatewayEntity extends Entity {
 
 	protected int ticksActive = 0;
 	protected int ticksInactive = 0;
-
 	protected int clientTickCounter = -1;
+	protected Queue<ItemStack> undroppedItems = new ArrayDeque<>();
 
 	/**
 	 * Primary constructor.
@@ -93,6 +100,10 @@ public abstract class AbstractGatewayEntity extends Entity {
 				unresolvedWaveEntities.clear();
 			}
 
+			if (this.ticksExisted % 20 == 0) {
+				spawnParticle(this.bossInfo.getColor(), this.getX(), this.getY() + 1.5F, this.getZ(), 1);
+			}
+
 			if (isWaveActive()) {
 				float progress = 1F - (getWave() - 1F) / this.stats.maxWaves;
 				progress -= (float) this.ticksActive / this.maxWaveTime * (1F / this.stats.maxWaves);
@@ -111,14 +122,22 @@ public abstract class AbstractGatewayEntity extends Entity {
 				this.currentWaveEntities.clear();
 				this.dataManager.set(WAVE_ACTIVE, false);
 				if (wave == this.stats.maxWaves) {
-					this.onPortalCompletion();
+					this.onLastWaveEnd();
 				}
 				this.ticksActive = 0;
 			} else if (!active) {
-				if (this.ticksInactive++ > this.stats.pauseTime) {
+				if (this.ticksInactive++ > this.stats.pauseTime && this.getWave() != this.stats.maxWaves) {
 					this.spawnWave();
 					return;
 				}
+			}
+
+			if (this.ticksExisted % 4 == 0 && !undroppedItems.isEmpty()) {
+				spawnItem(undroppedItems.remove());
+			}
+
+			if (!active && undroppedItems.isEmpty() && this.getWave() == this.stats.maxWaves) {
+				this.completePortal();
 			}
 		}
 
@@ -177,8 +196,9 @@ public abstract class AbstractGatewayEntity extends Entity {
 				}
 
 				this.spawnEntity(entity);
-				this.world.playSound(null, this.getX(), this.getY(), this.getZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 1, 1);
+				this.world.playSound(null, this.getX(), this.getY(), this.getZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.5F, 1);
 				this.currentWaveEntities.add((LivingEntity) entity);
+				spawnParticle(this.bossInfo.getColor(), entity.getX() + entity.getWidth() / 2, entity.getY() + entity.getHeight() / 2, entity.getZ() + entity.getWidth() / 2, 0);
 			} else {
 				this.remove();
 			}
@@ -197,17 +217,25 @@ public abstract class AbstractGatewayEntity extends Entity {
 		}
 	}
 
-	protected void onPortalCompletion() {
+	protected void onLastWaveEnd() {
 		while (completionXP > 0) {
-			int i = ExperienceOrbEntity.getXPSplit(completionXP);
+			int i = 5;
 			completionXP -= i;
 			this.world.addEntity(new ExperienceOrbEntity(this.world, this.getX(), this.getY(), this.getZ(), i));
 		}
-		this.remove();
 	}
 
 	protected void onWaveStart(int wave, Set<LivingEntity> spawned) {
 
+	}
+
+	protected void completePortal() {
+		this.remove();
+		this.playSound(GatewayObjects.GATE_END, 1, 1);
+	}
+
+	public void onGateCreated() {
+		this.playSound(GatewayObjects.GATE_START, 1, 1);
 	}
 
 	protected void onWaveEnd(int wave) {
@@ -221,13 +249,10 @@ public abstract class AbstractGatewayEntity extends Entity {
 				return p_221408_6_;
 			});
 			List<ItemEntity> items = new ArrayList<>();
+			entity.attackEntityFrom(DamageSource.causePlayerDamage(player).setDamageIsAbsolute().setDamageAllowedInCreativeMode().setDamageBypassesArmor(), 1);
 			entity.captureDrops(items);
 			this.dropBonusLoot(player, (LivingEntity) entity);
-			items.forEach(i -> {
-				i.setPosition(this.getX(), this.getY() + 1.5, this.getZ());
-				i.setVelocity(MathHelper.nextDouble(rand, -0.15, 0.15), 0.4, MathHelper.nextDouble(rand, -0.15, 0.15));
-				world.addEntity(i);
-			});
+			items.stream().map(ItemEntity::getItem).forEach(undroppedItems::add);
 		} catch (Exception e) {
 			e.printStackTrace();
 			this.remove();
@@ -237,7 +262,8 @@ public abstract class AbstractGatewayEntity extends Entity {
 	protected abstract void modifyEntityForWave(int wave, LivingEntity entity);
 
 	protected void onWaveTimerElapsed(int wave, Set<LivingEntity> remaining) {
-		world.getEntitiesWithinAABB(Entity.class, new AxisAlignedBB(this.getPosition()).grow(15)).forEach(AbstractGatewayEntity::spawnLightningOn);
+		spawnLightningOn(this, false);
+		remaining.stream().filter(Entity::isAlive).forEach(e -> spawnLightningOn(e, true));
 		remaining.forEach(Entity::remove);
 		this.remove();
 	}
@@ -270,6 +296,10 @@ public abstract class AbstractGatewayEntity extends Entity {
 		this.bossInfo.setName(new TranslationTextComponent(tag.getString("name")));
 		this.maxWaveTime = tag.getInt("max_wave_time");
 		this.bossInfo.setPercent(1F - (float) getWave() / this.stats.maxWaves);
+		ListNBT stacks = tag.getList("queued_stacks", Constants.NBT.TAG_COMPOUND);
+		for (INBT inbt : stacks) {
+			undroppedItems.add(ItemStack.read((CompoundNBT) inbt));
+		}
 	}
 
 	@Override
@@ -291,6 +321,11 @@ public abstract class AbstractGatewayEntity extends Entity {
 		tag.putUniqueId("summoner", this.summonerId);
 		tag.putString("name", this.bossInfo.getName() == null ? "entity.gateways.gateway" : ((TranslationTextComponent) this.bossInfo.getName()).getKey());
 		tag.putInt("max_wave_time", this.maxWaveTime);
+		ListNBT stacks = new ListNBT();
+		for (ItemStack s : this.undroppedItems) {
+			stacks.add(s.serializeNBT());
+		}
+		tag.put("queued_stacks", stacks);
 	}
 
 	@Override
@@ -336,6 +371,10 @@ public abstract class AbstractGatewayEntity extends Entity {
 		return stats;
 	}
 
+	public BossInfo getBossInfo() {
+		return bossInfo;
+	}
+
 	public int getClientTicks() {
 		return this.clientTickCounter;
 	}
@@ -344,8 +383,21 @@ public abstract class AbstractGatewayEntity extends Entity {
 		this.clientTickCounter = ticks;
 	}
 
-	public static void spawnLightningOn(Entity entity) {
-		((ServerWorld) entity.world).addLightningBolt(new LightningBoltEntity(entity.world, entity.getX(), entity.getY(), entity.getZ(), false));
+	public static void spawnLightningOn(Entity entity, boolean effectOnly) {
+		((ServerWorld) entity.world).addLightningBolt(new LightningBoltEntity(entity.world, entity.getX(), entity.getY(), entity.getZ(), effectOnly));
+	}
+
+	public void spawnParticle(Color color, double x, double y, double z, int type) {
+		int cInt = color.getFormatting().color;
+		NetworkUtils.sendToTracking(GatewaysToEternity.CHANNEL, new ParticleMessage(this, x, y, z, cInt, type), (ServerWorld) world, new BlockPos((int) x, (int) y, (int) z));
+	}
+
+	public void spawnItem(ItemStack stack) {
+		ItemEntity i = new ItemEntity(world, 0, 0, 0, stack);
+		i.setPosition(this.getX() + MathHelper.nextDouble(rand, -0.5, 0.5), this.getY() + 1.5, this.getZ() + MathHelper.nextDouble(rand, -0.5, 0.5));
+		i.setVelocity(MathHelper.nextDouble(rand, -0.15, 0.15), 0.4, MathHelper.nextDouble(rand, -0.15, 0.15));
+		world.addEntity(i);
+		this.world.playSound(null, i.getX(), i.getY(), i.getZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.75F, 2.0F);
 	}
 
 	public class GatewayStats {

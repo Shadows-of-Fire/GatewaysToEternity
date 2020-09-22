@@ -34,6 +34,7 @@ public class GatewayItem extends Item {
 		entity.setPosition(pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5);
 		if (!world.doesNotCollide(entity)) return ActionResultType.FAIL;
 		world.addEntity(entity);
+		entity.onGateCreated();
 		if (!ctx.getPlayer().isCreative()) stack.shrink(1);
 		return ActionResultType.CONSUME;
 	}

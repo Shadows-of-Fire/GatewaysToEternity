@@ -1,0 +1,26 @@
+{
+  "type": "gateways:gate_recipe",
+  "group": "gateways",
+  "pattern": [
+    " # ",
+    "#A#",
+    " # "
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:oak_planks"
+    },
+	"A": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "item": "gateways:small_gate_opener",
+	"gateway": {
+		"name": "gateways.small_zombie_gate",
+		"entity": "minecraft:blaze",
+		"completion_xp": 150,
+		"max_wave_time": 600
+	}
+  }
+}

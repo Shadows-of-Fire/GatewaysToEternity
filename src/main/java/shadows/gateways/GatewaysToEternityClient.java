@@ -8,6 +8,7 @@ import net.minecraftforge.fml.DeferredWorkQueue;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
+import shadows.gateways.client.GatewayParticle;
 import shadows.gateways.client.GatewayRenderer;
 
 @SuppressWarnings("deprecation")
@@ -19,6 +20,7 @@ public class GatewaysToEternityClient {
 		DeferredWorkQueue.runLater(() -> {
 			EntityRendererManager mgr = Minecraft.getInstance().getRenderManager();
 			mgr.register(GatewayObjects.SMALL_GATEWAY, new GatewayRenderer(mgr));
+			Minecraft.getInstance().particles.registerFactory(GatewayObjects.GLOW, GatewayParticle.Factory::new);
 		});
 	}
 
