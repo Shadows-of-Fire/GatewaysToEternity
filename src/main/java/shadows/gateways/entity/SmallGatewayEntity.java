@@ -2,7 +2,7 @@ package shadows.gateways.entity;
 
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.Attributes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.BossInfo;
@@ -23,7 +23,7 @@ public class SmallGatewayEntity extends AbstractGatewayEntity {
 
 	@Override
 	protected ServerBossInfo createBossInfo() {
-		ServerBossInfo info = new ServerBossInfo(this.getDefaultName(), BossInfo.Color.BLUE, BossInfo.Overlay.NOTCHED_6);
+		ServerBossInfo info = new ServerBossInfo(this.getName(), BossInfo.Color.BLUE, BossInfo.Overlay.NOTCHED_6);
 		info.setCreateFog(true);
 		return info;
 	}
@@ -42,11 +42,11 @@ public class SmallGatewayEntity extends AbstractGatewayEntity {
 	protected void modifyEntityForWave(int wave, LivingEntity entity) {
 		if (wave == 1) return;
 		wave--;
-		AttributeHelper.multiplyFinal(entity, SharedMonsterAttributes.MAX_HEALTH, "gateways_gate", Math.pow(1.33F, wave) - 1);
-		AttributeHelper.addToBase(entity, SharedMonsterAttributes.ARMOR, "gateways_gate", wave * 3);
-		AttributeHelper.multiplyFinal(entity, SharedMonsterAttributes.ATTACK_DAMAGE, "gateways_gate", Math.pow(1.33F, wave) - 1);
-		AttributeHelper.multiplyFinal(entity, SharedMonsterAttributes.KNOCKBACK_RESISTANCE, "gateways_gate", wave * 0.05F);
-		AttributeHelper.multiplyFinal(entity, SharedMonsterAttributes.MOVEMENT_SPEED, "gateways_gate", wave * 0.01F);
+		AttributeHelper.multiplyFinal(entity, Attributes.MAX_HEALTH, "gateways_gate", Math.pow(1.33F, wave) - 1);
+		AttributeHelper.addToBase(entity, Attributes.ARMOR, "gateways_gate", wave * 3);
+		AttributeHelper.multiplyFinal(entity, Attributes.ATTACK_DAMAGE, "gateways_gate", Math.pow(1.33F, wave) - 1);
+		AttributeHelper.multiplyFinal(entity, Attributes.KNOCKBACK_RESISTANCE, "gateways_gate", wave * 0.05F);
+		AttributeHelper.multiplyFinal(entity, Attributes.MOVEMENT_SPEED, "gateways_gate", wave * 0.01F);
 		entity.setHealth(entity.getMaxHealth());
 	}
 

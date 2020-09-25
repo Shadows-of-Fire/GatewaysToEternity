@@ -14,9 +14,9 @@ public class GatewayTickableSound extends TickableSound {
 		this.gateway = gateway;
 		this.repeat = true;
 		this.repeatDelay = 0;
-		this.x = (float) gateway.getX();
-		this.y = (float) gateway.getY();
-		this.z = (float) gateway.getZ();
+		this.x = (float) gateway.getPosX();
+		this.y = (float) gateway.getPosY();
+		this.z = (float) gateway.getPosZ();
 		this.global = false;
 		this.pitch = 0.75F;
 	}
@@ -27,7 +27,7 @@ public class GatewayTickableSound extends TickableSound {
 
 	public void tick() {
 		if (!this.gateway.isAlive()) {
-			this.donePlaying = true;
+			this.finishPlaying();
 		} else {
 			this.volume = 1 - (float) Minecraft.getInstance().player.getDistanceSq(this.gateway) / (18 * 18F);
 		}

@@ -104,7 +104,7 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 			}
 
 			if (this.ticksExisted % 20 == 0) {
-				spawnParticle(this.bossInfo.getColor(), this.getX(), this.getY() + 1.5F, this.getZ(), 1);
+				spawnParticle(this.bossInfo.getColor(), this.getPosX(), this.getPosY() + 1.5F, this.getPosZ(), 1);
 			}
 
 			if (isWaveActive()) {
@@ -164,7 +164,7 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 			double x = j >= 1 ? listnbt.getDouble(0) : blockpos.getX() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.stats.spawnRange + 0.5D;
 			double y = j >= 2 ? listnbt.getDouble(1) : (double) (blockpos.getY() + world.rand.nextInt(3) - 1);
 			double z = j >= 3 ? listnbt.getDouble(2) : blockpos.getZ() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.stats.spawnRange + 0.5D;
-			while (!world.doesNotCollide(optional.get().func_220328_a(x, y, z))) {
+			while (!world.hasNoCollisions(optional.get().getBoundingBoxWithSizeApplied(x, y, z))) {
 				x = j >= 1 ? listnbt.getDouble(0) : blockpos.getX() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.stats.spawnRange + 0.5D;
 				y = j >= 2 ? listnbt.getDouble(1) : (double) (blockpos.getY() + world.rand.nextInt(3) - 1);
 				z = j >= 3 ? listnbt.getDouble(2) : blockpos.getZ() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.stats.spawnRange + 0.5D;
@@ -175,8 +175,8 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 
 			final double fx = x, fy = y, fz = z;
 
-			if (world.doesNotCollide(optional.get().func_220328_a(x, y, z))) {
-				Entity entity = EntityType.func_220335_a(compoundnbt, world, (p_221408_6_) -> {
+			if (world.hasNoCollisions(optional.get().getBoundingBoxWithSizeApplied(x, y, z))) {
+				Entity entity = EntityType.loadEntityAndExecute(compoundnbt, world, (p_221408_6_) -> {
 					p_221408_6_.setLocationAndAngles(fx, fy, fz, p_221408_6_.rotationYaw, p_221408_6_.rotationPitch);
 					return p_221408_6_;
 				});
@@ -189,19 +189,19 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 
 				modifyEntityForWave(getWave() + 1, (LivingEntity) entity);
 
-				entity.setLocationAndAngles(entity.getX(), entity.getY(), entity.getZ(), world.rand.nextFloat() * 360.0F, 0.0F);
+				entity.setLocationAndAngles(entity.getPosX(), entity.getPosY(), entity.getPosZ(), world.rand.nextFloat() * 360.0F, 0.0F);
 				if (entity instanceof MobEntity) {
 					MobEntity mobentity = (MobEntity) entity;
 
-					if (this.entity.getNbt().size() == 1 && this.entity.getNbt().contains("id", 8) && !ForgeEventFactory.doSpecialSpawn((MobEntity) entity, world, (float) entity.getX(), (float) entity.getY(), (float) entity.getZ(), null, SpawnReason.MOB_SUMMONED)) {
-						mobentity.onInitialSpawn(world, world.getDifficultyForLocation(new BlockPos(entity)), SpawnReason.MOB_SUMMONED, (ILivingEntityData) null, (CompoundNBT) null);
+					if (this.entity.getNbt().size() == 1 && this.entity.getNbt().contains("id", 8) && !ForgeEventFactory.doSpecialSpawn((MobEntity) entity, world, (float) entity.getPosX(), (float) entity.getPosY(), (float) entity.getPosZ(), null, SpawnReason.MOB_SUMMONED)) {
+						mobentity.onInitialSpawn((ServerWorld) world, world.getDifficultyForLocation(entity.getPosition()), SpawnReason.MOB_SUMMONED, (ILivingEntityData) null, (CompoundNBT) null);
 					}
 				}
 
 				this.spawnEntity(entity);
-				this.world.playSound(null, this.getX(), this.getY(), this.getZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.5F, 1);
+				this.world.playSound(null, this.getPosX(), this.getPosY(), this.getPosZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.5F, 1);
 				this.currentWaveEntities.add((LivingEntity) entity);
-				spawnParticle(this.bossInfo.getColor(), entity.getX() + entity.getWidth() / 2, entity.getY() + entity.getHeight() / 2, entity.getZ() + entity.getWidth() / 2, 0);
+				spawnParticle(this.bossInfo.getColor(), entity.getPosX() + entity.getWidth() / 2, entity.getPosY() + entity.getHeight() / 2, entity.getPosZ() + entity.getWidth() / 2, 0);
 			} else {
 				this.remove();
 			}
@@ -224,7 +224,7 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 		while (completionXP > 0) {
 			int i = 5;
 			completionXP -= i;
-			this.world.addEntity(new ExperienceOrbEntity(this.world, this.getX(), this.getY(), this.getZ(), i));
+			this.world.addEntity(new ExperienceOrbEntity(this.world, this.getPosX(), this.getPosY(), this.getPosZ(), i));
 		}
 	}
 
@@ -247,8 +247,8 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 			player = world.getClosestPlayer(this, 50);
 		}
 		try {
-			Entity entity = EntityType.func_220335_a(this.entity.getNbt(), world, (p_221408_6_) -> {
-				p_221408_6_.setLocationAndAngles(this.getX(), this.getY(), this.getZ(), p_221408_6_.rotationYaw, p_221408_6_.rotationPitch);
+			Entity entity = EntityType.loadEntityAndExecute(this.entity.getNbt(), world, (p_221408_6_) -> {
+				p_221408_6_.setLocationAndAngles(this.getPosX(), this.getPosY(), this.getPosZ(), p_221408_6_.rotationYaw, p_221408_6_.rotationPitch);
 				return p_221408_6_;
 			});
 			List<ItemEntity> items = new ArrayList<>();
@@ -295,7 +295,7 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 		this.ticksInactive = tag.getShort("ticks_inactive");
 		this.ticksActive = tag.getInt("ticks_active");
 		this.completionXP = tag.getInt("completion_xp");
-		this.summonerId = tag.getUniqueId("summoner");
+		if (tag.contains("summoner")) this.summonerId = tag.getUniqueId("summoner");
 		this.bossInfo.setName(new TranslationTextComponent(tag.getString("name")));
 		this.maxWaveTime = tag.getInt("max_wave_time");
 		this.bossInfo.setPercent(1F - (float) getWave() / this.stats.maxWaves);
@@ -389,7 +389,10 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 	}
 
 	public static void spawnLightningOn(Entity entity, boolean effectOnly) {
-		((ServerWorld) entity.world).addLightningBolt(new LightningBoltEntity(entity.world, entity.getX(), entity.getY(), entity.getZ(), effectOnly));
+		LightningBoltEntity bolt = EntityType.LIGHTNING_BOLT.create(entity.world);
+		bolt.setPosition(entity.getPosX(), entity.getPosY(), entity.getPosZ());
+		bolt.setEffectOnly(effectOnly);
+		entity.world.addEntity(bolt);
 	}
 
 	public void spawnParticle(Color color, double x, double y, double z, int type) {
@@ -399,10 +402,10 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 
 	public void spawnItem(ItemStack stack) {
 		ItemEntity i = new ItemEntity(world, 0, 0, 0, stack);
-		i.setPosition(this.getX() + MathHelper.nextDouble(rand, -0.5, 0.5), this.getY() + 1.5, this.getZ() + MathHelper.nextDouble(rand, -0.5, 0.5));
+		i.setPosition(this.getPosX() + MathHelper.nextDouble(rand, -0.5, 0.5), this.getPosY() + 1.5, this.getPosZ() + MathHelper.nextDouble(rand, -0.5, 0.5));
 		i.setVelocity(MathHelper.nextDouble(rand, -0.15, 0.15), 0.4, MathHelper.nextDouble(rand, -0.15, 0.15));
 		world.addEntity(i);
-		this.world.playSound(null, i.getX(), i.getY(), i.getZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.75F, 2.0F);
+		this.world.playSound(null, i.getPosX(), i.getPosY(), i.getPosZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.75F, 2.0F);
 	}
 
 	@Override

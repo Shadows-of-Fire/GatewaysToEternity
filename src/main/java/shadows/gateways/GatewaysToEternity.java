@@ -3,6 +3,8 @@ package shadows.gateways;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.mojang.serialization.Codec;
+
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.Item;
@@ -88,7 +90,12 @@ public class GatewaysToEternity {
 
 	@SubscribeEvent
 	public void registerParticles(Register<ParticleType<?>> e) {
-		e.getRegistry().register(new ParticleType<>(false, GatewayParticle.Data.DESERIALIZER).setRegistryName("glow"));
+		e.getRegistry().register(new ParticleType<GatewayParticle.Data>(false, GatewayParticle.Data.DESERIALIZER) {
+			@Override
+			public Codec<GatewayParticle.Data> func_230522_e_() {
+				return GatewayParticle.Data.CODEC;
+			}
+		}.setRegistryName("glow"));
 	}
 
 }

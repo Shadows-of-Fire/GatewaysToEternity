@@ -32,7 +32,7 @@ public class GatewayItem extends Item {
 
 		AbstractGatewayEntity entity = factory.createGate(world, ctx.getPlayer(), stack);
 		entity.setPosition(pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5);
-		if (!world.doesNotCollide(entity)) return ActionResultType.FAIL;
+		if (!world.hasNoCollisions(entity)) return ActionResultType.FAIL;
 		world.addEntity(entity);
 		entity.onGateCreated();
 		if (!ctx.getPlayer().isCreative()) stack.shrink(1);
@@ -43,7 +43,7 @@ public class GatewayItem extends Item {
 	public ITextComponent getDisplayName(ItemStack stack) {
 		if (stack.hasDisplayName()) return super.getDisplayName(stack);
 		if (stack.hasTag() && stack.getTag().contains("opener_name")) {
-			return ITextComponent.Serializer.fromJson(stack.getTag().getString("opener_name"));
+			return ITextComponent.Serializer.getComponentFromJson(stack.getTag().getString("opener_name"));
 		}
 		return super.getDisplayName(stack);
 	}
