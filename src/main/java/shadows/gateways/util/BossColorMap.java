@@ -23,4 +23,8 @@ public class BossColorMap {
 		return COLOR_MAP.get(info.getColor());
 	}
 
+	public static int getColor(BossInfo.Color color) {
+		return COLOR_MAP.get(color);
+	}
+
 }
