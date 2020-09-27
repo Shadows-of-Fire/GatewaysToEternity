@@ -5,7 +5,7 @@ import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.BossInfo;
 import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.client.event.TextureStitchEvent;
+import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
@@ -36,7 +36,7 @@ public class GatewaysToEternityClient {
 	}
 
 	@SubscribeEvent
-	public static void stitch(TextureStitchEvent.Pre e) {
+	public static void factories(ParticleFactoryRegisterEvent e) {
 		Minecraft.getInstance().particles.registerFactory(GatewayObjects.GLOW, GatewayParticle.Factory::new);
 	}
 
