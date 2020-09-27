@@ -50,8 +50,8 @@ import shadows.gateways.GatewayObjects;
 import shadows.gateways.GatewaysToEternity;
 import shadows.gateways.net.ParticleMessage;
 import shadows.gateways.util.BossColorMap;
-import shadows.gateways.util.TagBuilder;
 import shadows.placebo.util.NetworkUtils;
+import shadows.placebo.util.TagBuilder;
 
 public abstract class AbstractGatewayEntity extends Entity implements IEntityAdditionalSpawnData {
 

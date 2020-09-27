@@ -12,7 +12,7 @@ import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.registries.ForgeRegistries;
 import shadows.gateways.item.GatewayItem;
-import shadows.gateways.util.TagBuilder;
+import shadows.placebo.util.TagBuilder;
 
 public class GatewayRecipeSerializer extends ShapedRecipe.Serializer {
 
