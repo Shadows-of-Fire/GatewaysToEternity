@@ -29,7 +29,7 @@ public class GatewayTickableSound extends TickableSound {
 		if (!this.gateway.isAlive()) {
 			this.finishPlaying();
 		} else {
-			this.volume = 1 - (float) Minecraft.getInstance().player.getDistanceSq(this.gateway) / (18 * 18F);
+			this.volume = 0.25F - (float) (Minecraft.getInstance().player.getDistanceSq(this.gateway) / (18 * 18F)) / 4F;
 		}
 	}
 

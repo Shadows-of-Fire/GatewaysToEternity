@@ -1,10 +1,12 @@
 package shadows.gateways.item;
 
+import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
 import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction.Axis;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
@@ -31,7 +33,8 @@ public class GatewayItem extends Item {
 		if (!world.getEntitiesWithinAABB(AbstractGatewayEntity.class, new AxisAlignedBB(pos).grow(25, 25, 25)).isEmpty()) return ActionResultType.FAIL;
 
 		AbstractGatewayEntity entity = factory.createGate(world, ctx.getPlayer(), stack);
-		entity.setPosition(pos.getX() + 0.5, pos.getY() + 1, pos.getZ() + 0.5);
+		BlockState state = world.getBlockState(pos);
+		entity.setPosition(pos.getX() + 0.5, pos.getY() + state.getShape(world, pos).getEnd(Axis.Y), pos.getZ() + 0.5);
 		if (!world.hasNoCollisions(entity)) return ActionResultType.FAIL;
 		world.addEntity(entity);
 		entity.onGateCreated();
