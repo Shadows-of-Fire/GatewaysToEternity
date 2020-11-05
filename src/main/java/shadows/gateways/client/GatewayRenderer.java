@@ -20,7 +20,8 @@ import shadows.gateways.util.BossColorMap;
 
 public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
 
-	public static final ResourceLocation TEXTURE = new ResourceLocation(GatewaysToEternity.MODID, "textures/entity/temp_gray.png");
+	public static final ResourceLocation TEXTURE = new ResourceLocation(GatewaysToEternity.MODID, "textures/entity/portal.png");
+	public static final int[] FRAMES = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
 	public GatewayRenderer(EntityRendererManager mgr) {
 		super(mgr);
@@ -70,13 +71,15 @@ public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
 		matrix.scale(scale, scale, 1);
 
 		this.renderManager.textureManager.bindTexture(this.getEntityTexture(entity));
-		IVertexBuilder builder = buf.getBuffer(RenderType.getEntityTranslucent(getEntityTexture(entity)));
+		IVertexBuilder builder = buf.getBuffer(RenderType.getEntityCutout(getEntityTexture(entity)));
 		int color = BossColorMap.getColor(entity.getBossInfo());
 		int r = color >> 16 & 255, g = color >> 8 & 255, b = color & 255;
-		builder.pos(matrix.getLast().getMatrix(), -1, -1, 0).color(r, g, b, 255).tex(1, 1).overlay(OverlayTexture.NO_OVERLAY).lightmap(packedLight).normal(matrix.getLast().getNormal(), 0, 1, 0).endVertex();
-		builder.pos(matrix.getLast().getMatrix(), -1, 1, 0).color(r, g, b, 255).tex(1, 0).overlay(OverlayTexture.NO_OVERLAY).lightmap(packedLight).normal(matrix.getLast().getNormal(), 0, 1, 0).endVertex();
-		builder.pos(matrix.getLast().getMatrix(), 1, 1, 0).color(r, g, b, 255).tex(0, 0).overlay(OverlayTexture.NO_OVERLAY).lightmap(packedLight).normal(matrix.getLast().getNormal(), 0, 1, 0).endVertex();
-		builder.pos(matrix.getLast().getMatrix(), 1, -1, 0).color(r, g, b, 255).tex(0, 1).overlay(OverlayTexture.NO_OVERLAY).lightmap(packedLight).normal(matrix.getLast().getNormal(), 0, 1, 0).endVertex();
+		float frameHeight = 1 / 12F;
+		int frame = FRAMES[entity.ticksExisted % FRAMES.length];
+		builder.pos(matrix.getLast().getMatrix(), -1, -1, 0).color(r, g, b, 255).tex(1, 1 - frame * frameHeight).overlay(OverlayTexture.NO_OVERLAY).lightmap(packedLight).normal(matrix.getLast().getNormal(), 0, 1, 0).endVertex();
+		builder.pos(matrix.getLast().getMatrix(), -1, 1, 0).color(r, g, b, 255).tex(1, 11F / 12 - frame * frameHeight).overlay(OverlayTexture.NO_OVERLAY).lightmap(packedLight).normal(matrix.getLast().getNormal(), 0, 1, 0).endVertex();
+		builder.pos(matrix.getLast().getMatrix(), 1, 1, 0).color(r, g, b, 255).tex(0, 11F / 12 - frame * frameHeight).overlay(OverlayTexture.NO_OVERLAY).lightmap(packedLight).normal(matrix.getLast().getNormal(), 0, 1, 0).endVertex();
+		builder.pos(matrix.getLast().getMatrix(), 1, -1, 0).color(r, g, b, 255).tex(0, 1 - frame * frameHeight).overlay(OverlayTexture.NO_OVERLAY).lightmap(packedLight).normal(matrix.getLast().getNormal(), 0, 1, 0).endVertex();
 
 		matrix.pop();
 	}
