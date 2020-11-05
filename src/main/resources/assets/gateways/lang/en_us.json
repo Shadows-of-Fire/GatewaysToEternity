@@ -3,5 +3,14 @@
 	"item.gateways.gate_opener": "Gate Opener",
 	"gateways.gate_opener": "Gate Opener - %s",
 	"gateways.small_zombie_gate": "Small Zombie Gate",
-	"gateways.small_blaze_gate": "Small Blaze Gate"
+	"gateways.small_blaze_gate": "Small Blaze Gate",
+	"gateways.small_magma_gate": "Small Magma Cube Gate",
+	"gateways.small_creeper_gate": "Small Creeper Gate",
+	"gateways.small_enderman_gate": "Small Enderman Gate",
+	"gateways.small_skeleton_gate": "Small Skeleton Gate",
+	"gateways.small_spider_gate": "Small Spider Gate",
+	"gateways.small_witch_gate": "Small Witch Gate",
+	"gateways.small_ghast_gate": "Small Ghast Gate",
+	"gateways.small_shulker_gate": "Small Shulker Gate",
+	"gateways.small_slime_gate": "Small Slime Gate"
 }

@@ -8,10 +8,10 @@
   ],
   "key": {
     "#": {
-      "item": "minecraft:acacia_planks"
+      "item": "minecraft:rotten_flesh"
     },
 	"A": {
-      "item": "minecraft:stick"
+      "item": "minecraft:ender_pearl"
     }
   },
   "result": {

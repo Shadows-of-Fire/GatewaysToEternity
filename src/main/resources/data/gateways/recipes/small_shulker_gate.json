@@ -8,7 +8,7 @@
   ],
   "key": {
     "#": {
-      "item": "minecraft:blaze_rod"
+      "item": "minecraft:shulker_shell"
     },
 	"A": {
       "item": "minecraft:ender_pearl"
@@ -17,11 +17,11 @@
   "result": {
     "item": "gateways:small_gate_opener",
 	"gateway": {
-		"name": "gateways.small_blaze_gate",
-		"entity": "minecraft:blaze",
-		"completion_xp": 250,
-		"max_wave_time": 750,
-		"color": "red"
+		"name": "gateways.small_shulker_gate",
+		"entity": "minecraft:shulker",
+		"completion_xp": 400,
+		"max_wave_time": 1000,
+		"color": "purple"
 	}
   }
 }

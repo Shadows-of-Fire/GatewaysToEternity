@@ -8,7 +8,7 @@
   ],
   "key": {
     "#": {
-      "item": "minecraft:blaze_rod"
+      "item": "minecraft:gunpowder"
     },
 	"A": {
       "item": "minecraft:ender_pearl"
@@ -17,11 +17,11 @@
   "result": {
     "item": "gateways:small_gate_opener",
 	"gateway": {
-		"name": "gateways.small_blaze_gate",
-		"entity": "minecraft:blaze",
-		"completion_xp": 250,
-		"max_wave_time": 750,
-		"color": "red"
+		"name": "gateways.small_creeper_gate",
+		"entity": "minecraft:creeper",
+		"completion_xp": 100,
+		"max_wave_time": 350,
+		"color": "green"
 	}
   }
 }
