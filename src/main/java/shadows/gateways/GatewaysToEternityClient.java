@@ -1,7 +1,9 @@
 package shadows.gateways;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
+import net.minecraft.item.crafting.RecipeManager;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.world.BossInfo;
 import net.minecraftforge.api.distmarker.Dist;
@@ -30,7 +32,7 @@ public class GatewaysToEternityClient {
 						return BossColorMap.getColor(color);
 					}
 				}
-				return 0;
+				return 0xFFFFFF;
 			}, GatewayObjects.SMALL_GATE_OPENER);
 		});
 	}
@@ -38,6 +40,12 @@ public class GatewaysToEternityClient {
 	@SubscribeEvent
 	public static void factories(ParticleFactoryRegisterEvent e) {
 		Minecraft.getInstance().particles.registerFactory(GatewayObjects.GLOW, GatewayParticle.Factory::new);
+	}
+
+	public static RecipeManager getClientRecipeManager() {
+		ClientPlayerEntity player = Minecraft.getInstance().player;
+		if (player == null || player.connection == null) return null;
+		return player.connection.getRecipeManager();
 	}
 
 }

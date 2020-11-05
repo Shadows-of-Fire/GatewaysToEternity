@@ -3,14 +3,21 @@ package shadows.gateways.item;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemUseContext;
+import net.minecraft.item.crafting.RecipeManager;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction.Axis;
+import net.minecraft.util.NonNullList;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.DistExecutor;
+import net.minecraftforge.fml.server.ServerLifecycleHooks;
+import shadows.gateways.GatewaysToEternityClient;
 import shadows.gateways.entity.AbstractGatewayEntity;
 
 public class GatewayItem extends Item {
@@ -53,6 +60,23 @@ public class GatewayItem extends Item {
 
 	public static interface IGateSupplier {
 		AbstractGatewayEntity createGate(World world, PlayerEntity player, ItemStack stack);
+	}
+
+	@Override
+	public void fillItemGroup(ItemGroup group, NonNullList<ItemStack> items) {
+		if (this.isInGroup(group)) {
+			RecipeManager mgr = DistExecutor.unsafeRunForDist(() -> () -> {
+				MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+				if (server != null) return server.getRecipeManager(); //Integrated Server
+				return GatewaysToEternityClient.getClientRecipeManager(); //Dedicated Client
+			}, () -> () -> {
+				MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+				if (server == null) return null;
+				return server.getRecipeManager(); //Dedicated Server
+			});
+			if (mgr == null) return;
+			mgr.getRecipes().stream().map(r -> r.getRecipeOutput()).filter(s -> s.getItem() == this).forEach(items::add);
+		}
 	}
 
 }

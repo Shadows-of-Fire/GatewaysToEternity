@@ -2,6 +2,12 @@ package shadows.gateways.client;
 
 import java.util.Locale;
 
+import org.lwjgl.opengl.GL11;
+
+import com.mojang.blaze3d.platform.GlStateManager;
+import com.mojang.blaze3d.platform.GlStateManager.DestFactor;
+import com.mojang.blaze3d.platform.GlStateManager.SourceFactor;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
@@ -12,6 +18,11 @@ import net.minecraft.client.particle.IParticleFactory;
 import net.minecraft.client.particle.IParticleRenderType;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.SpriteTexturedParticle;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.AtlasTexture;
+import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.network.PacketBuffer;
 import net.minecraft.particles.IParticleData;
@@ -23,6 +34,27 @@ import shadows.gateways.GatewayObjects;
 
 @SuppressWarnings("deprecation")
 public class GatewayParticle extends SpriteTexturedParticle {
+
+	static final IParticleRenderType RENDER_TYPE = new IParticleRenderType() {
+		public void beginRender(BufferBuilder bufferBuilder, TextureManager textureManager) {
+			RenderSystem.enableAlphaTest();
+			RenderSystem.depthMask(false);
+			RenderSystem.enableBlend();
+			GlStateManager.disableCull();
+			RenderSystem.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE);
+			RenderSystem.alphaFunc(GL11.GL_GREATER, 0.003921569F);
+			textureManager.bindTexture(AtlasTexture.LOCATION_PARTICLES_TEXTURE);
+			bufferBuilder.begin(7, DefaultVertexFormats.PARTICLE_POSITION_TEX_COLOR_LMAP);
+		}
+
+		public void finishRender(Tessellator tesselator) {
+			tesselator.draw();
+		}
+
+		public String toString() {
+			return "PARTICLE_SHEET_TRANSLUCENT";
+		}
+	};
 
 	public GatewayParticle(GatewayParticle.Data data, World world, double x, double y, double z, double velX, double velY, double velZ) {
 		super((ClientWorld) world, x, y, z, velX, velY, velZ);
@@ -37,11 +69,11 @@ public class GatewayParticle extends SpriteTexturedParticle {
 
 	@Override
 	public IParticleRenderType getRenderType() {
-		return IParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+		return RENDER_TYPE;
 	}
 
 	public float getScale(float p_217561_1_) {
-		return this.particleScale * MathHelper.clamp(((float) this.age + p_217561_1_) / (float) this.maxAge * 32.0F, 0.0F, 1.0F);
+		return 0.75F * this.particleScale * MathHelper.clamp(((float) this.age + p_217561_1_) / (float) this.maxAge * 32.0F, 0.0F, 1.0F);
 	}
 
 	public void tick() {

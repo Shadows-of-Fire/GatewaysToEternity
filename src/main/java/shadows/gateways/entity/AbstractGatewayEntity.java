@@ -143,7 +143,6 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 				this.completePortal();
 			}
 		}
-
 	}
 
 	public void spawnWave() {
