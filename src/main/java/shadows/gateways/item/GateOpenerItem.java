@@ -20,11 +20,11 @@ import net.minecraftforge.fml.server.ServerLifecycleHooks;
 import shadows.gateways.GatewaysToEternityClient;
 import shadows.gateways.entity.AbstractGatewayEntity;
 
-public class GatewayItem extends Item {
+public class GateOpenerItem extends Item {
 
 	protected final IGateSupplier factory;
 
-	public GatewayItem(Properties props, IGateSupplier factory) {
+	public GateOpenerItem(Properties props, IGateSupplier factory) {
 		super(props);
 		this.factory = factory;
 	}

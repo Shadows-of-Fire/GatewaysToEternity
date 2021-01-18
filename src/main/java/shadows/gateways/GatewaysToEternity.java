@@ -24,7 +24,7 @@ import shadows.gateways.client.GatewayParticle;
 import shadows.gateways.client.GatewayTickableSound;
 import shadows.gateways.entity.AbstractGatewayEntity;
 import shadows.gateways.entity.SmallGatewayEntity;
-import shadows.gateways.item.GatewayItem;
+import shadows.gateways.item.GateOpenerItem;
 import shadows.gateways.net.ParticleMessage;
 import shadows.gateways.recipe.GatewayRecipeSerializer;
 import shadows.placebo.util.NetworkUtils;
@@ -68,7 +68,7 @@ public class GatewaysToEternity {
 
 	@SubscribeEvent
 	public void registerItems(Register<Item> e) {
-		e.getRegistry().register(new GatewayItem(new Item.Properties().maxStackSize(1).rarity(Rarity.UNCOMMON).group(ItemGroup.MISC), SmallGatewayEntity::new).setRegistryName("small_gate_opener"));
+		e.getRegistry().register(new GateOpenerItem(new Item.Properties().maxStackSize(1).rarity(Rarity.UNCOMMON).group(ItemGroup.MISC), SmallGatewayEntity::new).setRegistryName("small_gate_opener"));
 	}
 
 	@SubscribeEvent

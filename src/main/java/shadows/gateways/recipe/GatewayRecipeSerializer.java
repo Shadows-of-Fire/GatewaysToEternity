@@ -11,7 +11,7 @@ import net.minecraft.util.WeightedSpawnerEntity;
 import net.minecraft.util.text.ITextComponent;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraftforge.registries.ForgeRegistries;
-import shadows.gateways.item.GatewayItem;
+import shadows.gateways.item.GateOpenerItem;
 import shadows.placebo.util.TagBuilder;
 
 public class GatewayRecipeSerializer extends ShapedRecipe.Serializer {
@@ -22,7 +22,7 @@ public class GatewayRecipeSerializer extends ShapedRecipe.Serializer {
 	public GatewayRecipe read(ResourceLocation id, JsonObject json) {
 		ShapedRecipe recipe = super.read(id, json);
 		ItemStack gateway = recipe.getRecipeOutput();
-		if (!(gateway.getItem() instanceof GatewayItem)) {
+		if (!(gateway.getItem() instanceof GateOpenerItem)) {
 			throw new JsonSyntaxException("Gateway Recipe output must be a gate opener item.  Provided: " + gateway.getItem().getRegistryName());
 		}
 		JsonObject gatewayData = json.get("result").getAsJsonObject().get("gateway").getAsJsonObject();

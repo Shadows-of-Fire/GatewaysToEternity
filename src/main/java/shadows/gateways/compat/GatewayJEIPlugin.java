@@ -3,7 +3,6 @@ package shadows.gateways.compat;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
-import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
@@ -28,11 +27,6 @@ public class GatewayJEIPlugin implements IModPlugin {
 
 		@Override
 		public String apply(ItemStack stack) {
-			return ISubtypeInterpreter.NONE;
-		}
-
-		@Override
-		public String apply(ItemStack stack, UidContext context) {
 			if (!stack.hasTag()) return ISubtypeInterpreter.NONE;
 			CompoundNBT gateData = stack.getTag().getCompound("gateway_data");
 			if (gateData.isEmpty()) return ISubtypeInterpreter.NONE;

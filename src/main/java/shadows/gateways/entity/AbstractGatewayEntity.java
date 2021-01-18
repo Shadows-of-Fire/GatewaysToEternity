@@ -402,7 +402,7 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 	public void spawnItem(ItemStack stack) {
 		ItemEntity i = new ItemEntity(world, 0, 0, 0, stack);
 		i.setPosition(this.getPosX() + MathHelper.nextDouble(rand, -0.5, 0.5), this.getPosY() + 1.5, this.getPosZ() + MathHelper.nextDouble(rand, -0.5, 0.5));
-		i.setVelocity(MathHelper.nextDouble(rand, -0.15, 0.15), 0.4, MathHelper.nextDouble(rand, -0.15, 0.15));
+		i.setMotion(MathHelper.nextDouble(rand, -0.15, 0.15), 0.4, MathHelper.nextDouble(rand, -0.15, 0.15));
 		world.addEntity(i);
 		this.world.playSound(null, i.getPosX(), i.getPosY(), i.getPosZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.75F, 2.0F);
 	}
