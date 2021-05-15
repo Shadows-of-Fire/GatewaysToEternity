@@ -192,8 +192,8 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 				if (entity instanceof MobEntity) {
 					MobEntity mobentity = (MobEntity) entity;
 
-					if (this.entity.getNbt().size() == 1 && this.entity.getNbt().contains("id", 8) && !ForgeEventFactory.doSpecialSpawn((MobEntity) entity, world, (float) entity.getPosX(), (float) entity.getPosY(), (float) entity.getPosZ(), null, SpawnReason.MOB_SUMMONED)) {
-						mobentity.onInitialSpawn((ServerWorld) world, world.getDifficultyForLocation(entity.getPosition()), SpawnReason.MOB_SUMMONED, (ILivingEntityData) null, (CompoundNBT) null);
+					if (this.entity.getNbt().size() == 1 && this.entity.getNbt().contains("id", 8) && !ForgeEventFactory.doSpecialSpawn((MobEntity) entity, world, (float) entity.getPosX(), (float) entity.getPosY(), (float) entity.getPosZ(), null, SpawnReason.NATURAL)) {
+						mobentity.onInitialSpawn((ServerWorld) world, world.getDifficultyForLocation(entity.getPosition()), SpawnReason.NATURAL, (ILivingEntityData) null, (CompoundNBT) null);
 					}
 				}
 
