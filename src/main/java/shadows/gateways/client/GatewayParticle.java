@@ -36,19 +36,19 @@ import shadows.gateways.GatewayObjects;
 public class GatewayParticle extends SpriteTexturedParticle {
 
 	static final IParticleRenderType RENDER_TYPE = new IParticleRenderType() {
-		public void beginRender(BufferBuilder bufferBuilder, TextureManager textureManager) {
+		public void begin(BufferBuilder bufferBuilder, TextureManager textureManager) {
 			RenderSystem.enableAlphaTest();
 			RenderSystem.depthMask(false);
 			RenderSystem.enableBlend();
-			GlStateManager.disableCull();
+			GlStateManager._disableCull();
 			RenderSystem.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE);
 			RenderSystem.alphaFunc(GL11.GL_GREATER, 0.003921569F);
-			textureManager.bindTexture(AtlasTexture.LOCATION_PARTICLES_TEXTURE);
-			bufferBuilder.begin(7, DefaultVertexFormats.PARTICLE_POSITION_TEX_COLOR_LMAP);
+			textureManager.bind(AtlasTexture.LOCATION_PARTICLES);
+			bufferBuilder.begin(7, DefaultVertexFormats.PARTICLE);
 		}
 
-		public void finishRender(Tessellator tesselator) {
-			tesselator.draw();
+		public void end(Tessellator tesselator) {
+			tesselator.end();
 		}
 
 		public String toString() {
@@ -58,13 +58,13 @@ public class GatewayParticle extends SpriteTexturedParticle {
 
 	public GatewayParticle(GatewayParticle.Data data, World world, double x, double y, double z, double velX, double velY, double velZ) {
 		super((ClientWorld) world, x, y, z, velX, velY, velZ);
-		this.particleRed = data.red;
-		this.particleGreen = data.green;
-		this.particleBlue = data.blue;
-		this.maxAge = 40; //TODO: Bake age into Data as alpha?
-		this.motionX = velX;
-		this.motionY = velY;
-		this.motionZ = velZ;
+		this.rCol = data.red;
+		this.gCol = data.green;
+		this.bCol = data.blue;
+		this.lifetime = 40; //TODO: Bake age into Data as alpha?
+		this.xd = velX;
+		this.yd = velY;
+		this.zd = velZ;
 	}
 
 	@Override
@@ -72,30 +72,30 @@ public class GatewayParticle extends SpriteTexturedParticle {
 		return RENDER_TYPE;
 	}
 
-	public float getScale(float p_217561_1_) {
-		return 0.75F * this.particleScale * MathHelper.clamp(((float) this.age + p_217561_1_) / (float) this.maxAge * 32.0F, 0.0F, 1.0F);
+	public float getQuadSize(float p_217561_1_) {
+		return 0.75F * this.quadSize * MathHelper.clamp(((float) this.age + p_217561_1_) / (float) this.lifetime * 32.0F, 0.0F, 1.0F);
 	}
 
 	public void tick() {
-		this.prevPosX = this.posX;
-		this.prevPosY = this.posY;
-		this.prevPosZ = this.posZ;
-		this.particleAlpha = 1 - (float) this.age / this.maxAge;
-		if (this.age++ >= this.maxAge) {
-			this.setExpired();
+		this.xo = this.x;
+		this.yo = this.y;
+		this.zo = this.z;
+		this.alpha = 1 - (float) this.age / this.lifetime;
+		if (this.age++ >= this.lifetime) {
+			this.remove();
 		} else {
-			this.move(this.motionX, this.motionY, this.motionZ);
-			if (this.posY == this.prevPosY) {
-				this.motionX *= 1.1D;
-				this.motionZ *= 1.1D;
+			this.move(this.xd, this.yd, this.zd);
+			if (this.y == this.yo) {
+				this.xd *= 1.1D;
+				this.zd *= 1.1D;
 			}
 
-			this.motionX *= (double) 0.86F;
-			this.motionY *= (double) 0.86F;
-			this.motionZ *= (double) 0.86F;
+			this.xd *= (double) 0.86F;
+			this.yd *= (double) 0.86F;
+			this.zd *= (double) 0.86F;
 			if (this.onGround) {
-				this.motionX *= (double) 0.7F;
-				this.motionZ *= (double) 0.7F;
+				this.xd *= (double) 0.7F;
+				this.zd *= (double) 0.7F;
 			}
 
 		}
@@ -108,9 +108,9 @@ public class GatewayParticle extends SpriteTexturedParticle {
 			this.sprites = sprites;
 		}
 
-		public Particle makeParticle(GatewayParticle.Data data, ClientWorld world, double x, double y, double z, double velX, double velY, double velZ) {
+		public Particle createParticle(GatewayParticle.Data data, ClientWorld world, double x, double y, double z, double velX, double velY, double velZ) {
 			GatewayParticle particle = new GatewayParticle(data, world, x, y, z, velX, velY, velZ);
-			particle.selectSpriteRandomly(this.sprites);
+			particle.pickSprite(this.sprites);
 			return particle;
 		}
 	}
@@ -145,7 +145,7 @@ public class GatewayParticle extends SpriteTexturedParticle {
 		});
 
 		public static final IParticleData.IDeserializer<Data> DESERIALIZER = new IParticleData.IDeserializer<Data>() {
-			public Data deserialize(ParticleType<Data> type, StringReader reader) throws CommandSyntaxException {
+			public Data fromCommand(ParticleType<Data> type, StringReader reader) throws CommandSyntaxException {
 				reader.expect(' ');
 				float f = (float) reader.readDouble();
 				reader.expect(' ');
@@ -155,20 +155,20 @@ public class GatewayParticle extends SpriteTexturedParticle {
 				return new Data(f, f1, f2);
 			}
 
-			public Data read(ParticleType<Data> type, PacketBuffer buf) {
+			public Data fromNetwork(ParticleType<Data> type, PacketBuffer buf) {
 				return new Data(buf.readFloat(), buf.readFloat(), buf.readFloat());
 			}
 		};
 
 		@Override
-		public void write(PacketBuffer buffer) {
+		public void writeToNetwork(PacketBuffer buffer) {
 			buffer.writeFloat(this.red);
 			buffer.writeFloat(this.green);
 			buffer.writeFloat(this.blue);
 		}
 
 		@Override
-		public String getParameters() {
+		public String writeToString() {
 			return String.format(Locale.ROOT, "%s %.2f %.2f %.2f", Registry.PARTICLE_TYPE.getKey(this.getType()), this.red, this.green, this.blue);
 		}
 	}

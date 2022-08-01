@@ -28,33 +28,33 @@ public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
 	}
 
 	@Override
-	public ResourceLocation getEntityTexture(AbstractGatewayEntity entity) {
+	public ResourceLocation getTextureLocation(AbstractGatewayEntity entity) {
 		return TEXTURE;
 	}
 
 	@Override
 	public void render(AbstractGatewayEntity entity, float unknown, float partialTicks, MatrixStack matrix, IRenderTypeBuffer buf, int packedLight) {
-		matrix.push();
+		matrix.pushPose();
 		PlayerEntity player = Minecraft.getInstance().player;
 		Vector3d playerV = player.getEyePosition(partialTicks);
-		Vector3d portal = entity.getPositionVec();
+		Vector3d portal = entity.position();
 
 		float scale = 0.35F;
 		double yOffset = 1.5;
 
 		matrix.translate(0, yOffset, 0);
-		matrix.rotate(new Quaternion(new Vector3f(0, 1, 0), 90, true));
-		matrix.rotate(new Quaternion(new Vector3f(0, 1, 0), 180F - (float) angleOf(portal, playerV), true));
+		matrix.mulPose(new Quaternion(new Vector3f(0, 1, 0), 90, true));
+		matrix.mulPose(new Quaternion(new Vector3f(0, 1, 0), 180F - (float) angleOf(portal, playerV), true));
 
-		float progress = ((entity.ticksExisted + partialTicks) % 90) / 90F;
+		float progress = ((entity.tickCount + partialTicks) % 90) / 90F;
 		scale += (float) Math.cos(2 * Math.PI * progress) / 6F;
 
 		if (!entity.isWaveActive()) {
-			if (entity.getClientTicks() == -1) entity.setClientTicks(entity.ticksExisted);
+			if (entity.getClientTicks() == -1) entity.setClientTicks(entity.tickCount);
 		}
 
 		if (entity.getClientTicks() != -1) {
-			progress = (entity.ticksExisted - entity.getClientTicks() + partialTicks) / entity.getStats().pauseTime;
+			progress = (entity.tickCount - entity.getClientTicks() + partialTicks) / entity.getStats().pauseTime;
 			if (progress >= 1.3F) entity.setClientTicks(-1);
 			else {
 				if (progress <= 0.45F) {
@@ -70,18 +70,18 @@ public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
 
 		matrix.scale(scale, scale, 1);
 
-		this.renderManager.textureManager.bindTexture(this.getEntityTexture(entity));
-		IVertexBuilder builder = buf.getBuffer(RenderType.getEntityCutout(getEntityTexture(entity)));
+		this.entityRenderDispatcher.textureManager.bind(this.getTextureLocation(entity));
+		IVertexBuilder builder = buf.getBuffer(RenderType.entityCutout(getTextureLocation(entity)));
 		int color = BossColorMap.getColor(entity.getBossInfo());
 		int r = color >> 16 & 255, g = color >> 8 & 255, b = color & 255;
 		float frameHeight = 1 / 12F;
-		int frame = FRAMES[entity.ticksExisted % FRAMES.length];
-		builder.pos(matrix.getLast().getMatrix(), -1, -1, 0).color(r, g, b, 255).tex(1, 1 - frame * frameHeight).overlay(OverlayTexture.NO_OVERLAY).lightmap(packedLight).normal(matrix.getLast().getNormal(), 0, 1, 0).endVertex();
-		builder.pos(matrix.getLast().getMatrix(), -1, 1, 0).color(r, g, b, 255).tex(1, 11F / 12 - frame * frameHeight).overlay(OverlayTexture.NO_OVERLAY).lightmap(packedLight).normal(matrix.getLast().getNormal(), 0, 1, 0).endVertex();
-		builder.pos(matrix.getLast().getMatrix(), 1, 1, 0).color(r, g, b, 255).tex(0, 11F / 12 - frame * frameHeight).overlay(OverlayTexture.NO_OVERLAY).lightmap(packedLight).normal(matrix.getLast().getNormal(), 0, 1, 0).endVertex();
-		builder.pos(matrix.getLast().getMatrix(), 1, -1, 0).color(r, g, b, 255).tex(0, 1 - frame * frameHeight).overlay(OverlayTexture.NO_OVERLAY).lightmap(packedLight).normal(matrix.getLast().getNormal(), 0, 1, 0).endVertex();
+		int frame = FRAMES[entity.tickCount % FRAMES.length];
+		builder.vertex(matrix.last().pose(), -1, -1, 0).color(r, g, b, 255).uv(1, 1 - frame * frameHeight).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(matrix.last().normal(), 0, 1, 0).endVertex();
+		builder.vertex(matrix.last().pose(), -1, 1, 0).color(r, g, b, 255).uv(1, 11F / 12 - frame * frameHeight).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(matrix.last().normal(), 0, 1, 0).endVertex();
+		builder.vertex(matrix.last().pose(), 1, 1, 0).color(r, g, b, 255).uv(0, 11F / 12 - frame * frameHeight).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(matrix.last().normal(), 0, 1, 0).endVertex();
+		builder.vertex(matrix.last().pose(), 1, -1, 0).color(r, g, b, 255).uv(0, 1 - frame * frameHeight).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(matrix.last().normal(), 0, 1, 0).endVertex();
 
-		matrix.pop();
+		matrix.popPose();
 	}
 
 	public static double angleOf(Vector3d p1, Vector3d p2) {

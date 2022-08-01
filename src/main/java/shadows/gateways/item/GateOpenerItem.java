@@ -30,32 +30,32 @@ public class GateOpenerItem extends Item {
 	}
 
 	@Override
-	public ActionResultType onItemUse(ItemUseContext ctx) {
-		World world = ctx.getWorld();
-		ItemStack stack = ctx.getItem();
-		BlockPos pos = ctx.getPos();
+	public ActionResultType useOn(ItemUseContext ctx) {
+		World world = ctx.getLevel();
+		ItemStack stack = ctx.getItemInHand();
+		BlockPos pos = ctx.getClickedPos();
 
-		if (world.isRemote) return ActionResultType.SUCCESS;
+		if (world.isClientSide) return ActionResultType.SUCCESS;
 
-		if (!world.getEntitiesWithinAABB(AbstractGatewayEntity.class, new AxisAlignedBB(pos).grow(25, 25, 25)).isEmpty()) return ActionResultType.FAIL;
+		if (!world.getEntitiesOfClass(AbstractGatewayEntity.class, new AxisAlignedBB(pos).inflate(25, 25, 25)).isEmpty()) return ActionResultType.FAIL;
 
 		AbstractGatewayEntity entity = factory.createGate(world, ctx.getPlayer(), stack);
 		BlockState state = world.getBlockState(pos);
-		entity.setPosition(pos.getX() + 0.5, pos.getY() + state.getShape(world, pos).getEnd(Axis.Y), pos.getZ() + 0.5);
-		if (!world.hasNoCollisions(entity)) return ActionResultType.FAIL;
-		world.addEntity(entity);
+		entity.setPos(pos.getX() + 0.5, pos.getY() + state.getShape(world, pos).max(Axis.Y), pos.getZ() + 0.5);
+		if (!world.noCollision(entity)) return ActionResultType.FAIL;
+		world.addFreshEntity(entity);
 		entity.onGateCreated();
 		if (!ctx.getPlayer().isCreative()) stack.shrink(1);
 		return ActionResultType.CONSUME;
 	}
 
 	@Override
-	public ITextComponent getDisplayName(ItemStack stack) {
-		if (stack.hasDisplayName()) return super.getDisplayName(stack);
+	public ITextComponent getName(ItemStack stack) {
+		if (stack.hasCustomHoverName()) return super.getName(stack);
 		if (stack.hasTag() && stack.getTag().contains("opener_name")) {
-			return ITextComponent.Serializer.getComponentFromJson(stack.getTag().getString("opener_name"));
+			return ITextComponent.Serializer.fromJson(stack.getTag().getString("opener_name"));
 		}
-		return super.getDisplayName(stack);
+		return super.getName(stack);
 	}
 
 	public static interface IGateSupplier {
@@ -63,8 +63,8 @@ public class GateOpenerItem extends Item {
 	}
 
 	@Override
-	public void fillItemGroup(ItemGroup group, NonNullList<ItemStack> items) {
-		if (this.isInGroup(group)) {
+	public void fillItemCategory(ItemGroup group, NonNullList<ItemStack> items) {
+		if (this.allowdedIn(group)) {
 			RecipeManager mgr = DistExecutor.unsafeRunForDist(() -> () -> {
 				MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 				if (server != null) return server.getRecipeManager(); //Integrated Server
@@ -75,7 +75,7 @@ public class GateOpenerItem extends Item {
 				return server.getRecipeManager(); //Dedicated Server
 			});
 			if (mgr == null) return;
-			mgr.getRecipes().stream().map(r -> r.getRecipeOutput()).filter(s -> s.getItem() == this).forEach(items::add);
+			mgr.getRecipes().stream().map(r -> r.getResultItem()).filter(s -> s.getItem() == this).forEach(items::add);
 		}
 	}
 

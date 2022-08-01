@@ -55,9 +55,9 @@ import shadows.placebo.util.TagBuilder;
 
 public abstract class AbstractGatewayEntity extends Entity implements IEntityAdditionalSpawnData {
 
-	public static final Method DROP_LOOT = ObfuscationReflectionHelper.findMethod(LivingEntity.class, "func_213354_a", DamageSource.class, boolean.class);
-	public static final DataParameter<Boolean> WAVE_ACTIVE = EntityDataManager.createKey(AbstractGatewayEntity.class, DataSerializers.BOOLEAN);
-	public static final DataParameter<Byte> WAVE = EntityDataManager.createKey(AbstractGatewayEntity.class, DataSerializers.BYTE);
+	public static final Method DROP_LOOT = ObfuscationReflectionHelper.findMethod(LivingEntity.class, "dropFromLootTable", DamageSource.class, boolean.class);
+	public static final DataParameter<Boolean> WAVE_ACTIVE = EntityDataManager.defineId(AbstractGatewayEntity.class, DataSerializers.BOOLEAN);
+	public static final DataParameter<Byte> WAVE = EntityDataManager.defineId(AbstractGatewayEntity.class, DataSerializers.BYTE);
 
 	protected final ServerBossInfo bossInfo = this.createBossInfo();
 	protected final GatewayStats stats = this.createStats();
@@ -80,8 +80,8 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 	public AbstractGatewayEntity(EntityType<?> type, World world, PlayerEntity placer, ItemStack source) {
 		super(type, world);
 		CompoundNBT tag = source.getTag().getCompound("gateway_data");
-		this.readAdditional(tag);
-		this.summonerId = placer.getUniqueID();
+		this.readAdditionalSaveData(tag);
+		this.summonerId = placer.getUUID();
 	}
 
 	/**
@@ -94,17 +94,17 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 	@Override
 	public void tick() {
 		super.tick();
-		if (!world.isRemote) {
+		if (!level.isClientSide) {
 			if (!unresolvedWaveEntities.isEmpty()) {
 				for (UUID id : unresolvedWaveEntities) {
-					Entity e = ((ServerWorld) world).getEntityByUuid(id);
+					Entity e = ((ServerWorld) level).getEntity(id);
 					if (e instanceof LivingEntity) this.currentWaveEntities.add((LivingEntity) e);
 				}
 				unresolvedWaveEntities.clear();
 			}
 
-			if (this.ticksExisted % 20 == 0) {
-				spawnParticle(this.bossInfo.getColor(), this.getPosX(), this.getPosY() + 1.5F, this.getPosZ(), 1);
+			if (this.tickCount % 20 == 0) {
+				spawnParticle(this.bossInfo.getColor(), this.getX(), this.getY() + 1.5F, this.getZ(), 1);
 			}
 
 			if (isWaveActive()) {
@@ -123,7 +123,7 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 				this.onWaveEnd(wave);
 				this.bossInfo.setPercent(1F - (float) wave / this.stats.maxWaves);
 				this.currentWaveEntities.clear();
-				this.dataManager.set(WAVE_ACTIVE, false);
+				this.entityData.set(WAVE_ACTIVE, false);
 				if (wave == this.stats.maxWaves) {
 					this.onLastWaveEnd();
 				}
@@ -135,7 +135,7 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 				}
 			}
 
-			if (this.ticksExisted % 4 == 0 && !undroppedItems.isEmpty()) {
+			if (this.tickCount % 4 == 0 && !undroppedItems.isEmpty()) {
 				spawnItem(undroppedItems.remove());
 			}
 
@@ -146,11 +146,11 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 	}
 
 	public void spawnWave() {
-		BlockPos blockpos = this.getPosition();
+		BlockPos blockpos = this.blockPosition();
 
 		for (int i = 0; i < this.stats.entitiesPerWave; ++i) {
-			CompoundNBT compoundnbt = this.entity.getNbt();
-			Optional<EntityType<?>> optional = EntityType.readEntityType(compoundnbt);
+			CompoundNBT compoundnbt = this.entity.getTag();
+			Optional<EntityType<?>> optional = EntityType.by(compoundnbt);
 			if (!optional.isPresent()) {
 				this.remove();
 				GatewaysToEternity.LOGGER.error("GatewayEntity - Failed to read the entity type from spawn data: " + compoundnbt);
@@ -160,13 +160,13 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 			ListNBT listnbt = compoundnbt.getList("Pos", 6);
 			int j = listnbt.size();
 			int tries = 0;
-			double x = j >= 1 ? listnbt.getDouble(0) : blockpos.getX() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.stats.spawnRange + 0.5D;
-			double y = j >= 2 ? listnbt.getDouble(1) : (double) (blockpos.getY() + world.rand.nextInt(3) - 1);
-			double z = j >= 3 ? listnbt.getDouble(2) : blockpos.getZ() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.stats.spawnRange + 0.5D;
-			while (!world.hasNoCollisions(optional.get().getBoundingBoxWithSizeApplied(x, y, z))) {
-				x = j >= 1 ? listnbt.getDouble(0) : blockpos.getX() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.stats.spawnRange + 0.5D;
-				y = j >= 2 ? listnbt.getDouble(1) : (double) (blockpos.getY() + world.rand.nextInt(3) - 1);
-				z = j >= 3 ? listnbt.getDouble(2) : blockpos.getZ() + (world.rand.nextDouble() - world.rand.nextDouble()) * this.stats.spawnRange + 0.5D;
+			double x = j >= 1 ? listnbt.getDouble(0) : blockpos.getX() + (level.random.nextDouble() - level.random.nextDouble()) * this.stats.spawnRange + 0.5D;
+			double y = j >= 2 ? listnbt.getDouble(1) : (double) (blockpos.getY() + level.random.nextInt(3) - 1);
+			double z = j >= 3 ? listnbt.getDouble(2) : blockpos.getZ() + (level.random.nextDouble() - level.random.nextDouble()) * this.stats.spawnRange + 0.5D;
+			while (!level.noCollision(optional.get().getAABB(x, y, z))) {
+				x = j >= 1 ? listnbt.getDouble(0) : blockpos.getX() + (level.random.nextDouble() - level.random.nextDouble()) * this.stats.spawnRange + 0.5D;
+				y = j >= 2 ? listnbt.getDouble(1) : (double) (blockpos.getY() + level.random.nextInt(3) - 1);
+				z = j >= 3 ? listnbt.getDouble(2) : blockpos.getZ() + (level.random.nextDouble() - level.random.nextDouble()) * this.stats.spawnRange + 0.5D;
 				if (tries++ >= 4) {
 					break;
 				}
@@ -174,9 +174,9 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 
 			final double fx = x, fy = y, fz = z;
 
-			if (world.hasNoCollisions(optional.get().getBoundingBoxWithSizeApplied(x, y, z))) {
-				Entity entity = EntityType.loadEntityAndExecute(compoundnbt, world, (p_221408_6_) -> {
-					p_221408_6_.setLocationAndAngles(fx, fy, fz, p_221408_6_.rotationYaw, p_221408_6_.rotationPitch);
+			if (level.noCollision(optional.get().getAABB(x, y, z))) {
+				Entity entity = EntityType.loadEntityRecursive(compoundnbt, level, (p_221408_6_) -> {
+					p_221408_6_.moveTo(fx, fy, fz, p_221408_6_.yRot, p_221408_6_.xRot);
 					return p_221408_6_;
 				});
 
@@ -188,31 +188,31 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 
 				modifyEntityForWave(getWave() + 1, (LivingEntity) entity);
 
-				entity.setLocationAndAngles(entity.getPosX(), entity.getPosY(), entity.getPosZ(), world.rand.nextFloat() * 360.0F, 0.0F);
+				entity.moveTo(entity.getX(), entity.getY(), entity.getZ(), level.random.nextFloat() * 360.0F, 0.0F);
 				if (entity instanceof MobEntity) {
 					MobEntity mobentity = (MobEntity) entity;
 
-					if (this.entity.getNbt().size() == 1 && this.entity.getNbt().contains("id", 8) && !ForgeEventFactory.doSpecialSpawn((MobEntity) entity, world, (float) entity.getPosX(), (float) entity.getPosY(), (float) entity.getPosZ(), null, SpawnReason.NATURAL)) {
-						mobentity.onInitialSpawn((ServerWorld) world, world.getDifficultyForLocation(entity.getPosition()), SpawnReason.NATURAL, (ILivingEntityData) null, (CompoundNBT) null);
+					if (this.entity.getTag().size() == 1 && this.entity.getTag().contains("id", 8) && !ForgeEventFactory.doSpecialSpawn((MobEntity) entity, level, (float) entity.getX(), (float) entity.getY(), (float) entity.getZ(), null, SpawnReason.NATURAL)) {
+						mobentity.finalizeSpawn((ServerWorld) level, level.getCurrentDifficultyAt(entity.blockPosition()), SpawnReason.NATURAL, (ILivingEntityData) null, (CompoundNBT) null);
 					}
 				}
 
 				this.spawnEntity(entity);
-				this.world.playSound(null, this.getPosX(), this.getPosY(), this.getPosZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.5F, 1);
+				this.level.playSound(null, this.getX(), this.getY(), this.getZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.5F, 1);
 				this.currentWaveEntities.add((LivingEntity) entity);
-				spawnParticle(this.bossInfo.getColor(), entity.getPosX() + entity.getWidth() / 2, entity.getPosY() + entity.getHeight() / 2, entity.getPosZ() + entity.getWidth() / 2, 0);
+				spawnParticle(this.bossInfo.getColor(), entity.getX() + entity.getBbWidth() / 2, entity.getY() + entity.getBbHeight() / 2, entity.getZ() + entity.getBbWidth() / 2, 0);
 			} else {
 				this.remove();
 			}
 		}
-		this.dataManager.set(WAVE, (byte) (getWave() + 1));
-		this.dataManager.set(WAVE_ACTIVE, true);
+		this.entityData.set(WAVE, (byte) (getWave() + 1));
+		this.entityData.set(WAVE_ACTIVE, true);
 		this.ticksInactive = 0;
 		this.onWaveStart(getWave(), this.currentWaveEntities);
 	}
 
 	protected void spawnEntity(Entity entity) {
-		if (this.world.addEntity(entity)) {
+		if (this.level.addFreshEntity(entity)) {
 			for (Entity e : entity.getPassengers()) {
 				this.spawnEntity(e);
 			}
@@ -223,7 +223,7 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 		while (completionXP > 0) {
 			int i = 5;
 			completionXP -= i;
-			this.world.addEntity(new ExperienceOrbEntity(this.world, this.getPosX(), this.getPosY(), this.getPosZ(), i));
+			this.level.addFreshEntity(new ExperienceOrbEntity(this.level, this.getX(), this.getY(), this.getZ(), i));
 		}
 	}
 
@@ -241,17 +241,17 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 	}
 
 	protected void onWaveEnd(int wave) {
-		PlayerEntity player = world.getPlayerByUuid(summonerId);
+		PlayerEntity player = this.summonerId == null ? null : level.getPlayerByUUID(summonerId);
 		if (player == null) {
-			player = world.getClosestPlayer(this, 50);
+			player = level.getNearestPlayer(this, 50);
 		}
 		try {
-			Entity entity = EntityType.loadEntityAndExecute(this.entity.getNbt(), world, (p_221408_6_) -> {
-				p_221408_6_.setLocationAndAngles(this.getPosX(), this.getPosY(), this.getPosZ(), p_221408_6_.rotationYaw, p_221408_6_.rotationPitch);
+			Entity entity = EntityType.loadEntityRecursive(this.entity.getTag(), level, (p_221408_6_) -> {
+				p_221408_6_.moveTo(this.getX(), this.getY(), this.getZ(), p_221408_6_.yRot, p_221408_6_.xRot);
 				return p_221408_6_;
 			});
 			List<ItemEntity> items = new ArrayList<>();
-			entity.attackEntityFrom(DamageSource.causePlayerDamage(player).setDamageIsAbsolute().setDamageAllowedInCreativeMode().setDamageBypassesArmor(), 1);
+			entity.hurt(DamageSource.playerAttack(player).bypassMagic().bypassInvul().bypassArmor(), 1);
 			entity.captureDrops(items);
 			this.dropBonusLoot(player, (LivingEntity) entity);
 			items.stream().map(ItemEntity::getItem).forEach(undroppedItems::add);
@@ -278,41 +278,41 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 
 	protected void dropBonusLoot(PlayerEntity player, LivingEntity entity) throws Exception {
 		for (int i = 0; i < this.stats.entitiesPerWave * getWave(); i++) {
-			DROP_LOOT.invoke(entity, DamageSource.causePlayerDamage(player), true);
+			DROP_LOOT.invoke(entity, DamageSource.playerAttack(player), true);
 		}
 	}
 
 	@Override
-	protected void readAdditional(CompoundNBT tag) {
-		this.dataManager.set(WAVE, tag.getByte("wave"));
+	protected void readAdditionalSaveData(CompoundNBT tag) {
+		this.entityData.set(WAVE, tag.getByte("wave"));
 		this.entity = new WeightedSpawnerEntity(tag.getCompound("entity"));
 		long[] entities = tag.getLongArray("wave_entities");
 		for (int i = 0; i < entities.length; i += 2) {
 			unresolvedWaveEntities.add(new UUID(entities[i], entities[i + 1]));
 		}
-		this.dataManager.set(WAVE_ACTIVE, tag.getBoolean("active"));
+		this.entityData.set(WAVE_ACTIVE, tag.getBoolean("active"));
 		this.ticksInactive = tag.getShort("ticks_inactive");
 		this.ticksActive = tag.getInt("ticks_active");
 		this.completionXP = tag.getInt("completion_xp");
-		if (tag.contains("summoner")) this.summonerId = tag.getUniqueId("summoner");
+		if (tag.contains("summoner")) this.summonerId = tag.getUUID("summoner");
 		this.bossInfo.setName(new TranslationTextComponent(tag.getString("name")));
 		this.maxWaveTime = tag.getInt("max_wave_time");
 		this.bossInfo.setPercent(1F - (float) getWave() / this.stats.maxWaves);
 		ListNBT stacks = tag.getList("queued_stacks", Constants.NBT.TAG_COMPOUND);
 		for (INBT inbt : stacks) {
-			undroppedItems.add(ItemStack.read((CompoundNBT) inbt));
+			undroppedItems.add(ItemStack.of((CompoundNBT) inbt));
 		}
 		this.bossInfo.setColor(Color.byName(tag.getString("color")));
 	}
 
 	@Override
-	protected void writeAdditional(CompoundNBT tag) {
+	protected void addAdditionalSaveData(CompoundNBT tag) {
 		tag.putByte("wave", getWave());
-		tag.put("entity", this.entity.toCompoundTag());
+		tag.put("entity", this.entity.save());
 		long[] ids = new long[this.currentWaveEntities.size() * 2];
 		int idx = 0;
 		for (LivingEntity e : this.currentWaveEntities) {
-			UUID id = e.getUniqueID();
+			UUID id = e.getUUID();
 			ids[idx++] = id.getMostSignificantBits();
 			ids[idx++] = id.getLeastSignificantBits();
 		}
@@ -321,7 +321,7 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 		tag.putInt("ticks_active", getTicksActive());
 		tag.putShort("ticks_inactive", (short) getTicksInactive());
 		tag.putInt("completion_xp", this.completionXP);
-		tag.putUniqueId("summoner", this.summonerId);
+		if (this.summonerId != null) tag.putUUID("summoner", this.summonerId);
 		tag.putString("name", this.bossInfo.getName() == null ? "entity.gateways.gateway" : ((TranslationTextComponent) this.bossInfo.getName()).getKey());
 		tag.putInt("max_wave_time", this.maxWaveTime);
 		ListNBT stacks = new ListNBT();
@@ -333,25 +333,25 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 	}
 
 	@Override
-	protected void registerData() {
-		this.dataManager.register(WAVE_ACTIVE, false);
-		this.dataManager.register(WAVE, (byte) 0);
+	protected void defineSynchedData() {
+		this.entityData.define(WAVE_ACTIVE, false);
+		this.entityData.define(WAVE, (byte) 0);
 	}
 
 	@Override
-	public IPacket<?> createSpawnPacket() {
+	public IPacket<?> getAddEntityPacket() {
 		return NetworkHooks.getEntitySpawningPacket(this);
 	}
 
 	@Override
-	public void addTrackingPlayer(ServerPlayerEntity player) {
-		super.addTrackingPlayer(player);
+	public void startSeenByPlayer(ServerPlayerEntity player) {
+		super.startSeenByPlayer(player);
 		this.bossInfo.addPlayer(player);
 	}
 
 	@Override
-	public void removeTrackingPlayer(ServerPlayerEntity player) {
-		super.removeTrackingPlayer(player);
+	public void stopSeenByPlayer(ServerPlayerEntity player) {
+		super.stopSeenByPlayer(player);
 		this.bossInfo.removePlayer(player);
 	}
 
@@ -364,11 +364,11 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 	}
 
 	public boolean isWaveActive() {
-		return this.dataManager.get(WAVE_ACTIVE);
+		return this.entityData.get(WAVE_ACTIVE);
 	}
 
 	public byte getWave() {
-		return this.dataManager.get(WAVE);
+		return this.entityData.get(WAVE);
 	}
 
 	public GatewayStats getStats() {
@@ -388,33 +388,33 @@ public abstract class AbstractGatewayEntity extends Entity implements IEntityAdd
 	}
 
 	public static void spawnLightningOn(Entity entity, boolean effectOnly) {
-		LightningBoltEntity bolt = EntityType.LIGHTNING_BOLT.create(entity.world);
-		bolt.setPosition(entity.getPosX(), entity.getPosY(), entity.getPosZ());
-		bolt.setEffectOnly(effectOnly);
-		entity.world.addEntity(bolt);
+		LightningBoltEntity bolt = EntityType.LIGHTNING_BOLT.create(entity.level);
+		bolt.setPos(entity.getX(), entity.getY(), entity.getZ());
+		bolt.setVisualOnly(effectOnly);
+		entity.level.addFreshEntity(bolt);
 	}
 
 	public void spawnParticle(Color color, double x, double y, double z, int type) {
 		int cInt = BossColorMap.getColor(this.getBossInfo());
-		NetworkUtils.sendToTracking(GatewaysToEternity.CHANNEL, new ParticleMessage(this, x, y, z, cInt, type), (ServerWorld) world, new BlockPos((int) x, (int) y, (int) z));
+		NetworkUtils.sendToTracking(GatewaysToEternity.CHANNEL, new ParticleMessage(this, x, y, z, cInt, type), (ServerWorld) level, new BlockPos((int) x, (int) y, (int) z));
 	}
 
 	public void spawnItem(ItemStack stack) {
-		ItemEntity i = new ItemEntity(world, 0, 0, 0, stack);
-		i.setPosition(this.getPosX() + MathHelper.nextDouble(rand, -0.5, 0.5), this.getPosY() + 1.5, this.getPosZ() + MathHelper.nextDouble(rand, -0.5, 0.5));
-		i.setMotion(MathHelper.nextDouble(rand, -0.15, 0.15), 0.4, MathHelper.nextDouble(rand, -0.15, 0.15));
-		world.addEntity(i);
-		this.world.playSound(null, i.getPosX(), i.getPosY(), i.getPosZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.75F, 2.0F);
+		ItemEntity i = new ItemEntity(level, 0, 0, 0, stack);
+		i.setPos(this.getX() + MathHelper.nextDouble(random, -0.5, 0.5), this.getY() + 1.5, this.getZ() + MathHelper.nextDouble(random, -0.5, 0.5));
+		i.setDeltaMovement(MathHelper.nextDouble(random, -0.15, 0.15), 0.4, MathHelper.nextDouble(random, -0.15, 0.15));
+		level.addFreshEntity(i);
+		this.level.playSound(null, i.getX(), i.getY(), i.getZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.75F, 2.0F);
 	}
 
 	@Override
 	public void writeSpawnData(PacketBuffer buf) {
-		buf.writeString(this.bossInfo.getColor().getName());
+		buf.writeUtf(this.bossInfo.getColor().getName());
 	}
 
 	@Override
 	public void readSpawnData(PacketBuffer buf) {
-		this.bossInfo.setColor(Color.byName(buf.readString()));
+		this.bossInfo.setColor(Color.byName(buf.readUtf()));
 	}
 
 	public class GatewayStats {

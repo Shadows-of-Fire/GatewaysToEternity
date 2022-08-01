@@ -14,6 +14,8 @@ import net.minecraft.item.crafting.IRecipeSerializer;
 import net.minecraft.particles.ParticleType;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
@@ -22,6 +24,7 @@ import net.minecraftforge.fml.network.NetworkRegistry;
 import net.minecraftforge.fml.network.simple.SimpleChannel;
 import shadows.gateways.client.GatewayParticle;
 import shadows.gateways.client.GatewayTickableSound;
+import shadows.gateways.command.GatewayCommand;
 import shadows.gateways.entity.AbstractGatewayEntity;
 import shadows.gateways.entity.SmallGatewayEntity;
 import shadows.gateways.item.GateOpenerItem;
@@ -46,16 +49,17 @@ public class GatewaysToEternity {
 	public GatewaysToEternity() {
 		FMLJavaModLoadingContext.get().getModEventBus().register(this);
 		NetworkUtils.registerMessage(CHANNEL, 0, new ParticleMessage());
+		MinecraftForge.EVENT_BUS.addListener(this::commands);
 	}
 
 	@SubscribeEvent
 	public void registerEntities(Register<EntityType<?>> e) {
 		//Formatter::off
 		e.getRegistry().register(EntityType.Builder
-				.<AbstractGatewayEntity>create(SmallGatewayEntity::new, EntityClassification.MISC)
+				.<AbstractGatewayEntity>of(SmallGatewayEntity::new, EntityClassification.MISC)
 				.setTrackingRange(5)
 				.setUpdateInterval(20)
-				.size(2F, 2.5F)
+				.sized(2F, 2.5F)
 				.setCustomClientFactory((se, w) -> {
 					AbstractGatewayEntity ent = new SmallGatewayEntity(GatewayObjects.SMALL_GATEWAY, w);
 					GatewayTickableSound.startGatewaySound(ent);
@@ -68,7 +72,7 @@ public class GatewaysToEternity {
 
 	@SubscribeEvent
 	public void registerItems(Register<Item> e) {
-		e.getRegistry().register(new GateOpenerItem(new Item.Properties().maxStackSize(1).rarity(Rarity.UNCOMMON).group(ItemGroup.MISC), SmallGatewayEntity::new).setRegistryName("small_gate_opener"));
+		e.getRegistry().register(new GateOpenerItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).tab(ItemGroup.TAB_MISC), SmallGatewayEntity::new).setRegistryName("small_gate_opener"));
 	}
 
 	@SubscribeEvent
@@ -92,10 +96,14 @@ public class GatewaysToEternity {
 	public void registerParticles(Register<ParticleType<?>> e) {
 		e.getRegistry().register(new ParticleType<GatewayParticle.Data>(false, GatewayParticle.Data.DESERIALIZER) {
 			@Override
-			public Codec<GatewayParticle.Data> func_230522_e_() {
+			public Codec<GatewayParticle.Data> codec() {
 				return GatewayParticle.Data.CODEC;
 			}
 		}.setRegistryName("glow"));
+	}
+
+	public void commands(RegisterCommandsEvent e) {
+		GatewayCommand.register(e.getDispatcher());
 	}
 
 }

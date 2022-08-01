@@ -19,9 +19,9 @@ public class GatewayRecipeSerializer extends ShapedRecipe.Serializer {
 	public static final GatewayRecipeSerializer INSTANCE = new GatewayRecipeSerializer();
 
 	@Override
-	public GatewayRecipe read(ResourceLocation id, JsonObject json) {
-		ShapedRecipe recipe = super.read(id, json);
-		ItemStack gateway = recipe.getRecipeOutput();
+	public GatewayRecipe fromJson(ResourceLocation id, JsonObject json) {
+		ShapedRecipe recipe = super.fromJson(id, json);
+		ItemStack gateway = recipe.getResultItem();
 		if (!(gateway.getItem() instanceof GateOpenerItem)) {
 			throw new JsonSyntaxException("Gateway Recipe output must be a gate opener item.  Provided: " + gateway.getItem().getRegistryName());
 		}
@@ -42,7 +42,7 @@ public class GatewayRecipeSerializer extends ShapedRecipe.Serializer {
 		CompoundNBT tag = new CompoundNBT();
 		tag.putString("name", name);
 		WeightedSpawnerEntity ws = new WeightedSpawnerEntity(1, TagBuilder.getDefaultTag(ForgeRegistries.ENTITIES.getValue(entity)));
-		tag.put("entity", ws.toCompoundTag());
+		tag.put("entity", ws.save());
 		tag.putInt("completion_xp", completionXP);
 		tag.putInt("max_wave_time", maxWaveTime);
 		tag.putString("color", color);

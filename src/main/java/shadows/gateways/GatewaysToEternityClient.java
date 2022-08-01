@@ -22,11 +22,11 @@ public class GatewaysToEternityClient {
 	@SubscribeEvent
 	public static void setup(FMLClientSetupEvent e) {
 		e.enqueueWork(() -> {
-			EntityRendererManager mgr = Minecraft.getInstance().getRenderManager();
+			EntityRendererManager mgr = Minecraft.getInstance().getEntityRenderDispatcher();
 			mgr.register(GatewayObjects.SMALL_GATEWAY, new GatewayRenderer(mgr));
 			Minecraft.getInstance().getItemColors().register((stack, tint) -> {
 				if (stack.hasTag() && stack.getTag().contains("gateway_data")) {
-					CompoundNBT data = stack.getOrCreateChildTag("gateway_data");
+					CompoundNBT data = stack.getOrCreateTagElement("gateway_data");
 					if (data.contains("color")) {
 						BossInfo.Color color = BossInfo.Color.byName(data.getString("color"));
 						return BossColorMap.getColor(color);
@@ -39,7 +39,7 @@ public class GatewaysToEternityClient {
 
 	@SubscribeEvent
 	public static void factories(ParticleFactoryRegisterEvent e) {
-		Minecraft.getInstance().particles.registerFactory(GatewayObjects.GLOW, GatewayParticle.Factory::new);
+		Minecraft.getInstance().particleEngine.register(GatewayObjects.GLOW, GatewayParticle.Factory::new);
 	}
 
 	public static RecipeManager getClientRecipeManager() {

@@ -17,7 +17,7 @@ public class ParticleMessage extends MessageProvider<ParticleMessage> {
 	public int color;
 
 	public ParticleMessage(AbstractGatewayEntity source, double x, double y, double z, int color, int type) {
-		this(source.getEntityId(), x, y, z, color, type);
+		this(source.getId(), x, y, z, color, type);
 	}
 
 	public ParticleMessage(int id, double x, double y, double z, int color, int type) {
