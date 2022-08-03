@@ -1,0 +1,271 @@
+{
+    "size": "small",
+    "color": "red",
+    "waves": [{
+            "entities": [{
+                    "entity": "minecraft:blaze"
+                },
+                {
+                    "entity": "minecraft:blaze"
+                },
+                {
+                    "entity": "minecraft:blaze"
+                }
+            ],
+            "rewards": [{
+                "type": "entity_loot",
+                "entity": "minecraft:blaze",
+                "rolls": 3
+            }],
+            "max_wave_time": 11750,
+            "setup_time": 150
+        },
+        {
+            "entities": [{
+                    "entity": "minecraft:blaze"
+                },
+                {
+                    "entity": "minecraft:blaze"
+                },
+                {
+                    "entity": "minecraft:blaze"
+                }
+            ],
+            "modifiers": [{
+                    "attribute": "generic.max_health",
+                    "operation": "MULTIPLY_TOTAL",
+                    "value": {
+                        "min": 0.33,
+                        "max": 0.45
+                    }
+                },
+                {
+                    "attribute": "generic.armor",
+                    "operation": "ADDITION",
+                    "value": {
+                        "min": 2.5,
+                        "max": 4.5
+                    }
+                },
+                {
+                    "attribute": "generic.attack_damage",
+                    "operation": "MULTIPLY_TOTAL",
+                    "value": {
+                        "min": 0.33,
+                        "max": 0.45
+                    }
+                },
+                {
+                    "attribute": "generic.knockback_resistance",
+                    "operation": "ADDITION",
+                    "value": {
+                        "min": 0.05,
+                        "max": 0.1
+                    }
+                },
+                {
+                    "attribute": "generic.movement_speed",
+                    "operation": "MULTIPLY_TOTAL",
+                    "value": {
+                        "min": 0.05,
+                        "max": 0.1
+                    }
+                }
+            ],
+            "rewards": [{
+                "type": "entity_loot",
+                "entity": "minecraft:blaze",
+                "rolls": 6
+            }],
+            "max_wave_time": 750,
+            "setup_time": 150
+        },
+        {
+            "entities": [{
+                    "entity": "minecraft:blaze"
+                },
+                {
+                    "entity": "minecraft:blaze"
+                },
+                {
+                    "entity": "minecraft:blaze"
+                }
+            ],
+            "modifiers": [{
+                    "attribute": "generic.max_health",
+                    "operation": "MULTIPLY_TOTAL",
+                    "value": {
+                        "min": 0.75,
+                        "max": 0.85
+                    }
+                },
+                {
+                    "attribute": "generic.armor",
+                    "operation": "ADDITION",
+                    "value": {
+                        "min": 5,
+                        "max": 7.5
+                    }
+                },
+                {
+                    "attribute": "generic.attack_damage",
+                    "operation": "MULTIPLY_TOTAL",
+                    "value": {
+                        "min": 0.75,
+                        "max": 0.86
+                    }
+                },
+                {
+                    "attribute": "generic.knockback_resistance",
+                    "operation": "ADDITION",
+                    "value": {
+                        "min": 0.1,
+                        "max": 0.15
+                    }
+                },
+                {
+                    "attribute": "generic.movement_speed",
+                    "operation": "MULTIPLY_TOTAL",
+                    "value": {
+                        "min": 0.1,
+                        "max": 0.15
+                    }
+                }
+            ],
+            "rewards": [{
+                "type": "entity_loot",
+                "entity": "minecraft:blaze",
+                "rolls": 9
+            }],
+            "max_wave_time": 750,
+            "setup_time": 150
+        },
+        {
+            "entities": [{
+                    "entity": "minecraft:blaze"
+                },
+                {
+                    "entity": "minecraft:blaze"
+                },
+                {
+                    "entity": "minecraft:blaze"
+                }
+            ],
+            "modifiers": [{
+                    "attribute": "generic.max_health",
+                    "operation": "MULTIPLY_TOTAL",
+                    "value": {
+                        "min": 1.35,
+                        "max": 1.45
+                    }
+                },
+                {
+                    "attribute": "generic.armor",
+                    "operation": "ADDITION",
+                    "value": {
+                        "min": 7.5,
+                        "max": 9.5
+                    }
+                },
+                {
+                    "attribute": "generic.attack_damage",
+                    "operation": "MULTIPLY_TOTAL",
+                    "value": {
+                        "min": 1.35,
+                        "max": 1.45
+                    }
+                },
+                {
+                    "attribute": "generic.knockback_resistance",
+                    "operation": "ADDITION",
+                    "value": {
+                        "min": 0.15,
+                        "max": 0.2
+                    }
+                },
+                {
+                    "attribute": "generic.movement_speed",
+                    "operation": "MULTIPLY_TOTAL",
+                    "value": {
+                        "min": 0.15,
+                        "max": 0.2
+                    }
+                }
+            ],
+            "rewards": [{
+                "type": "entity_loot",
+                "entity": "minecraft:blaze",
+                "rolls": 12
+            }],
+            "max_wave_time": 750,
+            "setup_time": 150
+        },
+        {
+            "entities": [{
+                    "entity": "minecraft:blaze"
+                },
+                {
+                    "entity": "minecraft:blaze"
+                },
+                {
+                    "entity": "minecraft:blaze"
+                }
+            ],
+            "modifiers": [{
+                    "attribute": "generic.max_health",
+                    "operation": "MULTIPLY_TOTAL",
+                    "value": {
+                        "min": 3.12,
+                        "max": 3.35
+                    }
+                },
+                {
+                    "attribute": "generic.armor",
+                    "operation": "ADDITION",
+                    "value": {
+                        "min": 10,
+                        "max": 12.5
+                    }
+                },
+                {
+                    "attribute": "generic.attack_damage",
+                    "operation": "MULTIPLY_TOTAL",
+                    "value": {
+                        "min": 3.12,
+                        "max": 3.35
+                    }
+                },
+                {
+                    "attribute": "generic.knockback_resistance",
+                    "operation": "ADDITION",
+                    "value": {
+                        "min": 0.2,
+                        "max": 0.25
+                    }
+                },
+                {
+                    "attribute": "generic.movement_speed",
+                    "operation": "MULTIPLY_TOTAL",
+                    "value": {
+                        "min": 0.2,
+                        "max": 0.25
+                    }
+                }
+            ],
+            "rewards": [{
+                "type": "entity_loot",
+                "entity": "minecraft:blaze",
+                "rolls": 15
+            }],
+            "max_wave_time": 750,
+            "setup_time": 150
+        }
+    ],
+    "rewards": [{
+        "type": "entity_loot",
+        "entity": "minecraft:blaze",
+        "rolls": 30
+    }],
+    "completion_xp": 250,
+	"spawn_range": 5
+}

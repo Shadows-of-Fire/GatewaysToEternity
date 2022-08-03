@@ -1,43 +1,44 @@
 package shadows.gateways.client;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import com.mojang.blaze3d.vertex.IVertexBuilder;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.math.Quaternion;
+import com.mojang.math.Vector3f;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.IRenderTypeBuffer;
+import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.EntityRendererManager;
+import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.vector.Quaternion;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.math.vector.Vector3f;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import shadows.gateways.GatewaysToEternity;
-import shadows.gateways.entity.AbstractGatewayEntity;
-import shadows.gateways.util.BossColorMap;
+import shadows.gateways.entity.GatewayEntity;
 
-public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
+public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
 
 	public static final ResourceLocation TEXTURE = new ResourceLocation(GatewaysToEternity.MODID, "textures/entity/gateway.png");
 	public static final int[] FRAMES = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 };
 
-	public GatewayRenderer(EntityRendererManager mgr) {
+	public GatewayRenderer(EntityRendererProvider.Context mgr) {
 		super(mgr);
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(AbstractGatewayEntity entity) {
+	public ResourceLocation getTextureLocation(GatewayEntity entity) {
 		return TEXTURE;
 	}
 
 	@Override
-	public void render(AbstractGatewayEntity entity, float unknown, float partialTicks, MatrixStack matrix, IRenderTypeBuffer buf, int packedLight) {
+	public void render(GatewayEntity entity, float unknown, float partialTicks, PoseStack matrix, MultiBufferSource buf, int packedLight) {
 		matrix.pushPose();
-		PlayerEntity player = Minecraft.getInstance().player;
-		Vector3d playerV = player.getEyePosition(partialTicks);
-		Vector3d portal = entity.position();
+		Player player = Minecraft.getInstance().player;
+		Vec3 playerV = player.getEyePosition(partialTicks);
+		Vec3 portal = entity.position();
 
 		float scale = 0.35F;
 		double yOffset = 1.5;
@@ -54,7 +55,7 @@ public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
 		}
 
 		if (entity.getClientTicks() != -1) {
-			progress = (entity.tickCount - entity.getClientTicks() + partialTicks) / entity.getStats().pauseTime;
+			progress = (entity.tickCount - entity.getClientTicks() + partialTicks) / entity.getCurrentWave().setupTime();
 			if (progress >= 1.3F) entity.setClientTicks(-1);
 			else {
 				if (progress <= 0.45F) {
@@ -70,9 +71,11 @@ public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
 
 		matrix.scale(scale, scale, 1);
 
-		this.entityRenderDispatcher.textureManager.bind(this.getTextureLocation(entity));
-		IVertexBuilder builder = buf.getBuffer(RenderType.entityCutout(getTextureLocation(entity)));
-		int color = BossColorMap.getColor(entity.getBossInfo());
+		RenderSystem.setShader(GameRenderer::getPositionTexShader);
+		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+		RenderSystem.setShaderTexture(0, this.getTextureLocation(entity));
+		VertexConsumer builder = buf.getBuffer(RenderType.entityCutout(getTextureLocation(entity)));
+		int color = entity.getGateway().getColor().getValue();
 		int r = color >> 16 & 255, g = color >> 8 & 255, b = color & 255;
 		float frameHeight = 1 / 12F;
 		int frame = FRAMES[entity.tickCount % FRAMES.length];
@@ -84,7 +87,7 @@ public class GatewayRenderer extends EntityRenderer<AbstractGatewayEntity> {
 		matrix.popPose();
 	}
 
-	public static double angleOf(Vector3d p1, Vector3d p2) {
+	public static double angleOf(Vec3 p1, Vec3 p2) {
 		final double deltaY = p2.z - p1.z;
 		final double deltaX = p2.x - p1.x;
 		final double result = Math.toDegrees(Math.atan2(deltaY, deltaX));

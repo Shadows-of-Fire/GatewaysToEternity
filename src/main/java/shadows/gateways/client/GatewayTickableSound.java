@@ -1,16 +1,16 @@
 package shadows.gateways.client;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.audio.TickableSound;
-import net.minecraft.util.SoundCategory;
+import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
+import net.minecraft.sounds.SoundSource;
 import shadows.gateways.GatewayObjects;
-import shadows.gateways.entity.AbstractGatewayEntity;
+import shadows.gateways.entity.GatewayEntity;
 
-public class GatewayTickableSound extends TickableSound {
-	private final AbstractGatewayEntity gateway;
+public class GatewayTickableSound extends AbstractTickableSoundInstance {
+	private final GatewayEntity gateway;
 
-	public GatewayTickableSound(AbstractGatewayEntity gateway) {
-		super(GatewayObjects.GATE_AMBIENT, SoundCategory.HOSTILE);
+	public GatewayTickableSound(GatewayEntity gateway) {
+		super(GatewayObjects.GATE_AMBIENT, SoundSource.HOSTILE);
 		this.gateway = gateway;
 		this.looping = true;
 		this.delay = 0;
@@ -33,7 +33,7 @@ public class GatewayTickableSound extends TickableSound {
 		}
 	}
 
-	public static void startGatewaySound(AbstractGatewayEntity entity) {
+	public static void startGatewaySound(GatewayEntity entity) {
 		Minecraft.getInstance().getSoundManager().play(new GatewayTickableSound(entity));
 	}
 }

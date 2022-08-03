@@ -5,32 +5,34 @@ import org.apache.logging.log4j.Logger;
 
 import com.mojang.serialization.Codec;
 
-import net.minecraft.entity.EntityClassification;
-import net.minecraft.entity.EntityType;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.Rarity;
-import net.minecraft.item.crafting.IRecipeSerializer;
-import net.minecraft.particles.ParticleType;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.SoundEvent;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.fml.network.NetworkRegistry;
-import net.minecraftforge.fml.network.simple.SimpleChannel;
+import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.simple.SimpleChannel;
 import shadows.gateways.client.GatewayParticle;
 import shadows.gateways.client.GatewayTickableSound;
 import shadows.gateways.command.GatewayCommand;
-import shadows.gateways.entity.AbstractGatewayEntity;
-import shadows.gateways.entity.SmallGatewayEntity;
+import shadows.gateways.entity.GatewayEntity;
+import shadows.gateways.gate.GatewayManager;
+import shadows.gateways.gate.Reward;
 import shadows.gateways.item.GateOpenerItem;
 import shadows.gateways.net.ParticleMessage;
 import shadows.gateways.recipe.GatewayRecipeSerializer;
-import shadows.placebo.util.NetworkUtils;
+import shadows.placebo.network.MessageHelper;
 
 @Mod(GatewaysToEternity.MODID)
 public class GatewaysToEternity {
@@ -48,35 +50,41 @@ public class GatewaysToEternity {
 
 	public GatewaysToEternity() {
 		FMLJavaModLoadingContext.get().getModEventBus().register(this);
-		NetworkUtils.registerMessage(CHANNEL, 0, new ParticleMessage());
+		MessageHelper.registerMessage(CHANNEL, 0, new ParticleMessage());
 		MinecraftForge.EVENT_BUS.addListener(this::commands);
+	}
+
+	@SubscribeEvent
+	public void setup(FMLCommonSetupEvent e) {
+		GatewayManager.INSTANCE.registerToBus();
+		Reward.initSerializers();
 	}
 
 	@SubscribeEvent
 	public void registerEntities(Register<EntityType<?>> e) {
 		//Formatter::off
 		e.getRegistry().register(EntityType.Builder
-				.<AbstractGatewayEntity>of(SmallGatewayEntity::new, EntityClassification.MISC)
+				.<GatewayEntity>of(GatewayEntity::new, MobCategory.MISC)
 				.setTrackingRange(5)
 				.setUpdateInterval(20)
 				.sized(2F, 2.5F)
 				.setCustomClientFactory((se, w) -> {
-					AbstractGatewayEntity ent = new SmallGatewayEntity(GatewayObjects.SMALL_GATEWAY, w);
+					GatewayEntity ent = new GatewayEntity(GatewayObjects.GATEWAY, w);
 					GatewayTickableSound.startGatewaySound(ent);
 					return ent;
 				})
-				.build("small_gateway")
-				.setRegistryName("small_gateway"));
+				.build("gateway")
+				.setRegistryName("gateway"));
 		//Formatter::on
 	}
 
 	@SubscribeEvent
 	public void registerItems(Register<Item> e) {
-		e.getRegistry().register(new GateOpenerItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).tab(ItemGroup.TAB_MISC), SmallGatewayEntity::new).setRegistryName("small_gate_opener"));
+		e.getRegistry().register(new GateOpenerItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).tab(CreativeModeTab.TAB_MISC), GatewayEntity::new).setRegistryName("gate_opener"));
 	}
 
 	@SubscribeEvent
-	public void registerSerializers(Register<IRecipeSerializer<?>> e) {
+	public void registerSerializers(Register<RecipeSerializer<?>> e) {
 		e.getRegistry().register(GatewayRecipeSerializer.INSTANCE.setRegistryName("gate_recipe"));
 	}
 

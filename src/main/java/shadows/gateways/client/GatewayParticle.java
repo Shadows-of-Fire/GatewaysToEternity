@@ -2,78 +2,86 @@ package shadows.gateways.client;
 
 import java.util.Locale;
 
-import org.lwjgl.opengl.GL11;
-
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.GlStateManager.DestFactor;
 import com.mojang.blaze3d.platform.GlStateManager.SourceFactor;
 import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.client.particle.IAnimatedSprite;
-import net.minecraft.client.particle.IParticleFactory;
-import net.minecraft.client.particle.IParticleRenderType;
+import net.minecraft.client.Camera;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.SpriteTexturedParticle;
-import net.minecraft.client.renderer.BufferBuilder;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.AtlasTexture;
+import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.ParticleRenderType;
+import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.particle.TextureSheetParticle;
+import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.client.world.ClientWorld;
-import net.minecraft.network.PacketBuffer;
-import net.minecraft.particles.IParticleData;
-import net.minecraft.particles.ParticleType;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.registry.Registry;
-import net.minecraft.world.World;
+import net.minecraft.core.Registry;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleType;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.util.Mth;
+import net.minecraft.world.level.Level;
 import shadows.gateways.GatewayObjects;
 
 @SuppressWarnings("deprecation")
-public class GatewayParticle extends SpriteTexturedParticle {
+public class GatewayParticle extends TextureSheetParticle {
 
-	static final IParticleRenderType RENDER_TYPE = new IParticleRenderType() {
+	static final ParticleRenderType RENDER_TYPE = new ParticleRenderType() {
 		public void begin(BufferBuilder bufferBuilder, TextureManager textureManager) {
-			RenderSystem.enableAlphaTest();
+			//RenderSystem.enableAlphaTest();
 			RenderSystem.depthMask(false);
 			RenderSystem.enableBlend();
 			GlStateManager._disableCull();
 			RenderSystem.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE);
-			RenderSystem.alphaFunc(GL11.GL_GREATER, 0.003921569F);
-			textureManager.bind(AtlasTexture.LOCATION_PARTICLES);
-			bufferBuilder.begin(7, DefaultVertexFormats.PARTICLE);
+			//RenderSystem.alphaFunc(GL11.GL_GREATER, 0.003921569F);
+			RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
+			bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
 		}
 
-		public void end(Tessellator tesselator) {
+		public void end(Tesselator tesselator) {
 			tesselator.end();
 		}
 
 		public String toString() {
-			return "PARTICLE_SHEET_TRANSLUCENT";
+			return "GatewayParticleType";
 		}
 	};
 
-	public GatewayParticle(GatewayParticle.Data data, World world, double x, double y, double z, double velX, double velY, double velZ) {
-		super((ClientWorld) world, x, y, z, velX, velY, velZ);
+	public GatewayParticle(GatewayParticle.Data data, Level world, double x, double y, double z, double velX, double velY, double velZ) {
+		super((ClientLevel) world, x, y, z, velX, velY, velZ);
 		this.rCol = data.red;
 		this.gCol = data.green;
 		this.bCol = data.blue;
-		this.lifetime = 40; //TODO: Bake age into Data as alpha?
+		this.lifetime = 40;
 		this.xd = velX;
 		this.yd = velY;
 		this.zd = velZ;
 	}
 
 	@Override
-	public IParticleRenderType getRenderType() {
-		return RENDER_TYPE;
+	public void render(VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
+		RENDER_TYPE.begin((BufferBuilder) pBuffer, null);
+		super.render(pBuffer, pRenderInfo, pPartialTicks);
+		RENDER_TYPE.end(Tesselator.getInstance());
+	}
+
+	@Override
+	public ParticleRenderType getRenderType() {
+		return ParticleRenderType.CUSTOM;
 	}
 
 	public float getQuadSize(float p_217561_1_) {
-		return 0.75F * this.quadSize * MathHelper.clamp(((float) this.age + p_217561_1_) / (float) this.lifetime * 32.0F, 0.0F, 1.0F);
+		return 0.75F * this.quadSize * Mth.clamp(((float) this.age + p_217561_1_) / (float) this.lifetime * 32.0F, 0.0F, 1.0F);
 	}
 
 	public void tick() {
@@ -101,21 +109,21 @@ public class GatewayParticle extends SpriteTexturedParticle {
 		}
 	}
 
-	public static class Factory implements IParticleFactory<GatewayParticle.Data> {
-		protected final IAnimatedSprite sprites;
+	public static class Factory implements ParticleProvider<GatewayParticle.Data> {
+		protected final SpriteSet sprites;
 
-		public Factory(IAnimatedSprite sprites) {
+		public Factory(SpriteSet sprites) {
 			this.sprites = sprites;
 		}
 
-		public Particle createParticle(GatewayParticle.Data data, ClientWorld world, double x, double y, double z, double velX, double velY, double velZ) {
+		public Particle createParticle(GatewayParticle.Data data, ClientLevel world, double x, double y, double z, double velX, double velY, double velZ) {
 			GatewayParticle particle = new GatewayParticle(data, world, x, y, z, velX, velY, velZ);
 			particle.pickSprite(this.sprites);
 			return particle;
 		}
 	}
 
-	public static class Data implements IParticleData {
+	public static class Data implements ParticleOptions {
 
 		public final float red, green, blue;
 
@@ -144,7 +152,7 @@ public class GatewayParticle extends SpriteTexturedParticle {
 			})).apply(builder, Data::new);
 		});
 
-		public static final IParticleData.IDeserializer<Data> DESERIALIZER = new IParticleData.IDeserializer<Data>() {
+		public static final ParticleOptions.Deserializer<Data> DESERIALIZER = new ParticleOptions.Deserializer<Data>() {
 			public Data fromCommand(ParticleType<Data> type, StringReader reader) throws CommandSyntaxException {
 				reader.expect(' ');
 				float f = (float) reader.readDouble();
@@ -155,13 +163,13 @@ public class GatewayParticle extends SpriteTexturedParticle {
 				return new Data(f, f1, f2);
 			}
 
-			public Data fromNetwork(ParticleType<Data> type, PacketBuffer buf) {
+			public Data fromNetwork(ParticleType<Data> type, FriendlyByteBuf buf) {
 				return new Data(buf.readFloat(), buf.readFloat(), buf.readFloat());
 			}
 		};
 
 		@Override
-		public void writeToNetwork(PacketBuffer buffer) {
+		public void writeToNetwork(FriendlyByteBuf buffer) {
 			buffer.writeFloat(this.red);
 			buffer.writeFloat(this.green);
 			buffer.writeFloat(this.blue);

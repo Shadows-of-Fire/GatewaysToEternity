@@ -1,6 +1,6 @@
 {
     "parent": "item/generated",
     "textures": {
-        "layer0": "gateways:item/small_gate_opener"
+        "layer0": "gateways:item/gate_opener"
     }
 }

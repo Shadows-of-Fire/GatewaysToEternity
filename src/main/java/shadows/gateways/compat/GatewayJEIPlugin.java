@@ -2,11 +2,11 @@ package shadows.gateways.compat;
 
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
-import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
+import mezz.jei.api.ingredients.subtypes.IIngredientSubtypeInterpreter;
+import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.registration.ISubtypeRegistration;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import shadows.gateways.GatewayObjects;
 import shadows.gateways.GatewaysToEternity;
 
@@ -15,7 +15,7 @@ public class GatewayJEIPlugin implements IModPlugin {
 
 	@Override
 	public void registerItemSubtypes(ISubtypeRegistration reg) {
-		reg.registerSubtypeInterpreter(GatewayObjects.SMALL_GATE_OPENER, new GateOpenerSubtypes());
+		reg.registerSubtypeInterpreter(GatewayObjects.GATE_OPENER, new GateOpenerSubtypes());
 	}
 
 	@Override
@@ -23,14 +23,12 @@ public class GatewayJEIPlugin implements IModPlugin {
 		return new ResourceLocation(GatewaysToEternity.MODID, "gateways");
 	}
 
-	private class GateOpenerSubtypes implements ISubtypeInterpreter {
+	private class GateOpenerSubtypes implements IIngredientSubtypeInterpreter<ItemStack> {
 
 		@Override
-		public String apply(ItemStack stack) {
-			if (!stack.hasTag()) return ISubtypeInterpreter.NONE;
-			CompoundNBT gateData = stack.getTag().getCompound("gateway_data");
-			if (gateData.isEmpty()) return ISubtypeInterpreter.NONE;
-			return stack.getItem().getRegistryName() + "@" + gateData.getString("name");
+		public String apply(ItemStack stack, UidContext context) {
+			if (stack.hasTag() && stack.getTag().contains("gateway")) { return stack.getTag().getString("gateway"); }
+			return stack.getItem().getRegistryName().toString();
 		}
 
 	}

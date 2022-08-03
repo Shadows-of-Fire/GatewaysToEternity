@@ -15,13 +15,7 @@
     }
   },
   "result": {
-    "item": "gateways:small_gate_opener",
-	"gateway": {
-		"name": "gateways.small_blaze_gate",
-		"entity": "minecraft:blaze",
-		"completion_xp": 250,
-		"max_wave_time": 750,
-		"color": "red"
-	}
-  }
+    "item": "gateways:gate_opener"
+  },
+  "gateway": "gateways:small_blaze_gate"
 }
