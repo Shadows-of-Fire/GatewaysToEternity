@@ -29,10 +29,12 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.BossEvent.BossBarColor;
 import net.minecraft.world.BossEvent.BossBarOverlay;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -62,7 +64,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	protected final Set<UUID> unresolvedWaveEntities = new HashSet<>();
 	protected UUID summonerId;
 
-	protected int clientTickCounter = -1;
+	protected float clientScale = 0F;
 	protected Queue<ItemStack> undroppedItems = new ArrayDeque<>();
 
 	/**
@@ -74,6 +76,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		this.gate = gate;
 		this.setCustomName(new TranslatableComponent(gate.getId().toString().replace(':', '.')).withStyle(Style.EMPTY.withColor(gate.getColor())));
 		this.bossInfo = this.createBossInfo();
+		this.refreshDimensions();
 	}
 
 	/**
@@ -81,6 +84,11 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	 */
 	public GatewayEntity(EntityType<?> type, Level level) {
 		super(type, level);
+	}
+
+	@Override
+	public EntityDimensions getDimensions(Pose pPose) {
+		return this.gate.getSize().dims;
 	}
 
 	@Override
@@ -301,12 +309,12 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		return bossInfo;
 	}
 
-	public int getClientTicks() {
-		return this.clientTickCounter;
+	public float getClientScale() {
+		return this.clientScale;
 	}
 
-	public void setClientTicks(int ticks) {
-		this.clientTickCounter = ticks;
+	public void setClientScale(float clientScale) {
+		this.clientScale = clientScale;
 	}
 
 	public static void spawnLightningOn(Entity entity, boolean effectOnly) {
@@ -340,9 +348,21 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	}
 
 	public static enum GatewaySize {
-		SMALL,
-		MEDIUM,
-		LARGE;
+		SMALL(EntityDimensions.scalable(2F, 3F), 1F),
+		MEDIUM(EntityDimensions.scalable(4F, 6F), 2F),
+		LARGE(EntityDimensions.scalable(6F, 9F), 3F);
+
+		private final EntityDimensions dims;
+		private final float scale;
+
+		GatewaySize(EntityDimensions dims, float scale) {
+			this.dims = dims;
+			this.scale = scale;
+		}
+
+		public float getScale() {
+			return this.scale;
+		}
 	}
 
 }

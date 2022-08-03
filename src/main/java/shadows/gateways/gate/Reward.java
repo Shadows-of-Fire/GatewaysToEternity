@@ -2,6 +2,7 @@ package shadows.gateways.gate;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -23,6 +24,8 @@ import com.google.gson.reflect.TypeToken;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.GsonHelper;
@@ -64,6 +67,8 @@ public interface Reward {
 	}
 
 	public String getName();
+
+	public void appendHoverText(Consumer<Component> list);
 
 	public static Reward read(JsonElement json) {
 		JsonObject obj = json.getAsJsonObject();
@@ -137,6 +142,11 @@ public interface Reward {
 		public String getName() {
 			return "stack";
 		}
+
+		@Override
+		public void appendHoverText(Consumer<Component> list) {
+			list.accept(new TranslatableComponent("%sx %s", this.stack.getCount(), this.stack.getDisplayName()));
+		}
 	}
 
 	/**
@@ -180,6 +190,13 @@ public interface Reward {
 		public String getName() {
 			return "stack_list";
 		}
+
+		@Override
+		public void appendHoverText(Consumer<Component> list) {
+			for (ItemStack stack : this.stacks) {
+				list.accept(new TranslatableComponent("%sx %s", stack.getCount(), stack.getDisplayName()));
+			}
+		}
 	}
 
 	/**
@@ -204,6 +221,7 @@ public interface Reward {
 
 				items.stream().map(ItemEntity::getItem).forEach(list);
 				entity.remove(RemovalReason.DISCARDED);
+				System.out.println("Spawning " + rolls + " entity loot drops!");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -244,6 +262,11 @@ public interface Reward {
 		public String getName() {
 			return "entity_loot";
 		}
+
+		@Override
+		public void appendHoverText(Consumer<Component> list) {
+			list.accept(new TranslatableComponent("%sx %s Loot", rolls, new TranslatableComponent(type.getDescriptionId())));
+		}
 	}
 
 	/**
@@ -282,6 +305,11 @@ public interface Reward {
 		@Override
 		public String getName() {
 			return "loot_table";
+		}
+
+		@Override
+		public void appendHoverText(Consumer<Component> list) {
+			list.accept(new TranslatableComponent("Loot Table: %s", table));
 		}
 	}
 
@@ -325,6 +353,15 @@ public interface Reward {
 		@Override
 		public String getName() {
 			return "chanced";
+		}
+
+		static DecimalFormat fmt = new DecimalFormat("##.##%");
+
+		@Override
+		public void appendHoverText(Consumer<Component> list) {
+			this.reward.appendHoverText(c -> {
+				list.accept(new TranslatableComponent("%s Chance of %s", fmt.format(chance), c));
+			});
 		}
 	}
 

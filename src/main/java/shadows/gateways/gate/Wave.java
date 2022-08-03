@@ -31,6 +31,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
@@ -42,6 +44,7 @@ import shadows.gateways.entity.GatewayEntity;
 import shadows.placebo.json.ItemAdapter;
 import shadows.placebo.json.JsonUtil;
 import shadows.placebo.json.RandomAttributeModifier;
+import shadows.placebo.util.RandomRange;
 
 /**
  * A single wave of a gateway.
@@ -58,12 +61,12 @@ public record Wave(List<Pair<EntityType<?>, @Nullable CompoundTag>> entities, Li
 		for (Pair<EntityType<?>, CompoundTag> toSpawn : entities) {
 			EntityType<?> type = toSpawn.getKey();
 			CompoundTag tag = toSpawn.getValue();
-			double spawnRange = 3;
+			double spawnRange = gate.getGateway().getSpawnRange();
 
 			int tries = 0;
-			double x = pos.getX() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
+			double x = pos.getX() + (2 * level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
 			double y = pos.getY() + level.random.nextInt(3) - 1;
-			double z = pos.getZ() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
+			double z = pos.getZ() + (2 * level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
 			while (!level.noCollision(type.getAABB(x, y, z))) {
 				x = pos.getX() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
 				y = pos.getY() + level.random.nextInt(3) - 1;
@@ -146,7 +149,7 @@ public record Wave(List<Pair<EntityType<?>, @Nullable CompoundTag>> entities, Li
 		if (modifiers == null) modifiers = Collections.emptyList();
 		List<Reward> rewards = Gateway.GSON.fromJson(obj.get("rewards"), new TypeToken<List<Reward>>() {
 		}.getType());
-		if (rewards == null) modifiers = Collections.emptyList();
+		if (rewards == null) rewards = Collections.emptyList();
 		int maxWaveTime = GsonHelper.getAsInt(obj, "max_wave_time");
 		int recoveryTime = GsonHelper.getAsInt(obj, "setup_time");
 		return new Wave(entityList, modifiers, rewards, maxWaveTime, recoveryTime);
@@ -157,6 +160,12 @@ public record Wave(List<Pair<EntityType<?>, @Nullable CompoundTag>> entities, Li
 		for (Pair<EntityType<?>, CompoundTag> entity : entities) {
 			buf.writeRegistryId(entity.getKey());
 		}
+		buf.writeVarInt(modifiers.size());
+		modifiers.forEach(m -> {
+			buf.writeRegistryId(m.getAttribute());
+			buf.writeByte(m.getOp().ordinal());
+			buf.writeFloat((float) m.getValue().min());
+		});
 		buf.writeVarInt(rewards.size());
 		rewards.forEach(r -> r.write(buf));
 		buf.writeInt(maxWaveTime);
@@ -164,19 +173,27 @@ public record Wave(List<Pair<EntityType<?>, @Nullable CompoundTag>> entities, Li
 	}
 
 	public static Wave read(FriendlyByteBuf buf) {
-		List<Pair<EntityType<?>, CompoundTag>> entities = new ArrayList<>();
 		int size = buf.readVarInt();
+		List<Pair<EntityType<?>, CompoundTag>> entities = new ArrayList<>(size);
 		for (int i = 0; i < size; i++) {
 			entities.add(Pair.of(buf.readRegistryIdSafe(EntityType.class), null));
 		}
 		size = buf.readVarInt();
-		List<Reward> rewards = new ArrayList<>();
+		List<RandomAttributeModifier> modifiers = new ArrayList<>(size);
+		for (int i = 0; i < size; i++) {
+			Attribute attrib = buf.readRegistryIdSafe(Attribute.class);
+			Operation op = Operation.values()[buf.readByte()];
+			float value = buf.readFloat();
+			modifiers.add(new RandomAttributeModifier(attrib, op, new RandomRange(value, value)));
+		}
+		size = buf.readVarInt();
+		List<Reward> rewards = new ArrayList<>(size);
 		for (int i = 0; i < size; i++) {
 			rewards.add(Reward.read(buf));
 		}
 		int maxWaveTime = buf.readInt();
 		int recoveryTime = buf.readInt();
-		return new Wave(entities, Collections.emptyList(), rewards, maxWaveTime, recoveryTime);
+		return new Wave(entities, modifiers, rewards, maxWaveTime, recoveryTime);
 	}
 
 	public static class Serializer implements JsonDeserializer<Wave>, JsonSerializer<Wave> {

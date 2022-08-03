@@ -1,5 +1,11 @@
 package shadows.gateways;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 
@@ -7,12 +13,16 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.Gui;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.BossEvent;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent.RegisterRenderers;
@@ -20,6 +30,7 @@ import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
@@ -28,7 +39,10 @@ import shadows.gateways.client.GatewayParticle;
 import shadows.gateways.client.GatewayRenderer;
 import shadows.gateways.entity.GatewayEntity;
 import shadows.gateways.gate.Gateway;
+import shadows.gateways.gate.Reward;
 import shadows.gateways.item.GateOpenerItem;
+import shadows.placebo.json.RandomAttributeModifier;
+import shadows.placebo.util.AttributeHelper;
 
 @EventBusSubscriber(bus = Bus.MOD, value = Dist.CLIENT, modid = GatewaysToEternity.MODID)
 public class GatewaysToEternityClient {
@@ -43,6 +57,7 @@ public class GatewaysToEternityClient {
 			}, GatewayObjects.GATE_OPENER);
 		});
 		MinecraftForge.EVENT_BUS.addListener(GatewaysToEternityClient::bossRenderPre);
+		MinecraftForge.EVENT_BUS.addListener(GatewaysToEternityClient::tooltip);
 	}
 
 	@SubscribeEvent
@@ -60,6 +75,75 @@ public class GatewaysToEternityClient {
 	public static void stitch(TextureStitchEvent.Pre e) {
 		if (e.getAtlas().location().equals(TextureAtlas.LOCATION_PARTICLES)) {
 			e.addSprite(new ResourceLocation(GatewaysToEternity.MODID, "particle/glow"));
+		}
+	}
+
+	public static void tooltip(ItemTooltipEvent e) {
+		if (e.getItemStack().getItem() == GatewayObjects.GATE_OPENER) {
+			Gateway gate = GateOpenerItem.getGate(e.getItemStack());
+			List<Component> tooltips = e.getToolTip();
+			if (gate == null) {
+				tooltips.add(new TextComponent("Errored gate opener - no stored gateway"));
+				return;
+			}
+
+			Component comp = new TranslatableComponent("Total Waves: %s", gate.getNumWaves()).withStyle(ChatFormatting.GRAY);
+			tooltips.add(comp);
+
+			if (Screen.hasShiftDown()) {
+				int wave = 0;
+				if (e.getPlayer() != null) {
+					wave = (e.getPlayer().tickCount / 50) % gate.getNumWaves();
+				}
+				comp = new TranslatableComponent("Wave %s", wave + 1).withStyle(ChatFormatting.GREEN, ChatFormatting.UNDERLINE);
+				tooltips.add(comp);
+				tooltips.add(Component.nullToEmpty(null));
+				comp = new TranslatableComponent("-Entities: ").withStyle(ChatFormatting.BLUE);
+				tooltips.add(comp);
+				Map<EntityType<?>, Integer> counts = new HashMap<>();
+				for (Pair<EntityType<?>, CompoundTag> entity : gate.getWave(wave).entities()) {
+					counts.put(entity.getKey(), counts.getOrDefault(entity.getKey(), 0) + 1);
+				}
+				for (Map.Entry<EntityType<?>, Integer> counted : counts.entrySet()) {
+					comp = new TranslatableComponent(" - %sx %s ", counted.getValue(), new TranslatableComponent(counted.getKey().getDescriptionId())).withStyle(ChatFormatting.BLUE);
+					tooltips.add(comp);
+				}
+				if (!gate.getWave(wave).modifiers().isEmpty()) {
+					comp = new TranslatableComponent("-Modifiers: ").withStyle(ChatFormatting.RED);
+					tooltips.add(comp);
+					for (RandomAttributeModifier inst : gate.getWave(wave).modifiers()) {
+						comp = AttributeHelper.toComponent(inst.getAttribute(), inst.genModifier(e.getPlayer().getRandom()));
+						comp = new TranslatableComponent(" - %s", comp.getString()).withStyle(ChatFormatting.RED);
+						tooltips.add(comp);
+					}
+				}
+				comp = new TranslatableComponent("-Rewards: ").withStyle(ChatFormatting.GOLD);
+				tooltips.add(comp);
+				for (Reward r : gate.getWave(wave).rewards()) {
+					r.appendHoverText(c -> {
+						tooltips.add(new TranslatableComponent(" - %s", c).withStyle(ChatFormatting.GOLD));
+					});
+				}
+			} else {
+				comp = new TranslatableComponent("Hold Shift to see wave info").withStyle(ChatFormatting.GRAY);
+				tooltips.add(comp);
+			}
+			if (Screen.hasControlDown()) {
+				comp = new TranslatableComponent("Completion Rewards").withStyle(ChatFormatting.YELLOW, ChatFormatting.UNDERLINE);
+				tooltips.add(comp);
+				tooltips.add(Component.nullToEmpty(null));
+				comp = new TranslatableComponent("- %s Experience", gate.getCompletionXp()).withStyle(ChatFormatting.YELLOW);
+				tooltips.add(comp);
+				for (Reward r : gate.getRewards()) {
+					r.appendHoverText(c -> {
+						tooltips.add(new TranslatableComponent("- %s", c).withStyle(ChatFormatting.YELLOW));
+					});
+				}
+			} else {
+				comp = new TranslatableComponent("Hold Ctrl to see completion rewards").withStyle(ChatFormatting.GRAY);
+				tooltips.add(comp);
+			}
+
 		}
 	}
 
@@ -120,7 +204,9 @@ public class GatewaysToEternityClient {
 				int time = (int) maxTime - gate.getTicksActive();
 				String str = String.format("Wave: %d/%d | Time: %s | Enemies: %d", wave, maxWave, StringUtil.formatTickDuration(time), enemies);
 				if (!gate.isWaveActive()) {
-					str = String.format("Wave %d starting in %s", wave, StringUtil.formatTickDuration(time));
+					if (gate.isLastWave()) {
+						str = "Gate Completed!";
+					} else str = String.format("Wave %d starting in %s", wave, StringUtil.formatTickDuration(time));
 				}
 				component = new TextComponent(str).withStyle(ChatFormatting.GREEN);
 				strWidth = font.width(component);
