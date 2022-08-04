@@ -1,17 +1,8 @@
 {
     "size": "medium",
-    "color": "red",
+    "color": "#FFFF84",
     "waves": [{
             "entities": [{
-                    "entity": "minecraft:blaze"
-                },
-                {
-                    "entity": "minecraft:blaze"
-                },
-                {
-                    "entity": "minecraft:blaze"
-                },
-				{
                     "entity": "minecraft:blaze"
                 },
                 {
@@ -31,15 +22,6 @@
         },
         {
             "entities": [{
-                    "entity": "minecraft:blaze"
-                },
-                {
-                    "entity": "minecraft:blaze"
-                },
-                {
-                    "entity": "minecraft:blaze"
-                },
-				{
                     "entity": "minecraft:blaze"
                 },
                 {
@@ -94,9 +76,6 @@
                     "entity": "minecraft:blaze"
                 },
 				{
-                    "entity": "minecraft:blaze"
-                },
-                {
                     "entity": "minecraft:blaze"
                 },
                 {
@@ -202,6 +181,9 @@
                     "entity": "minecraft:blaze"
                 },
 				{
+                    "entity": "minecraft:blaze"
+                },
+                {
                     "entity": "minecraft:blaze"
                 },
                 {

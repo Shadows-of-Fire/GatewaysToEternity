@@ -1,6 +1,6 @@
 package shadows.gateways.gate;
 
-import shadows.gateways.GatewaysToEternity;
+import shadows.gateways.Gateways;
 import shadows.placebo.json.PlaceboJsonReloadListener;
 import shadows.placebo.json.SerializerBuilder;
 
@@ -9,7 +9,7 @@ public class GatewayManager extends PlaceboJsonReloadListener<Gateway> {
 	public static final GatewayManager INSTANCE = new GatewayManager();
 
 	private GatewayManager() {
-		super(GatewaysToEternity.LOGGER, "gateways", true, true);
+		super(Gateways.LOGGER, "gateways", true, true);
 	}
 
 	@Override

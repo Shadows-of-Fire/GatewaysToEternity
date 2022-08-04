@@ -6,7 +6,7 @@ import com.google.gson.JsonSyntaxException;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.ShapedRecipe;
-import shadows.gateways.item.GateOpenerItem;
+import shadows.gateways.item.GatePearlItem;
 
 public class GatewayRecipeSerializer extends ShapedRecipe.Serializer {
 
@@ -16,7 +16,7 @@ public class GatewayRecipeSerializer extends ShapedRecipe.Serializer {
 	public ShapedRecipe fromJson(ResourceLocation id, JsonObject json) {
 		ShapedRecipe recipe = super.fromJson(id, json);
 		ItemStack gateway = recipe.getResultItem();
-		if (!(gateway.getItem() instanceof GateOpenerItem)) {
+		if (!(gateway.getItem() instanceof GatePearlItem)) {
 			throw new JsonSyntaxException("Gateway Recipe output must be a gate opener item.  Provided: " + gateway.getItem().getRegistryName());
 		}
 		gateway.getOrCreateTag().putString("gateway", json.get("gateway").getAsString());

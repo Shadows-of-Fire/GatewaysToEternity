@@ -17,12 +17,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import shadows.gateways.GatewaysToEternity;
+import shadows.gateways.Gateways;
 import shadows.gateways.entity.GatewayEntity;
 
 public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
 
-	public static final ResourceLocation TEXTURE = new ResourceLocation(GatewaysToEternity.MODID, "textures/entity/gateway.png");
+	public static final ResourceLocation TEXTURE = new ResourceLocation(Gateways.MODID, "textures/entity/gateway.png");
 
 	public GatewayRenderer(EntityRendererProvider.Context mgr) {
 		super(mgr);
@@ -41,7 +41,6 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
 		Vec3 portal = gate.position();
 
 		float baseScale = gate.getGateway().getSize().getScale();
-		;
 		float scale = baseScale;
 		double yOffset = gate.getBbHeight() / 2;
 
@@ -49,23 +48,27 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
 		matrix.translate(0, yOffset, 0);
 		matrix.mulPose(new Quaternion(new Vector3f(0, 1, 0), 90, true));
 		matrix.mulPose(new Quaternion(new Vector3f(0, 1, 0), 180F - (float) angleOf(portal, playerV), true));
+		matrix.scale(2, 1, 1);
 
-		//Scale large as the gate begins spawning
 		if (!gate.isWaveActive()) {
 			float time = gate.getTicksActive() + partialTicks;
 			float maxTime = gate.getCurrentWave().setupTime();
-			scale += Mth.lerp(time / maxTime, gate.getClientScale(), 0.65F * baseScale);
-		} else if (gate.isWaveActive() && gate.getTicksActive() < 80) {
-			//Scale down from the max size back to standard
-			float time = gate.getTicksActive() + partialTicks;
-			float maxTime = 80;
-			scale += 0.65F * baseScale * (1 - time / maxTime);
+			if (time <= maxTime) scale = Mth.lerp(time / maxTime, gate.getClientScale(), baseScale);
 		} else {
-			// Ambiently scale up and down
-			float progress = ((gate.getTicksActive() + partialTicks) % 80) / 80F;
-			float ambient = (float) Math.sin(2 * Math.PI * progress) * baseScale / 6F;
-			scale += ambient;
-			gate.setClientScale(ambient);
+			float time = gate.getTicksActive() + partialTicks;
+			int magic = 10;
+			if (time < magic) {
+				matrix.scale(Mth.lerp(time / magic, 1, 1.33F), 1, 1);
+				matrix.scale(1, Mth.lerp(time / magic, 1, 1.33F), 1);
+			} else if (time < 2 * magic) {
+				time -= magic;
+				matrix.scale(Mth.lerp(time / magic, 1.33F, 1F), 1, 1);
+				matrix.scale(1, Mth.lerp(time / magic, 1.33F, 1F), 1);
+			} else {
+				float progress = ((gate.getTicksActive() + partialTicks - 20) % 80) / 80F;
+				scale += (float) Math.sin(2 * Math.PI * progress) * baseScale / 6F;
+				gate.setClientScale(scale);
+			}
 		}
 
 		matrix.scale(scale, scale, 1);

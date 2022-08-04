@@ -7,6 +7,7 @@ import java.util.Locale;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
 
 import net.minecraft.nbt.CompoundTag;
@@ -83,8 +84,16 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 	}
 
 	public static Gateway read(JsonObject obj) {
-		GatewaySize size = GatewaySize.valueOf(GsonHelper.getAsString(obj, "size").toUpperCase(Locale.ROOT));
-		TextColor color = TextColor.parseColor(GsonHelper.getAsString(obj, "color"));
+		String _size = GsonHelper.getAsString(obj, "size").toUpperCase(Locale.ROOT);
+		GatewaySize size;
+		try {
+			size = GatewaySize.valueOf(_size);
+		} catch (IllegalArgumentException ex) {
+			throw new JsonParseException("Invalid gateway size " + _size);
+		}
+		String _color = GsonHelper.getAsString(obj, "color");
+		TextColor color = TextColor.parseColor(_color);
+		if (color == null) { throw new JsonParseException("Invalid gateway color " + _color); }
 		List<Wave> waves = GSON.fromJson(obj.get("waves"), new TypeToken<List<Wave>>() {
 		}.getType());
 		List<Reward> rewards = GSON.fromJson(obj.get("rewards"), new TypeToken<List<Reward>>() {

@@ -145,7 +145,7 @@ public interface Reward {
 
 		@Override
 		public void appendHoverText(Consumer<Component> list) {
-			list.accept(new TranslatableComponent("%sx %s", this.stack.getCount(), this.stack.getDisplayName()));
+			list.accept(new TranslatableComponent("reward.gateways.stack", this.stack.getCount(), this.stack.getDisplayName()));
 		}
 	}
 
@@ -194,7 +194,7 @@ public interface Reward {
 		@Override
 		public void appendHoverText(Consumer<Component> list) {
 			for (ItemStack stack : this.stacks) {
-				list.accept(new TranslatableComponent("%sx %s", stack.getCount(), stack.getDisplayName()));
+				list.accept(new TranslatableComponent("reward.gateways.stack", stack.getCount(), stack.getDisplayName()));
 			}
 		}
 	}
@@ -221,7 +221,6 @@ public interface Reward {
 
 				items.stream().map(ItemEntity::getItem).forEach(list);
 				entity.remove(RemovalReason.DISCARDED);
-				System.out.println("Spawning " + rolls + " entity loot drops!");
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -265,7 +264,7 @@ public interface Reward {
 
 		@Override
 		public void appendHoverText(Consumer<Component> list) {
-			list.accept(new TranslatableComponent("%sx %s Loot", rolls, new TranslatableComponent(type.getDescriptionId())));
+			list.accept(new TranslatableComponent("reward.gateways.entity", rolls, new TranslatableComponent(type.getDescriptionId())));
 		}
 	}
 
@@ -309,7 +308,7 @@ public interface Reward {
 
 		@Override
 		public void appendHoverText(Consumer<Component> list) {
-			list.accept(new TranslatableComponent("Loot Table: %s", table));
+			list.accept(new TranslatableComponent("reward.gateways.loot_table", table));
 		}
 	}
 
@@ -360,7 +359,7 @@ public interface Reward {
 		@Override
 		public void appendHoverText(Consumer<Component> list) {
 			this.reward.appendHoverText(c -> {
-				list.accept(new TranslatableComponent("%s Chance of %s", fmt.format(chance), c));
+				list.accept(new TranslatableComponent("reward.gateways.chance", fmt.format(chance), c));
 			});
 		}
 	}

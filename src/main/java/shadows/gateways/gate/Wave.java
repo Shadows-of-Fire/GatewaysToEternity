@@ -39,7 +39,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.registries.ForgeRegistries;
 import shadows.gateways.GatewayObjects;
-import shadows.gateways.GatewaysToEternity;
+import shadows.gateways.Gateways;
 import shadows.gateways.entity.GatewayEntity;
 import shadows.placebo.json.ItemAdapter;
 import shadows.placebo.json.JsonUtil;
@@ -82,7 +82,7 @@ public record Wave(List<Pair<EntityType<?>, @Nullable CompoundTag>> entities, Li
 				Entity entity = type.create(level);
 
 				if (!(entity instanceof LivingEntity)) {
-					GatewaysToEternity.LOGGER.error("Gate {} failed to create a living entity during wave {}!", gate.getName().getString(), gate.getWave());
+					Gateways.LOGGER.error("Gate {} failed to create a living entity during wave {}!", gate.getName().getString(), gate.getWave());
 					continue;
 				}
 				LivingEntity living = (LivingEntity) entity;

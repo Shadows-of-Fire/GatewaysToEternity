@@ -1,0 +1,21 @@
+{
+  "type": "gateways:gate_recipe",
+  "group": "gateways",
+  "pattern": [
+    " # ",
+    "#A#",
+    " # "
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:gunpowder"
+    },
+	"A": {
+      "item": "minecraft:ender_pearl"
+    }
+  },
+  "result": {
+    "item": "gateways:gate_pearl"
+  },
+  "gateway": "gateways:creeper_gate_small"
+}

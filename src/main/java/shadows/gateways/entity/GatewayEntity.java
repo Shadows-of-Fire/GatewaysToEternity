@@ -42,7 +42,7 @@ import net.minecraft.world.level.Level;
 import net.minecraftforge.entity.IEntityAdditionalSpawnData;
 import net.minecraftforge.network.NetworkHooks;
 import shadows.gateways.GatewayObjects;
-import shadows.gateways.GatewaysToEternity;
+import shadows.gateways.Gateways;
 import shadows.gateways.client.ParticleHandler;
 import shadows.gateways.gate.Gateway;
 import shadows.gateways.gate.GatewayManager;
@@ -243,7 +243,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		this.entityData.set(WAVE, tag.getInt("wave"));
 		this.gate = GatewayManager.INSTANCE.getOrDefault(new ResourceLocation(tag.getString("gate")), this.gate);
 		if (this.gate == null) {
-			GatewaysToEternity.LOGGER.error("Invalid gateway at {} will be removed.", this.position());
+			Gateways.LOGGER.error("Invalid gateway at {} will be removed.", this.position());
 			this.remove(RemovalReason.DISCARDED);
 		}
 		long[] entities = tag.getLongArray("wave_entities");
@@ -325,7 +325,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	}
 
 	public void spawnParticle(TextColor color, double x, double y, double z, int type) {
-		PacketDistro.sendToTracking(GatewaysToEternity.CHANNEL, new ParticleMessage(this, x, y, z, color, type), (ServerLevel) level, new BlockPos((int) x, (int) y, (int) z));
+		PacketDistro.sendToTracking(Gateways.CHANNEL, new ParticleMessage(this, x, y, z, color, type), (ServerLevel) level, new BlockPos((int) x, (int) y, (int) z));
 	}
 
 	public void spawnItem(ItemStack stack) {

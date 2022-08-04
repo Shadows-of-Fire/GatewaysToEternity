@@ -1,0 +1,20 @@
+{
+    "parent": "item/generated",
+    "textures": {
+        "layer0": "gateways:item/gate_pearl_small"
+    },
+    "overrides": [
+        {
+            "predicate": {
+                "gateways:size": 1
+            },
+            "model": "gateways:item/gate_pearl_med"
+        },
+        {
+            "predicate": {
+                "gateways:size": 2
+            },
+            "model": "gateways:item/gate_pearl_large"
+        }
+    ]
+}
