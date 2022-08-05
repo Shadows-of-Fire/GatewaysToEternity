@@ -24,7 +24,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
-import shadows.gateways.client.GatewayParticle;
+import shadows.gateways.client.GatewayParticleData;
 import shadows.gateways.client.GatewayTickableSound;
 import shadows.gateways.command.GatewayCommand;
 import shadows.gateways.entity.GatewayEntity;
@@ -111,10 +111,10 @@ public class Gateways {
 
 	@SubscribeEvent
 	public void registerParticles(Register<ParticleType<?>> e) {
-		e.getRegistry().register(new ParticleType<GatewayParticle.Data>(false, GatewayParticle.Data.DESERIALIZER) {
+		e.getRegistry().register(new ParticleType<GatewayParticleData>(false, GatewayParticleData.DESERIALIZER) {
 			@Override
-			public Codec<GatewayParticle.Data> codec() {
-				return GatewayParticle.Data.CODEC;
+			public Codec<GatewayParticleData> codec() {
+				return GatewayParticleData.CODEC;
 			}
 		}.setRegistryName("glow"));
 	}

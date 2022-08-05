@@ -18,7 +18,7 @@ public class ParticleHandler {
 		Entity src = Minecraft.getInstance().level.getEntity(msg.gateId);
 		if (src == null) return;
 		if (type == 0) { //Type 0: Entity spawned from portal.  Spawns a cluster of particles around the entity.
-			GatewayParticle.Data data = new GatewayParticle.Data(color >> 16 & 255, color >> 8 & 255, color & 255);
+			GatewayParticleData data = new GatewayParticleData(color >> 16 & 255, color >> 8 & 255, color & 255);
 			Random rand = src.level.random;
 			for (int i = 0; i < 15; i++) {
 				double velX = Mth.nextDouble(rand, -0.15, 0.15);
@@ -31,7 +31,7 @@ public class ParticleHandler {
 			}
 		}
 		if (type == 1) { //Type 1: Portal idle particles, called every second from the portal itself.
-			GatewayParticle.Data data = new GatewayParticle.Data(color >> 16 & 255, color >> 8 & 255, color & 255);
+			GatewayParticleData data = new GatewayParticleData(color >> 16 & 255, color >> 8 & 255, color & 255);
 			Random rand = src.level.random;
 			for (int i = 0; i < 3; i++) {
 				double velX = Mth.nextDouble(rand, -0.05, 0.05);
@@ -50,7 +50,7 @@ public class ParticleHandler {
 		Level level = gate.getLevel();
 		Random rand = level.random;
 		int color = gate.getGateway().getColor().getValue();
-		GatewayParticle.Data data = new GatewayParticle.Data(color >> 16 & 255, color >> 8 & 255, color & 255);
+		GatewayParticleData data = new GatewayParticleData(color >> 16 & 255, color >> 8 & 255, color & 255);
 
 		double x = gate.getX();
 		double y = gate.getY() + gate.getBbHeight() / 2;

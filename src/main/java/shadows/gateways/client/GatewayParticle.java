@@ -1,7 +1,5 @@
 package shadows.gateways.client;
 
-import java.util.Locale;
-
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.GlStateManager.DestFactor;
 import com.mojang.blaze3d.platform.GlStateManager.SourceFactor;
@@ -11,10 +9,6 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import com.mojang.brigadier.StringReader;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.client.Camera;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -25,13 +19,8 @@ import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.particle.TextureSheetParticle;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.core.Registry;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleType;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
-import shadows.gateways.GatewayObjects;
 
 @SuppressWarnings("deprecation")
 public class GatewayParticle extends TextureSheetParticle {
@@ -57,7 +46,7 @@ public class GatewayParticle extends TextureSheetParticle {
 		}
 	};
 
-	public GatewayParticle(GatewayParticle.Data data, Level world, double x, double y, double z, double velX, double velY, double velZ) {
+	public GatewayParticle(GatewayParticleData data, Level world, double x, double y, double z, double velX, double velY, double velZ) {
 		super((ClientLevel) world, x, y, z, velX, velY, velZ);
 		this.rCol = data.red;
 		this.gCol = data.green;
@@ -109,75 +98,17 @@ public class GatewayParticle extends TextureSheetParticle {
 		}
 	}
 
-	public static class Factory implements ParticleProvider<GatewayParticle.Data> {
+	public static class Factory implements ParticleProvider<GatewayParticleData> {
 		protected final SpriteSet sprites;
 
 		public Factory(SpriteSet sprites) {
 			this.sprites = sprites;
 		}
 
-		public Particle createParticle(GatewayParticle.Data data, ClientLevel world, double x, double y, double z, double velX, double velY, double velZ) {
+		public Particle createParticle(GatewayParticleData data, ClientLevel world, double x, double y, double z, double velX, double velY, double velZ) {
 			GatewayParticle particle = new GatewayParticle(data, world, x, y, z, velX, velY, velZ);
 			particle.pickSprite(this.sprites);
 			return particle;
-		}
-	}
-
-	public static class Data implements ParticleOptions {
-
-		public final float red, green, blue;
-
-		public Data(float r, float g, float b) {
-			this.red = r;
-			this.green = g;
-			this.blue = b;
-		}
-
-		public Data(int r, int g, int b) {
-			this(r / 255F, g / 255F, b / 255F);
-		}
-
-		@Override
-		public ParticleType<Data> getType() {
-			return GatewayObjects.GLOW;
-		}
-
-		public static final Codec<Data> CODEC = RecordCodecBuilder.create(builder -> {
-			return builder.group(Codec.FLOAT.fieldOf("r").forGetter((data) -> {
-				return data.red;
-			}), Codec.FLOAT.fieldOf("g").forGetter((data) -> {
-				return data.green;
-			}), Codec.FLOAT.fieldOf("b").forGetter((data) -> {
-				return data.blue;
-			})).apply(builder, Data::new);
-		});
-
-		public static final ParticleOptions.Deserializer<Data> DESERIALIZER = new ParticleOptions.Deserializer<Data>() {
-			public Data fromCommand(ParticleType<Data> type, StringReader reader) throws CommandSyntaxException {
-				reader.expect(' ');
-				float f = (float) reader.readDouble();
-				reader.expect(' ');
-				float f1 = (float) reader.readDouble();
-				reader.expect(' ');
-				float f2 = (float) reader.readDouble();
-				return new Data(f, f1, f2);
-			}
-
-			public Data fromNetwork(ParticleType<Data> type, FriendlyByteBuf buf) {
-				return new Data(buf.readFloat(), buf.readFloat(), buf.readFloat());
-			}
-		};
-
-		@Override
-		public void writeToNetwork(FriendlyByteBuf buffer) {
-			buffer.writeFloat(this.red);
-			buffer.writeFloat(this.green);
-			buffer.writeFloat(this.blue);
-		}
-
-		@Override
-		public String writeToString() {
-			return String.format(Locale.ROOT, "%s %.2f %.2f %.2f", Registry.PARTICLE_TYPE.getKey(this.getType()), this.red, this.green, this.blue);
 		}
 	}
 

@@ -5,8 +5,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import org.apache.commons.lang3.tuple.Pair;
 
 import com.google.gson.JsonArray;
@@ -57,7 +55,7 @@ import shadows.placebo.util.RandomRange;
  * @param maxWaveTime The time the player has to complete this wave.
  * @param setupTime The delay after this wave before the next wave starts.  Ignored if this is the last wave.
  */
-public record Wave(List<Pair<EntityType<?>, @Nullable CompoundTag>> entities, List<RandomAttributeModifier> modifiers, List<Reward> rewards, int maxWaveTime, int setupTime) {
+public record Wave(List<Pair<EntityType<?>, CompoundTag>> entities, List<RandomAttributeModifier> modifiers, List<Reward> rewards, int maxWaveTime, int setupTime) {
 
 	public List<LivingEntity> spawnWave(ServerLevel level, BlockPos pos, GatewayEntity gate) {
 		List<LivingEntity> spawned = new ArrayList<>();
