@@ -238,19 +238,24 @@
                     "entity": "minecraft:creeper"
                 },
                 {
-                    "entity": "minecraft:creeper"
+                    "entity": "minecraft:creeper",
+					"nbt": "{\"powered\": true}"
                 },
                 {
-                    "entity": "minecraft:creeper"
+                    "entity": "minecraft:creeper",
+					"nbt": "{\"powered\": true}"
                 },
                 {
-                    "entity": "minecraft:creeper"
+                    "entity": "minecraft:creeper",
+					"nbt": "{\"powered\": true}"
                 },
                 {
-                    "entity": "minecraft:creeper"
+                    "entity": "minecraft:creeper",
+					"nbt": "{\"powered\": true}"
                 },
                 {
-                    "entity": "minecraft:creeper"
+                    "entity": "minecraft:creeper",
+					"nbt": "{\"powered\": true}"
                 }
             ],
             "modifiers": [{

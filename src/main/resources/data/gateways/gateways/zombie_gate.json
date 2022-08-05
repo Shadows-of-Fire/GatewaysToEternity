@@ -28,7 +28,7 @@
                     "entity": "minecraft:zombie"
                 },
                 {
-                    "entity": "minecraft:zombie"
+                    "entity": "minecraft:husk"
                 }
             ],
             "modifiers": [{
@@ -67,16 +67,16 @@
         },
         {
             "entities": [{
-                    "entity": "minecraft:zombie"
+                    "entity": "minecraft:husk"
                 },
                 {
                     "entity": "minecraft:zombie"
                 },
                 {
-                    "entity": "minecraft:zombie"
+                    "entity": "minecraft:husk"
                 },
 				{
-                    "entity": "minecraft:zombie"
+                    "entity": "minecraft:husk"
                 },
                 {
                     "entity": "minecraft:zombie"
@@ -127,13 +127,13 @@
                     "entity": "minecraft:zombie"
                 },
 				{
-                    "entity": "minecraft:zombie"
+                    "entity": "minecraft:husk"
                 },
                 {
-                    "entity": "minecraft:zombie"
+                    "entity": "minecraft:husk"
                 },
                 {
-                    "entity": "minecraft:zombie"
+                    "entity": "minecraft:husk"
                 }
             ],
             "modifiers": [{
@@ -181,16 +181,16 @@
                     "entity": "minecraft:zombie"
                 },
 				{
-                    "entity": "minecraft:zombie"
+                    "entity": "minecraft:husk"
                 },
                 {
-                    "entity": "minecraft:zombie"
+                    "entity": "minecraft:husk"
                 },
                 {
-                    "entity": "minecraft:zombie"
+                    "entity": "minecraft:husk"
                 },
                 {
-                    "entity": "minecraft:zombie"
+                    "entity": "minecraft:husk"
                 }
             ],
             "modifiers": [{

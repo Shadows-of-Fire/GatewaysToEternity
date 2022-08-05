@@ -50,7 +50,7 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
 		matrix.mulPose(new Quaternion(new Vector3f(0, 1, 0), 180F - (float) angleOf(portal, playerV), true));
 		matrix.scale(2, 1, 1);
 
-		if (!gate.isWaveActive()) {
+		if (!gate.isWaveActive() && !gate.isLastWave()) {
 			float time = gate.getTicksActive() + partialTicks;
 			float maxTime = gate.getCurrentWave().setupTime();
 			if (time <= maxTime) scale = Mth.lerp(time / maxTime, gate.getClientScale(), baseScale);

@@ -1,5 +1,7 @@
 package shadows.gateways.gate;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.text.DecimalFormat;
@@ -51,7 +53,12 @@ import shadows.placebo.json.SerializerBuilder;
  */
 public interface Reward {
 
-	public static final Method DROP_LOOT = ObfuscationReflectionHelper.findMethod(LivingEntity.class, "dropFromLootTable", DamageSource.class, boolean.class);
+	/**
+	 * 	Method ref to public net.minecraft.world.entity.LivingEntity m_7625_(Lnet/minecraft/world/damagesource/DamageSource;Z)V # dropFromLootTable
+	 */
+	public static final Method dropFromLootTable = ObfuscationReflectionHelper.findMethod(LivingEntity.class, "m_7625_", DamageSource.class, boolean.class);
+	public static final MethodHandle DROP_LOOT = lootMethodHandle();
+
 	public static final Map<String, SerializerBuilder<? extends Reward>.Serializer> SERIALIZERS = new HashMap<>();
 
 	public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list);
@@ -91,6 +98,15 @@ public interface Reward {
 		SERIALIZERS.put("entity_loot", new SerializerBuilder<EntityLootReward>("Entity Loot Reward").json(EntityLootReward::read, EntityLootReward::write).net(EntityLootReward::read, EntityLootReward::write).build(true));
 		SERIALIZERS.put("loot_table", new SerializerBuilder<LootTableReward>("Entity Loot Reward").json(LootTableReward::read, LootTableReward::write).net(LootTableReward::read, LootTableReward::write).build(true));
 		SERIALIZERS.put("chanced", new SerializerBuilder<ChancedReward>("Chanced Reward").json(ChancedReward::read, ChancedReward::write).net(ChancedReward::read, ChancedReward::write).build(true));
+	}
+
+	private static MethodHandle lootMethodHandle() {
+		dropFromLootTable.setAccessible(true);
+		try {
+			return MethodHandles.lookup().unreflect(dropFromLootTable);
+		} catch (Exception ex) {
+			throw new RuntimeException(ex);
+		}
 	}
 
 	public static class Serializer implements JsonDeserializer<Reward>, JsonSerializer<Reward> {
@@ -207,21 +223,20 @@ public interface Reward {
 		@Override
 		public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
 			try {
-				Entity entity = type.create(level);
-				if (entity == null) return;
-				if (nbt != null) entity.load(nbt);
-				entity.moveTo(summoner.getX(), summoner.getY(), summoner.getZ(), 0, 0);
 				List<ItemEntity> items = new ArrayList<>();
-				entity.hurt(DamageSource.playerAttack(summoner).bypassMagic().bypassInvul().bypassArmor(), 1);
-				entity.captureDrops(items);
 
+				Entity entity = type.create(level);
 				for (int i = 0; i < rolls; i++) {
+					if (nbt != null) entity.load(nbt);
+					entity.moveTo(summoner.getX(), summoner.getY(), summoner.getZ(), 0, 0);
+					entity.hurt(DamageSource.playerAttack(summoner).bypassMagic().bypassInvul().bypassArmor(), 1);
+					entity.captureDrops(items);
 					DROP_LOOT.invoke(entity, DamageSource.playerAttack(summoner), true);
+					entity.remove(RemovalReason.DISCARDED);
 				}
 
 				items.stream().map(ItemEntity::getItem).forEach(list);
-				entity.remove(RemovalReason.DISCARDED);
-			} catch (Exception e) {
+			} catch (Throwable e) {
 				e.printStackTrace();
 			}
 		}

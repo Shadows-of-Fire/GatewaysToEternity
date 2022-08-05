@@ -1,5 +1,7 @@
 package shadows.gateways.item;
 
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.NonNullList;
@@ -39,7 +41,16 @@ public class GatePearlItem extends Item {
 		GatewayEntity entity = new GatewayEntity(world, ctx.getPlayer(), getGate(stack));
 		BlockState state = world.getBlockState(pos);
 		entity.setPos(pos.getX() + 0.5, pos.getY() + state.getShape(world, pos).max(Axis.Y), pos.getZ() + 0.5);
-		if (!world.noCollision(entity)) return InteractionResult.FAIL;
+		int y = 0;
+		while (y++ < 4) {
+			if (!world.noCollision(entity)) {
+				entity.setPos(entity.getX(), entity.getY() + 1, entity.getZ());
+			} else break;
+		}
+		if (!world.noCollision(entity)) {
+			ctx.getPlayer().sendMessage(new TranslatableComponent("error.gateways.no_space").withStyle(ChatFormatting.RED), Util.NIL_UUID);
+			return InteractionResult.FAIL;
+		}
 		world.addFreshEntity(entity);
 		entity.onGateCreated();
 		if (!ctx.getPlayer().isCreative()) stack.shrink(1);

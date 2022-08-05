@@ -12,6 +12,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:slime",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 3
             }],
             "max_wave_time": 750,
@@ -54,6 +55,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:slime",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 6
             }],
             "max_wave_time": 750,
@@ -102,6 +104,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:slime",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 9
             }],
             "max_wave_time": 750,
@@ -150,6 +153,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:slime",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 12
             }],
             "max_wave_time": 750,
@@ -201,6 +205,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:slime",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 15
             }],
             "max_wave_time": 750,
@@ -210,6 +215,7 @@
     "rewards": [{
         "type": "entity_loot",
         "entity": "minecraft:slime",
+		"nbt": "{\"Size\": 0}",
         "rolls": 30
     }],
     "completion_xp": 250,

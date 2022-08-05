@@ -1,17 +1,23 @@
 package shadows.gateways.entity;
 
 import java.util.ArrayDeque;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 
+import com.mojang.authlib.GameProfile;
+
+import net.minecraft.ChatFormatting;
+import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.chat.TextComponent;
@@ -39,6 +45,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.entity.IEntityAdditionalSpawnData;
 import net.minecraftforge.network.NetworkHooks;
 import shadows.gateways.GatewayObjects;
@@ -58,7 +65,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	public static final EntityDataAccessor<Integer> ENEMIES = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
 
 	protected Gateway gate;
-	protected ServerBossEvent bossInfo;
+	protected ServerBossEvent bossEvent;
 
 	protected final Set<LivingEntity> currentWaveEntities = new HashSet<>();
 	protected final Set<UUID> unresolvedWaveEntities = new HashSet<>();
@@ -75,7 +82,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		this.summonerId = placer.getUUID();
 		this.gate = gate;
 		this.setCustomName(new TranslatableComponent(gate.getId().toString().replace(':', '.')).withStyle(Style.EMPTY.withColor(gate.getColor())));
-		this.bossInfo = this.createBossInfo();
+		this.bossEvent = this.createBossEvent();
 		this.refreshDimensions();
 	}
 
@@ -106,7 +113,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 			if (isWaveActive()) {
 				int maxWaveTime = getCurrentWave().maxWaveTime();
 				if (this.getTicksActive() > maxWaveTime) {
-					this.onFailure(getWave(), this.currentWaveEntities);
+					this.onFailure(this.currentWaveEntities, new TranslatableComponent("error.gateways.wave_elapsed").withStyle(ChatFormatting.RED, ChatFormatting.UNDERLINE));
 					return;
 				}
 				this.entityData.set(TICKS_ACTIVE, this.getTicksActive() + 1);
@@ -116,21 +123,20 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 			List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(Entity::isAlive).toList();
 			for (LivingEntity entity : enemies) {
 				if (entity.distanceToSqr(this) > 32 * 32) {
-					this.onFailure(getWave(), currentWaveEntities);
+					this.onFailure(currentWaveEntities, new TranslatableComponent("error.gateways.too_far").withStyle(ChatFormatting.RED));
 					return;
 				}
+				if (entity.tickCount % 20 == 0) this.spawnParticle(this.gate.getColor(), entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), 0);
 			}
 			this.entityData.set(ENEMIES, enemies.size());
 			if (active && enemies.size() == 0) {
 				this.onWaveEnd(getCurrentWave());
 				this.currentWaveEntities.clear();
 				this.entityData.set(WAVE_ACTIVE, false);
-				if (isLastWave()) {
-					this.onLastWaveEnd();
-				}
 				this.entityData.set(TICKS_ACTIVE, 0);
-			} else if (!active) {
-				if (this.getTicksActive() > this.getCurrentWave().setupTime() && !isLastWave()) {
+				this.entityData.set(WAVE, Math.min(getWave() + 1, this.gate.getNumWaves()));
+			} else if (!active && !isLastWave()) {
+				if (this.getTicksActive() > this.getCurrentWave().setupTime()) {
 					this.spawnWave();
 					return;
 				}
@@ -138,7 +144,10 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 			}
 
 			if (this.tickCount % 4 == 0 && !undroppedItems.isEmpty()) {
-				spawnItem(undroppedItems.remove());
+				for (int i = 0; i < 3; i++) {
+					spawnItem(undroppedItems.remove());
+					if (undroppedItems.isEmpty()) break;
+				}
 			}
 
 			if (!active && undroppedItems.isEmpty() && isLastWave()) {
@@ -152,11 +161,14 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	}
 
 	public boolean isLastWave() {
-		return this.getWave() == this.gate.getNumWaves() - 1;
+		return this.getWave() == this.gate.getNumWaves();
 	}
 
+	/**
+	 * Returns the current wave, or returns the last wave, if the last wave has been completed.
+	 */
 	public Wave getCurrentWave() {
-		return this.gate.getWave(this.getWave());
+		return this.gate.getWave(Math.min(this.gate.getNumWaves() - 1, this.getWave()));
 	}
 
 	public void spawnWave() {
@@ -170,16 +182,18 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		this.entityData.set(ENEMIES, this.currentWaveEntities.size());
 	}
 
-	protected void onLastWaveEnd() {
+	protected void completePortal() {
 		int completionXp = this.gate.getCompletionXp();
 		while (completionXp > 0) {
 			int i = 5;
 			completionXp -= i;
 			this.level.addFreshEntity(new ExperienceOrb(this.level, this.getX(), this.getY(), this.getZ(), i));
 		}
-	}
+		Player player = summonerOrClosest();
+		this.gate.getRewards().forEach(r -> {
+			r.generateLoot((ServerLevel) this.level, this, player, this::spawnCompletionItem);
+		});
 
-	protected void completePortal() {
 		this.remove(RemovalReason.KILLED);
 		this.playSound(GatewayObjects.GATE_END, 1, 1);
 	}
@@ -192,25 +206,34 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	 * Called when a wave is completed.  Responsible for loot spawns.
 	 */
 	protected void onWaveEnd(Wave wave) {
+		Player player = summonerOrClosest();
+		undroppedItems.addAll(wave.spawnRewards((ServerLevel) level, this, player));
+	}
+
+	public Player summonerOrClosest() {
 		Player player = this.summonerId == null ? null : level.getPlayerByUUID(summonerId);
 		if (player == null) {
 			player = level.getNearestPlayer(this, 50);
 		}
-		undroppedItems.addAll(wave.spawnRewards((ServerLevel) level, this, player));
-		this.entityData.set(WAVE, Math.min(getWave() + 1, this.gate.getNumWaves() - 1));
+		if (player == null) {
+			return summonerId == null ? FakePlayerFactory.getMinecraft((ServerLevel) level) : FakePlayerFactory.get((ServerLevel) level, new GameProfile(summonerId, ""));
+		}
+		return player;
 	}
 
 	/**
 	 * Called when a player fails to complete a wave in time, closing the gateway.
 	 */
-	protected void onFailure(int wave, Set<LivingEntity> remaining) {
+	public void onFailure(Collection<LivingEntity> remaining, Component message) {
+		Player player = summonerOrClosest();
+		if (player != null) player.sendMessage(message, Util.NIL_UUID);
 		spawnLightningOn(this, false);
 		remaining.stream().filter(Entity::isAlive).forEach(e -> spawnLightningOn(e, true));
 		remaining.forEach(e -> e.remove(RemovalReason.DISCARDED));
 		this.remove(RemovalReason.DISCARDED);
 	}
 
-	protected ServerBossEvent createBossInfo() {
+	protected ServerBossEvent createBossEvent() {
 		ServerBossEvent event = new ServerBossEvent(new TextComponent("GATEWAY_ID" + this.getId()), BossBarColor.BLUE, BossBarOverlay.PROGRESS);
 		event.setCreateWorldFog(true);
 		return event;
@@ -257,7 +280,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		for (Tag inbt : stacks) {
 			undroppedItems.add(ItemStack.of((CompoundTag) inbt));
 		}
-		this.bossInfo = createBossInfo();
+		this.bossEvent = createBossEvent();
 	}
 
 	@Override
@@ -276,13 +299,13 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	@Override
 	public void startSeenByPlayer(ServerPlayer player) {
 		super.startSeenByPlayer(player);
-		this.bossInfo.addPlayer(player);
+		this.bossEvent.addPlayer(player);
 	}
 
 	@Override
 	public void stopSeenByPlayer(ServerPlayer player) {
 		super.stopSeenByPlayer(player);
-		this.bossInfo.removePlayer(player);
+		this.bossEvent.removePlayer(player);
 	}
 
 	public int getTicksActive() {
@@ -306,7 +329,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	}
 
 	public ServerBossEvent getBossInfo() {
-		return bossInfo;
+		return bossEvent;
 	}
 
 	public float getClientScale() {
@@ -334,6 +357,15 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		i.setDeltaMovement(Mth.nextDouble(random, -0.15, 0.15), 0.4, Mth.nextDouble(random, -0.15, 0.15));
 		level.addFreshEntity(i);
 		this.level.playSound(null, i.getX(), i.getY(), i.getZ(), GatewayObjects.GATE_WARP, SoundSource.HOSTILE, 0.25F, 2.0F);
+	}
+
+	public void spawnCompletionItem(ItemStack stack) {
+		ItemEntity i = new ItemEntity(level, 0, 0, 0, stack);
+		double variance = 0.05F * this.gate.getSize().getScale();
+		i.setPos(this.getX(), this.getY() + this.getBbHeight() / 2, this.getZ());
+		i.setDeltaMovement(Mth.nextDouble(random, -variance, variance), this.getBbHeight() / 20F, Mth.nextDouble(random, -variance, variance));
+		i.setUnlimitedLifetime();
+		level.addFreshEntity(i);
 	}
 
 	@Override

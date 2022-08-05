@@ -19,14 +19,17 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.Entity.RemovalReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -64,16 +67,13 @@ public record Wave(List<Pair<EntityType<?>, @Nullable CompoundTag>> entities, Li
 			double spawnRange = gate.getGateway().getSpawnRange();
 
 			int tries = 0;
-			double x = pos.getX() + (2 * level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
+			double x = pos.getX() + (-1 + 2 * level.random.nextDouble()) * spawnRange;
 			double y = pos.getY() + level.random.nextInt(3) - 1;
-			double z = pos.getZ() + (2 * level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
-			while (!level.noCollision(type.getAABB(x, y, z))) {
+			double z = pos.getZ() + (-1 + 2 * level.random.nextDouble()) * spawnRange;
+			while (!level.noCollision(type.getAABB(x, y, z)) && tries++ < 7) {
 				x = pos.getX() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
-				y = pos.getY() + level.random.nextInt(3) - 1;
+				y = pos.getY() + level.random.nextInt(3 * (int) gate.getGateway().getSize().getScale()) - 1;
 				z = pos.getZ() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
-				if (tries++ >= 4) {
-					break;
-				}
 			}
 
 			final double fx = x, fy = y, fz = z;
@@ -92,12 +92,13 @@ public record Wave(List<Pair<EntityType<?>, @Nullable CompoundTag>> entities, Li
 
 				modifiers.forEach(m -> m.apply(level.random, living));
 				living.setHealth(living.getMaxHealth());
+				living.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 5, 100, true, false));
 
-				entity.moveTo(entity.getX(), entity.getY(), entity.getZ(), level.random.nextFloat() * 360.0F, 0.0F);
 				if (entity instanceof Mob mob) {
-					if (!ForgeEventFactory.doSpecialSpawn((Mob) entity, (LevelAccessor) level, (float) entity.getX(), (float) entity.getY(), (float) entity.getZ(), null, MobSpawnType.NATURAL)) {
+					if ((tag == null || tag.isEmpty() || tag.getBoolean("ForceFinalizeSpawn")) && !ForgeEventFactory.doSpecialSpawn((Mob) entity, (LevelAccessor) level, (float) entity.getX(), (float) entity.getY(), (float) entity.getZ(), null, MobSpawnType.NATURAL)) {
 						mob.finalizeSpawn(level, level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.NATURAL, null, null);
 					}
+					mob.setTarget(gate.getLevel().getNearestPlayer(gate, 12));
 				}
 
 				level.addFreshEntityWithPassengers(entity);
@@ -105,7 +106,8 @@ public record Wave(List<Pair<EntityType<?>, @Nullable CompoundTag>> entities, Li
 				spawned.add((LivingEntity) entity);
 				gate.spawnParticle(gate.getGateway().getColor(), entity.getX() + entity.getBbWidth() / 2, entity.getY() + entity.getBbHeight() / 2, entity.getZ() + entity.getBbWidth() / 2, 0);
 			} else {
-				gate.remove(RemovalReason.DISCARDED);
+				gate.onFailure(spawned, new TranslatableComponent("error.gateways.wave_failed").withStyle(ChatFormatting.RED));
+				break;
 			}
 		}
 

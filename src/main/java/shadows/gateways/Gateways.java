@@ -12,6 +12,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraftforge.common.MinecraftForge;
@@ -47,6 +48,14 @@ public class Gateways {
             .networkProtocolVersion(() -> "1.0.0")
             .simpleChannel();
     //Formatter::on
+	public static final CreativeModeTab TAB = new CreativeModeTab(MODID) {
+
+		@Override
+		public ItemStack makeIcon() {
+			return new ItemStack(GatewayObjects.GATE_PEARL);
+		}
+
+	};
 
 	public Gateways() {
 		FMLJavaModLoadingContext.get().getModEventBus().register(this);
@@ -80,7 +89,7 @@ public class Gateways {
 
 	@SubscribeEvent
 	public void registerItems(Register<Item> e) {
-		e.getRegistry().register(new GatePearlItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).tab(CreativeModeTab.TAB_MISC)).setRegistryName("gate_pearl"));
+		e.getRegistry().register(new GatePearlItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).tab(TAB)).setRegistryName("gate_pearl"));
 	}
 
 	@SubscribeEvent

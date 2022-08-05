@@ -1,4 +1,4 @@
-package shadows.gateways;
+package shadows.gateways.client;
 
 import java.util.HashMap;
 import java.util.List;
@@ -37,8 +37,8 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber;
 import net.minecraftforge.fml.common.Mod.EventBusSubscriber.Bus;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
-import shadows.gateways.client.GatewayParticle;
-import shadows.gateways.client.GatewayRenderer;
+import shadows.gateways.GatewayObjects;
+import shadows.gateways.Gateways;
 import shadows.gateways.entity.GatewayEntity;
 import shadows.gateways.gate.Gateway;
 import shadows.gateways.gate.Reward;
@@ -55,12 +55,12 @@ public class GatewaysClient {
 			Minecraft.getInstance().getItemColors().register((stack, tint) -> {
 				Gateway gate = GatePearlItem.getGate(stack);
 				if (gate != null) return gate.getColor().getValue();
-				return 0xFFFFFF;
+				return 0xAAAAFF;
 			}, GatewayObjects.GATE_PEARL);
 
 			ItemProperties.register(GatewayObjects.GATE_PEARL, new ResourceLocation(Gateways.MODID, "size"), (stack, level, entity, seed) -> {
 				Gateway gate = GatePearlItem.getGate(stack);
-				if (gate == null) return 0;
+				if (gate == null) return 2;
 				return gate.getSize().ordinal();
 			});
 		});
@@ -91,7 +91,7 @@ public class GatewaysClient {
 			Gateway gate = GatePearlItem.getGate(e.getItemStack());
 			List<Component> tooltips = e.getToolTip();
 			if (gate == null) {
-				tooltips.add(new TextComponent("Errored Gate Pearl - Please report this to the Github Page!"));
+				tooltips.add(new TextComponent("Errored Gate Pearl, file a bug report detailing how you obtained this."));
 				return;
 			}
 

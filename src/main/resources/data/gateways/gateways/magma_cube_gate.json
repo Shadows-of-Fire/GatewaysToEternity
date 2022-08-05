@@ -15,6 +15,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:magma_cube",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 5
             }],
             "max_wave_time": 750,
@@ -60,6 +61,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:magma_cube",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 10
             }],
             "max_wave_time": 750,
@@ -111,6 +113,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:magma_cube",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 15
             }],
             "max_wave_time": 750,
@@ -165,6 +168,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:magma_cube",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 20
             }],
             "max_wave_time": 750,
@@ -222,6 +226,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:magma_cube",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 25
             }],
             "max_wave_time": 750,
@@ -231,6 +236,7 @@
     "rewards": [{
         "type": "entity_loot",
         "entity": "minecraft:magma_cube",
+		"nbt": "{\"Size\": 0}",
         "rolls": 60
     }],
     "completion_xp": 500,

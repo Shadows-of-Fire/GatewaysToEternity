@@ -24,6 +24,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:slime",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 20
             }],
             "max_wave_time": 750,
@@ -78,6 +79,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:slime",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 30
             }],
             "max_wave_time": 750,
@@ -138,6 +140,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:slime",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 40
             }],
             "max_wave_time": 750,
@@ -204,6 +207,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:slime",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 50
             }],
             "max_wave_time": 750,
@@ -250,7 +254,8 @@
                     "entity": "minecraft:slime"
                 },
                 {
-                    "entity": "minecraft:slime"
+                    "entity": "minecraft:slime",
+					"nbt": "{\"Size\": 8}"
                 }
             ],
             "modifiers": [{
@@ -282,6 +287,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:slime",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 60
             }],
             "max_wave_time": 750,
@@ -291,6 +297,7 @@
     "rewards": [{
         "type": "entity_loot",
         "entity": "minecraft:slime",
+		"nbt": "{\"Size\": 0}",
         "rolls": 120
     },
 	{

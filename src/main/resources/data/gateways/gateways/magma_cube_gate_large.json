@@ -24,6 +24,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:magma_cube",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 20
             }],
             "max_wave_time": 750,
@@ -78,6 +79,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:magma_cube",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 30
             }],
             "max_wave_time": 750,
@@ -138,6 +140,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:magma_cube",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 40
             }],
             "max_wave_time": 750,
@@ -204,6 +207,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:magma_cube",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 50
             }],
             "max_wave_time": 750,
@@ -282,6 +286,7 @@
             "rewards": [{
                 "type": "entity_loot",
                 "entity": "minecraft:magma_cube",
+				"nbt": "{\"Size\": 0}",
                 "rolls": 60
             }],
             "max_wave_time": 750,
@@ -291,6 +296,7 @@
     "rewards": [{
         "type": "entity_loot",
         "entity": "minecraft:magma_cube",
+		"nbt": "{\"Size\": 0}",
         "rolls": 120
     },
 	{
