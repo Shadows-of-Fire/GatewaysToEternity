@@ -55,7 +55,7 @@ import shadows.placebo.util.TagBuilder;
 
 public abstract class AbstractGatewayEntity extends Entity implements IEntityAdditionalSpawnData {
 
-	public static final Method DROP_LOOT = ObfuscationReflectionHelper.findMethod(LivingEntity.class, "dropFromLootTable", DamageSource.class, boolean.class);
+	public static final Method DROP_LOOT = ObfuscationReflectionHelper.findMethod(LivingEntity.class, "func_213354_a", DamageSource.class, boolean.class);
 	public static final DataParameter<Boolean> WAVE_ACTIVE = EntityDataManager.defineId(AbstractGatewayEntity.class, DataSerializers.BOOLEAN);
 	public static final DataParameter<Byte> WAVE = EntityDataManager.defineId(AbstractGatewayEntity.class, DataSerializers.BYTE);
 
