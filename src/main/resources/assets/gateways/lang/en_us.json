@@ -61,7 +61,7 @@
 	
 	"reward.gateways.stack": "%sx %s",
 	"reward.gateways.entity": "%sx %s Loot Rolls",
-	"reward.gateways.loot_table": "Loot Table: %s",
+	"reward.gateways.loot_table": "%sx %s Rolls",
 	"reward.gateways.chance": "%s Chance of %s",
 	
 	"error.gateways.no_space": "There's not enough space to open this Gateway!",

@@ -40,6 +40,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
@@ -286,34 +287,39 @@ public interface Reward {
 	/**
 	 * Provides a roll of a single loot table as a reward.
 	 */
-	public static record LootTableReward(ResourceLocation table) implements Reward {
+	public static record LootTableReward(ResourceLocation table, int rolls) implements Reward {
 
 		@Override
 		public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
-			LootContext.Builder ctx = new LootContext.Builder(level).withParameter(LootContextParams.ORIGIN, gate.getPosition(1)).withOptionalRandomSeed(gate.tickCount);
-			ctx.withLuck(summoner.getLuck()).withParameter(LootContextParams.THIS_ENTITY, summoner);
-			level.getServer().getLootTables().get(table).getRandomItems(ctx.create(LootContextParamSets.CHEST)).forEach(list);
+			LootTable realTable = level.getServer().getLootTables().get(table);
+			for (int i = 0; i < rolls; i++) {
+				LootContext.Builder ctx = new LootContext.Builder(level).withParameter(LootContextParams.ORIGIN, gate.getPosition(1)).withOptionalRandomSeed(gate.tickCount + i);
+				ctx.withLuck(summoner.getLuck()).withParameter(LootContextParams.THIS_ENTITY, summoner).withParameter(LootContextParams.TOOL, summoner.getMainHandItem());
+				realTable.getRandomItems(ctx.create(LootContextParamSets.CHEST)).forEach(list);
+			}
 		}
 
 		@Override
 		public JsonObject write() {
 			JsonObject obj = Reward.super.write();
 			obj.addProperty("loot_table", table.toString());
+			obj.addProperty("rolls", rolls);
 			return obj;
 		}
 
 		public static LootTableReward read(JsonObject obj) {
-			return new LootTableReward(new ResourceLocation(GsonHelper.getAsString(obj, "loot_table")));
+			return new LootTableReward(new ResourceLocation(GsonHelper.getAsString(obj, "loot_table")), GsonHelper.getAsInt(obj, "rolls"));
 		}
 
 		@Override
 		public void write(FriendlyByteBuf buf) {
 			Reward.super.write(buf);
 			buf.writeResourceLocation(table);
+			buf.writeInt(rolls);
 		}
 
 		public static LootTableReward read(FriendlyByteBuf buf) {
-			return new LootTableReward(buf.readResourceLocation());
+			return new LootTableReward(buf.readResourceLocation(), buf.readInt());
 		}
 
 		@Override
@@ -323,7 +329,7 @@ public interface Reward {
 
 		@Override
 		public void appendHoverText(Consumer<Component> list) {
-			list.accept(new TranslatableComponent("reward.gateways.loot_table", table));
+			list.accept(new TranslatableComponent("reward.gateways.loot_table", rolls, table));
 		}
 	}
 
@@ -374,7 +380,7 @@ public interface Reward {
 		@Override
 		public void appendHoverText(Consumer<Component> list) {
 			this.reward.appendHoverText(c -> {
-				list.accept(new TranslatableComponent("reward.gateways.chance", fmt.format(chance), c));
+				list.accept(new TranslatableComponent("reward.gateways.chance", fmt.format(chance * 100), c));
 			});
 		}
 	}
