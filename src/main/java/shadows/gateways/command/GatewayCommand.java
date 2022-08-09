@@ -8,11 +8,11 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
-import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
-import net.minecraft.core.BlockPos;
+import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
 import shadows.gateways.entity.GatewayEntity;
 import shadows.gateways.gate.GatewayManager;
 
@@ -25,13 +25,13 @@ public class GatewayCommand {
 	public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
 		LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("open_gateway").requires(s -> s.hasPermission(2));
 
-		builder.then(Commands.argument("pos", BlockPosArgument.blockPos()).then(Commands.argument("type", ResourceLocationArgument.id()).suggests(SUGGEST_TYPE).executes(c -> {
-			BlockPos pos = BlockPosArgument.getLoadedBlockPos(c, "pos");
+		builder.then(Commands.argument("pos", Vec3Argument.vec3()).then(Commands.argument("type", ResourceLocationArgument.id()).suggests(SUGGEST_TYPE).executes(c -> {
+			Vec3 pos = Vec3Argument.getVec3(c, "pos");
 			ResourceLocation type = ResourceLocationArgument.getId(c, "type");
 			Entity nullableSummoner = c.getSource().getEntity();
-			Player summoner = nullableSummoner instanceof Player ? (Player) nullableSummoner : c.getSource().getLevel().getNearestPlayer(pos.getX(), pos.getY(), pos.getZ(), 64, true);
+			Player summoner = nullableSummoner instanceof Player ? (Player) nullableSummoner : c.getSource().getLevel().getNearestPlayer(pos.x(), pos.y(), pos.z(), 64, false);
 			GatewayEntity gate = new GatewayEntity(c.getSource().getLevel(), summoner, GatewayManager.INSTANCE.getValue(type));
-			gate.moveTo(pos, 0, 0);
+			gate.moveTo(pos);
 			c.getSource().getLevel().addFreshEntity(gate);
 			return 0;
 		})));

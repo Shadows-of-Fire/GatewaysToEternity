@@ -17,7 +17,7 @@ public class GatewayTickableSound extends AbstractTickableSoundInstance {
 		this.x = (float) gateway.getX();
 		this.y = (float) gateway.getY();
 		this.z = (float) gateway.getZ();
-		this.relative = false;
+		this.relative = true;
 		this.pitch = 0.75F;
 	}
 
@@ -29,7 +29,7 @@ public class GatewayTickableSound extends AbstractTickableSoundInstance {
 		if (!this.gateway.isAlive()) {
 			this.stop();
 		} else {
-			this.volume = 0.25F - (float) (Minecraft.getInstance().player.distanceToSqr(this.gateway) / (18 * 18F)) / 4F;
+			this.volume = 0.35F - (float) (Minecraft.getInstance().player.distanceToSqr(this.gateway) / (18 * 18F)) / 4F;
 		}
 	}
 

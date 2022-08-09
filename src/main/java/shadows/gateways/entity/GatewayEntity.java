@@ -41,6 +41,7 @@ import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -196,6 +197,8 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 
 		this.remove(RemovalReason.KILLED);
 		this.playSound(GatewayObjects.GATE_END, 1, 1);
+
+		this.level.getNearbyPlayers(TargetingConditions.DEFAULT, null, getBoundingBox().inflate(15)).forEach(p -> p.awardStat(GatewayObjects.Stats.STAT_GATES_DEFEATED));
 	}
 
 	public void onGateCreated() {

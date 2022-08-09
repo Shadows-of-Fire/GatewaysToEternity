@@ -5,9 +5,12 @@ import org.apache.logging.log4j.Logger;
 
 import com.mojang.serialization.Codec;
 
+import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.stats.StatFormatter;
+import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.CreativeModeTab;
@@ -90,6 +93,7 @@ public class Gateways {
 	@SubscribeEvent
 	public void registerItems(Register<Item> e) {
 		e.getRegistry().register(new GatePearlItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).tab(TAB)).setRegistryName("gate_pearl"));
+		registerStat(GatewayObjects.Stats.STAT_GATES_DEFEATED, StatFormatter.DEFAULT);
 	}
 
 	@SubscribeEvent
@@ -121,6 +125,11 @@ public class Gateways {
 
 	public void commands(RegisterCommandsEvent e) {
 		GatewayCommand.register(e.getDispatcher());
+	}
+
+	private static void registerStat(ResourceLocation id, StatFormatter pFormatter) {
+		Registry.register(Registry.CUSTOM_STAT, id, id);
+		Stats.CUSTOM.get(id, pFormatter);
 	}
 
 }

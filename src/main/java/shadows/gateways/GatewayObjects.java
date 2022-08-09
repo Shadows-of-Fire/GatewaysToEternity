@@ -1,6 +1,7 @@
 package shadows.gateways;
 
 import net.minecraft.core.particles.ParticleType;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraftforge.registries.ObjectHolder;
@@ -19,4 +20,7 @@ public class GatewayObjects {
 	public static final ParticleType<GatewayParticleData> GLOW = null;
 	public static final SoundEvent GATE_END = null;
 
+	public static class Stats {
+		public static final ResourceLocation STAT_GATES_DEFEATED = new ResourceLocation(Gateways.MODID, "gates_defeated");
+	}
 }
