@@ -83,14 +83,14 @@ public interface Reward {
 		String type = GsonHelper.getAsString(obj, "type");
 		SerializerBuilder<? extends Reward>.Serializer serializer = SERIALIZERS.get(type);
 		if (serializer == null) throw new JsonSyntaxException("Unknown Reward Type: " + type);
-		return serializer.deserialize(obj);
+		return serializer.read(obj);
 	}
 
 	public static Reward read(FriendlyByteBuf buf) {
 		String type = buf.readUtf();
 		SerializerBuilder<? extends Reward>.Serializer serializer = SERIALIZERS.get(type);
 		if (serializer == null) throw new JsonSyntaxException("Unknown Reward Type: " + type);
-		return serializer.deserialize(buf);
+		return serializer.read(buf);
 	}
 
 	public static void initSerializers() {

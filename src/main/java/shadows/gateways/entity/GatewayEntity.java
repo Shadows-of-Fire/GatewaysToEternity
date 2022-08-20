@@ -123,7 +123,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 			boolean active = isWaveActive();
 			List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(Entity::isAlive).toList();
 			for (LivingEntity entity : enemies) {
-				if (entity.distanceToSqr(this) > 32 * 32) {
+				if (entity.distanceToSqr(this) > this.gate.getLeashRangeSq()) {
 					this.onFailure(currentWaveEntities, new TranslatableComponent("error.gateways.too_far").withStyle(ChatFormatting.RED));
 					return;
 				}

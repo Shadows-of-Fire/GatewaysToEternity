@@ -4,8 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.tuple.Pair;
-
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 
@@ -17,14 +15,12 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.language.I18n;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.BossEvent;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent.RegisterRenderers;
@@ -42,6 +38,7 @@ import shadows.gateways.Gateways;
 import shadows.gateways.entity.GatewayEntity;
 import shadows.gateways.gate.Gateway;
 import shadows.gateways.gate.Reward;
+import shadows.gateways.gate.WaveEntity;
 import shadows.gateways.item.GatePearlItem;
 import shadows.placebo.json.RandomAttributeModifier;
 import shadows.placebo.util.AttributeHelper;
@@ -108,12 +105,12 @@ public class GatewaysClient {
 				tooltips.add(Component.nullToEmpty(null));
 				comp = new TranslatableComponent("tooltip.gateways.entities").withStyle(ChatFormatting.BLUE);
 				tooltips.add(comp);
-				Map<EntityType<?>, Integer> counts = new HashMap<>();
-				for (Pair<EntityType<?>, CompoundTag> entity : gate.getWave(wave).entities()) {
-					counts.put(entity.getKey(), counts.getOrDefault(entity.getKey(), 0) + 1);
+				Map<String, Integer> counts = new HashMap<>();
+				for (WaveEntity entity : gate.getWave(wave).entities()) {
+					counts.put(entity.getDescription().getString(), counts.getOrDefault(entity.getDescription().getString(), 0) + 1);
 				}
-				for (Map.Entry<EntityType<?>, Integer> counted : counts.entrySet()) {
-					comp = new TranslatableComponent("tooltip.gateways.list1", counted.getValue(), new TranslatableComponent(counted.getKey().getDescriptionId())).withStyle(ChatFormatting.BLUE);
+				for (Map.Entry<String, Integer> counted : counts.entrySet()) {
+					comp = new TranslatableComponent("tooltip.gateways.list1", counted.getValue(), new TranslatableComponent(counted.getKey())).withStyle(ChatFormatting.BLUE);
 					tooltips.add(comp);
 				}
 				if (!gate.getWave(wave).modifiers().isEmpty()) {

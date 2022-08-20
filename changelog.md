@@ -1,3 +1,8 @@
+## 2.1.0
+* Fixed passengers in wave nbt data.
+* Added support for other mods to add sub-serializers to the wave entity types.
+* Added an optional leash_range param to the Gateway definition.
+
 ## 2.0.2
 * Added a "Gates Defeated" statistic.
 * Fixed /open_gateway not accepting decimal positions.

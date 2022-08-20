@@ -30,14 +30,16 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 	protected final List<Reward> rewards;
 	protected final int completionXp;
 	protected final double spawnRange;
+	protected final double leashRange;
 
-	Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Reward> rewards, int completionXp, double spawnRange) {
+	Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Reward> rewards, int completionXp, double spawnRange, double leashRange) {
 		this.size = size;
 		this.color = color;
 		this.waves = waves;
 		this.rewards = rewards;
 		this.completionXp = completionXp;
 		this.spawnRange = spawnRange;
+		this.leashRange = leashRange;
 	}
 
 	public GatewaySize getSize() {
@@ -80,6 +82,7 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 		obj.add("rewards", GSON.toJsonTree(rewards));
 		obj.addProperty("completion_xp", completionXp);
 		obj.addProperty("spawn_range", this.spawnRange);
+		obj.addProperty("leash_range", this.leashRange);
 		return obj;
 	}
 
@@ -100,7 +103,8 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 		}.getType());
 		int completionXp = GsonHelper.getAsInt(obj, "completion_xp");
 		double spawnRange = GsonHelper.getAsDouble(obj, "spawn_range");
-		return new Gateway(size, color, waves, rewards, completionXp, spawnRange);
+		double leashRange = GsonHelper.getAsDouble(obj, "leash_range", 32);
+		return new Gateway(size, color, waves, rewards, completionXp, spawnRange, leashRange);
 	}
 
 	public void write(FriendlyByteBuf buf) {
@@ -112,6 +116,7 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 		rewards.forEach(r -> r.write(buf));
 		buf.writeInt(completionXp);
 		buf.writeDouble(spawnRange);
+		buf.writeDouble(leashRange);
 	}
 
 	public static Gateway read(FriendlyByteBuf buf) {
@@ -129,6 +134,11 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 		}
 		int completionXp = buf.readInt();
 		double spawnRange = buf.readDouble();
-		return new Gateway(size, color, waves, rewards, completionXp, spawnRange);
+		double leashRange = buf.readDouble();
+		return new Gateway(size, color, waves, rewards, completionXp, spawnRange, leashRange);
+	}
+
+	public double getLeashRangeSq() {
+		return this.leashRange * this.leashRange;
 	}
 }

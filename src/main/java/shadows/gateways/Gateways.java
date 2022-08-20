@@ -33,6 +33,7 @@ import shadows.gateways.command.GatewayCommand;
 import shadows.gateways.entity.GatewayEntity;
 import shadows.gateways.gate.GatewayManager;
 import shadows.gateways.gate.Reward;
+import shadows.gateways.gate.WaveEntity;
 import shadows.gateways.item.GatePearlItem;
 import shadows.gateways.net.ParticleMessage;
 import shadows.gateways.recipe.GatewayRecipeSerializer;
@@ -70,6 +71,7 @@ public class Gateways {
 	public void setup(FMLCommonSetupEvent e) {
 		GatewayManager.INSTANCE.registerToBus();
 		Reward.initSerializers();
+		WaveEntity.initSerializers();
 	}
 
 	@SubscribeEvent

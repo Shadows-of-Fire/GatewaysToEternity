@@ -1,6 +1,7 @@
 {
     "size": "large",
     "color": "#F0F0F0",
+	"leash_range": 64,
     "waves": [{
             "entities": [{
                     "entity": "minecraft:ghast"
