@@ -1,3 +1,6 @@
+## 2.1.1
+* Updated to Placebo 6.6.2
+
 ## 2.1.0
 * Fixed passengers in wave nbt data.
 * Added support for other mods to add sub-serializers to the wave entity types.

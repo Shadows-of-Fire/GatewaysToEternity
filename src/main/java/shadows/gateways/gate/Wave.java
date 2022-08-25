@@ -39,7 +39,7 @@ import shadows.gateways.Gateways;
 import shadows.gateways.entity.GatewayEntity;
 import shadows.placebo.json.PlaceboJsonReloadListener;
 import shadows.placebo.json.RandomAttributeModifier;
-import shadows.placebo.util.RandomRange;
+import shadows.placebo.util.StepFunction;
 
 /**
  * A single wave of a gateway.
@@ -185,7 +185,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 			Attribute attrib = buf.readRegistryIdSafe(Attribute.class);
 			Operation op = Operation.values()[buf.readByte()];
 			float value = buf.readFloat();
-			modifiers.add(new RandomAttributeModifier(attrib, op, new RandomRange(value, value)));
+			modifiers.add(new RandomAttributeModifier(attrib, op, new StepFunction(value, 1, 0)));
 		}
 		size = buf.readVarInt();
 		List<Reward> rewards = new ArrayList<>(size);
