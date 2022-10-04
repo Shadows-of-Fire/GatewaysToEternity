@@ -86,8 +86,8 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 				});
 
 				if (entity instanceof Mob mob) {
-					if (toSpawn.shouldFinalizeSpawn() && !ForgeEventFactory.doSpecialSpawn((Mob) entity, (LevelAccessor) level, (float) entity.getX(), (float) entity.getY(), (float) entity.getZ(), null, MobSpawnType.NATURAL)) {
-						mob.finalizeSpawn(level, level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.NATURAL, null, null);
+					if (toSpawn.shouldFinalizeSpawn() && !ForgeEventFactory.doSpecialSpawn((Mob) entity, (LevelAccessor) level, (float) entity.getX(), (float) entity.getY(), (float) entity.getZ(), null, MobSpawnType.SPAWNER)) {
+						mob.finalizeSpawn(level, level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.SPAWNER, null, null);
 					}
 					mob.setTarget(gate.getLevel().getNearestPlayer(gate, 12));
 				}

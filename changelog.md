@@ -1,3 +1,6 @@
+## 2.1.2
+* Fixed spawned entities reporting their spawn reason as natural instead of spawner.
+
 ## 2.1.1
 * Updated to Placebo 6.6.2
 
