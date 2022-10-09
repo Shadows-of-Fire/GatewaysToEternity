@@ -1,3 +1,8 @@
+## 2.1.3
+* Added the "command" reward type, which allows for execution of a command as a reward.
+  * Details are in the JSON schema document.
+* Made the /open_gateway command accept an entity selector instead of a blockpos for the target location.
+
 ## 2.1.2
 * Fixed spawned entities reporting their spawn reason as natural instead of spawner.
 

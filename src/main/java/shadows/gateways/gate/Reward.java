@@ -62,6 +62,13 @@ public interface Reward {
 
 	public static final Map<String, SerializerBuilder<? extends Reward>.Serializer> SERIALIZERS = new HashMap<>();
 
+	/**
+	 * Called when this reward is to be granted to the player, either on gate or wave completion.
+	 * @param level The level the gateway is in
+	 * @param gate The gateway entity
+	 * @param summoner The summoning player
+	 * @param list When generating item rewards, add them to this list instead of directly to the player or the world.
+	 */
 	public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list);
 
 	default JsonObject write() {
@@ -99,6 +106,7 @@ public interface Reward {
 		SERIALIZERS.put("entity_loot", new SerializerBuilder<EntityLootReward>("Entity Loot Reward").json(EntityLootReward::read, EntityLootReward::write).net(EntityLootReward::read, EntityLootReward::write).build(true));
 		SERIALIZERS.put("loot_table", new SerializerBuilder<LootTableReward>("Entity Loot Reward").json(LootTableReward::read, LootTableReward::write).net(LootTableReward::read, LootTableReward::write).build(true));
 		SERIALIZERS.put("chanced", new SerializerBuilder<ChancedReward>("Chanced Reward").json(ChancedReward::read, ChancedReward::write).net(ChancedReward::read, ChancedReward::write).build(true));
+		SERIALIZERS.put("command", new SerializerBuilder<CommandReward>("Command Reward").json(CommandReward::read, CommandReward::write).net(CommandReward::read, CommandReward::write).build(true));
 	}
 
 	private static MethodHandle lootMethodHandle() {
@@ -382,6 +390,49 @@ public interface Reward {
 			this.reward.appendHoverText(c -> {
 				list.accept(new TranslatableComponent("reward.gateways.chance", fmt.format(chance * 100), c));
 			});
+		}
+	}
+
+	/**
+	 * Provides a roll of a single loot table as a reward.
+	 */
+	public static record CommandReward(String command) implements Reward {
+
+		@Override
+		public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
+			String realCmd = command.replace("<summoner>", summoner.getGameProfile().getName());
+			level.getServer().getCommands().performCommand(gate.createCommandSourceStack(), realCmd);
+		}
+
+		@Override
+		public JsonObject write() {
+			JsonObject obj = Reward.super.write();
+			obj.addProperty("command", this.command);
+			return obj;
+		}
+
+		public static CommandReward read(JsonObject obj) {
+			return new CommandReward(GsonHelper.getAsString(obj, "command"));
+		}
+
+		@Override
+		public void write(FriendlyByteBuf buf) {
+			Reward.super.write(buf);
+			buf.writeUtf(this.command);
+		}
+
+		public static CommandReward read(FriendlyByteBuf buf) {
+			return new CommandReward(buf.readUtf());
+		}
+
+		@Override
+		public String getName() {
+			return "command";
+		}
+
+		@Override
+		public void appendHoverText(Consumer<Component> list) {
+			list.accept(new TranslatableComponent("reward.gateways.command", command));
 		}
 	}
 

@@ -2,11 +2,13 @@ package shadows.gateways.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
+import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.resources.ResourceLocation;
@@ -26,16 +28,21 @@ public class GatewayCommand {
 		LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("open_gateway").requires(s -> s.hasPermission(2));
 
 		builder.then(Commands.argument("pos", Vec3Argument.vec3()).then(Commands.argument("type", ResourceLocationArgument.id()).suggests(SUGGEST_TYPE).executes(c -> {
-			Vec3 pos = Vec3Argument.getVec3(c, "pos");
-			ResourceLocation type = ResourceLocationArgument.getId(c, "type");
-			Entity nullableSummoner = c.getSource().getEntity();
-			Player summoner = nullableSummoner instanceof Player ? (Player) nullableSummoner : c.getSource().getLevel().getNearestPlayer(pos.x(), pos.y(), pos.z(), 64, false);
-			GatewayEntity gate = new GatewayEntity(c.getSource().getLevel(), summoner, GatewayManager.INSTANCE.getValue(type));
-			gate.moveTo(pos);
-			c.getSource().getLevel().addFreshEntity(gate);
-			return 0;
+			return openGateway(c, Vec3Argument.getVec3(c, "pos"), ResourceLocationArgument.getId(c, "type"));
+		})));
+		builder.then(Commands.argument("entity", EntityArgument.entity()).then(Commands.argument("type", ResourceLocationArgument.id()).suggests(SUGGEST_TYPE).executes(c -> {
+			return openGateway(c, EntityArgument.getEntity(c, "entity").position(), ResourceLocationArgument.getId(c, "type"));
 		})));
 		pDispatcher.register(builder);
+	}
+
+	public static int openGateway(CommandContext<CommandSourceStack> c, Vec3 pos, ResourceLocation type) {
+		Entity nullableSummoner = c.getSource().getEntity();
+		Player summoner = nullableSummoner instanceof Player ? (Player) nullableSummoner : c.getSource().getLevel().getNearestPlayer(pos.x(), pos.y(), pos.z(), 64, false);
+		GatewayEntity gate = new GatewayEntity(c.getSource().getLevel(), summoner, GatewayManager.INSTANCE.getValue(type));
+		gate.moveTo(pos);
+		c.getSource().getLevel().addFreshEntity(gate);
+		return 0;
 	}
 
 }

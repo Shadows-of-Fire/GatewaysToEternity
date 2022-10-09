@@ -382,6 +382,11 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		if (this.gate == null) throw new RuntimeException("Invalid gateway received on client!");
 	}
 
+	@Override
+	protected int getPermissionLevel() {
+		return 2;
+	}
+
 	public static enum GatewaySize {
 		SMALL(EntityDimensions.scalable(2F, 3F), 1F),
 		MEDIUM(EntityDimensions.scalable(4F, 6F), 2F),
