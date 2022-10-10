@@ -7,22 +7,25 @@ import javax.annotation.Nullable;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.util.JSONUtils;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.World;
 import net.minecraftforge.registries.ForgeRegistries;
-import shadows.placebo.json.ItemAdapter;
-import shadows.placebo.json.JsonUtil;
+import net.minecraftforge.registries.IForgeRegistry;
+import net.minecraftforge.registries.IForgeRegistryEntry;
 import shadows.placebo.json.PlaceboJsonReloadListener;
 import shadows.placebo.json.SerializerBuilder;
+import shadows.placebo.util.json.ItemAdapter;
 
 public interface WaveEntity {
 
@@ -33,11 +36,11 @@ public interface WaveEntity {
 	 * @param level
 	 * @return The entity, or null if an error occured.  Null will end the gate.
 	 */
-	public LivingEntity createEntity(Level level);
+	public LivingEntity createEntity(World level);
 
-	public Component getDescription();
+	public ITextComponent getDescription();
 
-	public AABB getAABB(double x, double y, double z);
+	public AxisAlignedBB getAABB(double x, double y, double z);
 
 	public boolean shouldFinalizeSpawn();
 
@@ -45,30 +48,30 @@ public interface WaveEntity {
 
 	public static class StandardWaveEntity implements WaveEntity {
 
-		static final SerializerBuilder<WaveEntity>.Serializer SERIALIZER = new SerializerBuilder<WaveEntity>("Std Wave Entity").autoRegister(StandardWaveEntity.class).build(true);
+		static final SerializerBuilder<StandardWaveEntity>.Serializer SERIALIZER = new SerializerBuilder<StandardWaveEntity>("Std Wave Entity").withJsonDeserializer(StandardWaveEntity::read).withJsonSerializer(StandardWaveEntity::write).withNetworkDeserializer(StandardWaveEntity::read).withNetworkSerializer(StandardWaveEntity::write).build(true);
 
 		protected final EntityType<?> type;
-		protected final CompoundTag tag;
+		protected final CompoundNBT tag;
 
-		public StandardWaveEntity(EntityType<?> type, @Nullable CompoundTag tag) {
+		public StandardWaveEntity(EntityType<?> type, @Nullable CompoundNBT tag) {
 			this.type = type;
-			this.tag = tag == null ? new CompoundTag() : tag;
+			this.tag = tag == null ? new CompoundNBT() : tag;
 			this.tag.putString("id", type.getRegistryName().toString());
 		}
 
 		@Override
-		public LivingEntity createEntity(Level level) {
+		public LivingEntity createEntity(World level) {
 			Entity ent = EntityType.loadEntityRecursive(this.tag, level, Function.identity());
-			return ent instanceof LivingEntity l ? l : null;
+			return ent instanceof LivingEntity ? (LivingEntity) ent : null;
 		}
 
 		@Override
-		public Component getDescription() {
-			return new TranslatableComponent(type.getDescriptionId());
+		public ITextComponent getDescription() {
+			return new TranslationTextComponent(type.getDescriptionId());
 		}
 
 		@Override
-		public AABB getAABB(double x, double y, double z) {
+		public AxisAlignedBB getAABB(double x, double y, double z) {
 			return this.type.getAABB(x, y, z);
 		}
 
@@ -78,8 +81,9 @@ public interface WaveEntity {
 		}
 
 		@Override
+		@SuppressWarnings({ "unchecked", "rawtypes" })
 		public SerializerBuilder<WaveEntity>.Serializer getSerializer() {
-			return SERIALIZER;
+			return (SerializerBuilder.Serializer) SERIALIZER;
 		}
 
 		public JsonObject write() {
@@ -89,24 +93,32 @@ public interface WaveEntity {
 			return entityData;
 		}
 
-		public static WaveEntity read(JsonObject obj) {
-			EntityType<?> type = JsonUtil.getRegistryObject(obj, "entity", ForgeRegistries.ENTITIES);
-			CompoundTag nbt = obj.has("nbt") ? ItemAdapter.ITEM_READER.fromJson(obj.get("nbt"), CompoundTag.class) : null;
+		public static StandardWaveEntity read(JsonObject obj) {
+			EntityType<?> type = getRegistryObject(obj, "entity", ForgeRegistries.ENTITIES);
+			CompoundNBT nbt = obj.has("nbt") ? ItemAdapter.ITEM_READER.fromJson(obj.get("nbt"), CompoundNBT.class) : null;
 			return new StandardWaveEntity(type, nbt);
 		}
 
-		public void write(FriendlyByteBuf buf) {
+		public void write(PacketBuffer buf) {
 			buf.writeRegistryId(type);
 		}
 
-		public static WaveEntity read(FriendlyByteBuf buf) {
+		public static StandardWaveEntity read(PacketBuffer buf) {
 			return new StandardWaveEntity(buf.readRegistryIdSafe(EntityType.class), null);
 		}
 
 	}
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	public static void initSerializers() {
-		SERIALIZERS.put(PlaceboJsonReloadListener.DEFAULT, StandardWaveEntity.SERIALIZER);
+		SERIALIZERS.put(PlaceboJsonReloadListener.DEFAULT, (SerializerBuilder.Serializer) StandardWaveEntity.SERIALIZER);
+	}
+
+	public static <T extends IForgeRegistryEntry<T>> T getRegistryObject(JsonObject parent, String name, IForgeRegistry<T> registry) {
+		String key = JSONUtils.getAsString(parent, name);
+		T regObj = registry.getValue(new ResourceLocation(key));
+		if (regObj == null) throw new JsonSyntaxException("Failed to parse " + registry.getRegistryName() + " object with key " + key);
+		return regObj;
 	}
 
 }

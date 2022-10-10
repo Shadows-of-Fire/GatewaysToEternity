@@ -1,22 +1,21 @@
 package shadows.gateways.client;
 
+import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Quaternion;
-import com.mojang.math.Vector3f;
+import com.mojang.blaze3d.vertex.IVertexBuilder;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.IRenderTypeBuffer;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.vector.Quaternion;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.math.vector.Vector3f;
 import shadows.gateways.Gateways;
 import shadows.gateways.entity.GatewayEntity;
 
@@ -24,7 +23,7 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
 
 	public static final ResourceLocation TEXTURE = new ResourceLocation(Gateways.MODID, "textures/entity/gateway.png");
 
-	public GatewayRenderer(EntityRendererProvider.Context mgr) {
+	public GatewayRenderer(EntityRendererManager mgr) {
 		super(mgr);
 	}
 
@@ -33,12 +32,13 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
 		return TEXTURE;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
-	public void render(GatewayEntity gate, float yaw, float partialTicks, PoseStack matrix, MultiBufferSource buf, int packedLight) {
+	public void render(GatewayEntity gate, float yaw, float partialTicks, MatrixStack matrix, IRenderTypeBuffer buf, int packedLight) {
 		matrix.pushPose();
-		Player player = Minecraft.getInstance().player;
-		Vec3 playerV = player.getEyePosition(partialTicks);
-		Vec3 portal = gate.position();
+		PlayerEntity player = Minecraft.getInstance().player;
+		Vector3d playerV = player.getEyePosition(partialTicks);
+		Vector3d portal = gate.position();
 
 		float baseScale = gate.getGateway().getSize().getScale();
 		float scale = baseScale;
@@ -53,17 +53,17 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
 		if (!gate.isWaveActive() && !gate.isLastWave()) {
 			float time = gate.getTicksActive() + partialTicks;
 			float maxTime = gate.getCurrentWave().setupTime();
-			if (time <= maxTime) scale = Mth.lerp(time / maxTime, gate.getClientScale(), baseScale);
+			if (time <= maxTime) scale = MathHelper.lerp(time / maxTime, gate.getClientScale(), baseScale);
 		} else {
 			float time = gate.getTicksActive() + partialTicks;
 			int magic = 10;
 			if (time < magic) {
-				matrix.scale(Mth.lerp(time / magic, 1, 1.33F), 1, 1);
-				matrix.scale(1, Mth.lerp(time / magic, 1, 1.33F), 1);
+				matrix.scale(MathHelper.lerp(time / magic, 1, 1.33F), 1, 1);
+				matrix.scale(1, MathHelper.lerp(time / magic, 1, 1.33F), 1);
 			} else if (time < 2 * magic) {
 				time -= magic;
-				matrix.scale(Mth.lerp(time / magic, 1.33F, 1F), 1, 1);
-				matrix.scale(1, Mth.lerp(time / magic, 1.33F, 1F), 1);
+				matrix.scale(MathHelper.lerp(time / magic, 1.33F, 1F), 1, 1);
+				matrix.scale(1, MathHelper.lerp(time / magic, 1.33F, 1F), 1);
 			} else {
 				float progress = ((gate.getTicksActive() + partialTicks - 20) % 80) / 80F;
 				scale += (float) Math.sin(2 * Math.PI * progress) * baseScale / 6F;
@@ -73,10 +73,9 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
 
 		matrix.scale(scale, scale, 1);
 
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
-		RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-		RenderSystem.setShaderTexture(0, this.getTextureLocation(gate));
-		VertexConsumer builder = buf.getBuffer(RenderType.entityCutout(getTextureLocation(gate)));
+		RenderSystem.color4f(1.0F, 1.0F, 1.0F, 1.0F);
+		Minecraft.getInstance().getTextureManager().bind(this.getTextureLocation(gate));
+		IVertexBuilder builder = buf.getBuffer(RenderType.entityCutout(getTextureLocation(gate)));
 		int color = gate.getGateway().getColor().getValue();
 		int r = color >> 16 & 255, g = color >> 8 & 255, b = color & 255;
 		float frameHeight = 1 / 9F;
@@ -89,7 +88,7 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
 		matrix.popPose();
 	}
 
-	public static double angleOf(Vec3 p1, Vec3 p2) {
+	public static double angleOf(Vector3d p1, Vector3d p2) {
 		final double deltaY = p2.z - p1.z;
 		final double deltaX = p2.x - p1.x;
 		final double result = Math.toDegrees(Math.atan2(deltaY, deltaX));

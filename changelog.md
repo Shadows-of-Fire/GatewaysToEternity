@@ -27,6 +27,5 @@
 * Rewrote the entire mod, updated all the textures.  Basically a brand new mod.
 * Updated to 1.18.2.
 
-## 1.1.0
-* Added the /open_gateway command which allows spawning a gateway at a position.
-* Fixed a bug where a gateway would crash if the summoner ID was unset.
+## 1.0.0
+* Backported version 2.1.3 to Minecraft 1.16.5. Makes the chronology look a little weird, doesn't it?

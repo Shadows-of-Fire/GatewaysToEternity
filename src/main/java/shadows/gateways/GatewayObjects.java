@@ -1,9 +1,9 @@
 package shadows.gateways;
 
-import net.minecraft.core.particles.ParticleType;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.world.entity.EntityType;
+import net.minecraft.entity.EntityType;
+import net.minecraft.particles.ParticleType;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundEvent;
 import net.minecraftforge.registries.ObjectHolder;
 import shadows.gateways.client.GatewayParticleData;
 import shadows.gateways.entity.GatewayEntity;

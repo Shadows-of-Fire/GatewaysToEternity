@@ -3,9 +3,9 @@ package shadows.gateways.recipe;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.ShapedRecipe;
+import net.minecraft.util.ResourceLocation;
 import shadows.gateways.item.GatePearlItem;
 
 public class GatewayRecipeSerializer extends ShapedRecipe.Serializer {

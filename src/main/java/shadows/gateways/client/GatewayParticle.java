@@ -1,53 +1,52 @@
 package shadows.gateways.client;
 
+import org.lwjgl.opengl.GL11;
+
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.platform.GlStateManager.DestFactor;
 import com.mojang.blaze3d.platform.GlStateManager.SourceFactor;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
 
-import net.minecraft.client.Camera;
-import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.particle.IAnimatedSprite;
+import net.minecraft.client.particle.IParticleFactory;
+import net.minecraft.client.particle.IParticleRenderType;
 import net.minecraft.client.particle.Particle;
-import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.particle.TextureSheetParticle;
-import net.minecraft.client.renderer.texture.TextureAtlas;
+import net.minecraft.client.particle.SpriteTexturedParticle;
+import net.minecraft.client.renderer.BufferBuilder;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.AtlasTexture;
 import net.minecraft.client.renderer.texture.TextureManager;
-import net.minecraft.util.Mth;
-import net.minecraft.world.level.Level;
+import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import net.minecraft.client.world.ClientWorld;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.world.World;
 
 @SuppressWarnings("deprecation")
-public class GatewayParticle extends TextureSheetParticle {
+public class GatewayParticle extends SpriteTexturedParticle {
 
-	static final ParticleRenderType RENDER_TYPE = new ParticleRenderType() {
+	static final IParticleRenderType RENDER_TYPE = new IParticleRenderType() {
 		public void begin(BufferBuilder bufferBuilder, TextureManager textureManager) {
-			//RenderSystem.enableAlphaTest();
+			RenderSystem.enableAlphaTest();
 			RenderSystem.depthMask(false);
 			RenderSystem.enableBlend();
 			GlStateManager._disableCull();
 			RenderSystem.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE);
-			//RenderSystem.alphaFunc(GL11.GL_GREATER, 0.003921569F);
-			RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
-			bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
+			RenderSystem.alphaFunc(GL11.GL_GREATER, 0.003921569F);
+			textureManager.bind(AtlasTexture.LOCATION_PARTICLES);
+			bufferBuilder.begin(7, DefaultVertexFormats.PARTICLE);
 		}
 
-		public void end(Tesselator tesselator) {
+		public void end(Tessellator tesselator) {
 			tesselator.end();
 		}
 
 		public String toString() {
-			return "GatewayParticleType";
+			return "PARTICLE_SHEET_TRANSLUCENT";
 		}
 	};
 
-	public GatewayParticle(GatewayParticleData data, Level world, double x, double y, double z, double velX, double velY, double velZ) {
-		super((ClientLevel) world, x, y, z, velX, velY, velZ);
+	public GatewayParticle(GatewayParticleData data, World world, double x, double y, double z, double velX, double velY, double velZ) {
+		super((ClientWorld) world, x, y, z, velX, velY, velZ);
 		this.rCol = data.red;
 		this.gCol = data.green;
 		this.bCol = data.blue;
@@ -58,19 +57,12 @@ public class GatewayParticle extends TextureSheetParticle {
 	}
 
 	@Override
-	public void render(VertexConsumer pBuffer, Camera pRenderInfo, float pPartialTicks) {
-		RENDER_TYPE.begin((BufferBuilder) pBuffer, null);
-		super.render(pBuffer, pRenderInfo, pPartialTicks);
-		RENDER_TYPE.end(Tesselator.getInstance());
-	}
-
-	@Override
-	public ParticleRenderType getRenderType() {
-		return ParticleRenderType.CUSTOM;
+	public IParticleRenderType getRenderType() {
+		return RENDER_TYPE;
 	}
 
 	public float getQuadSize(float p_217561_1_) {
-		return 0.75F * this.quadSize * Mth.clamp(((float) this.age + p_217561_1_) / (float) this.lifetime * 32.0F, 0.0F, 1.0F);
+		return 0.75F * this.quadSize * MathHelper.clamp(((float) this.age + p_217561_1_) / (float) this.lifetime * 32.0F, 0.0F, 1.0F);
 	}
 
 	public void tick() {
@@ -98,14 +90,14 @@ public class GatewayParticle extends TextureSheetParticle {
 		}
 	}
 
-	public static class Factory implements ParticleProvider<GatewayParticleData> {
-		protected final SpriteSet sprites;
+	public static class Factory implements IParticleFactory<GatewayParticleData> {
+		protected final IAnimatedSprite sprites;
 
-		public Factory(SpriteSet sprites) {
+		public Factory(IAnimatedSprite sprites) {
 			this.sprites = sprites;
 		}
 
-		public Particle createParticle(GatewayParticleData data, ClientLevel world, double x, double y, double z, double velX, double velY, double velZ) {
+		public Particle createParticle(GatewayParticleData data, ClientWorld world, double x, double y, double z, double velX, double velY, double velZ) {
 			GatewayParticle particle = new GatewayParticle(data, world, x, y, z, velX, velY, velZ);
 			particle.pickSprite(this.sprites);
 			return particle;

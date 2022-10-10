@@ -5,27 +5,27 @@ import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
-import net.minecraft.commands.arguments.coordinates.Vec3Argument;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.command.CommandSource;
+import net.minecraft.command.Commands;
+import net.minecraft.command.ISuggestionProvider;
+import net.minecraft.command.arguments.EntityArgument;
+import net.minecraft.command.arguments.ResourceLocationArgument;
+import net.minecraft.command.arguments.Vec3Argument;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.vector.Vector3d;
 import shadows.gateways.entity.GatewayEntity;
 import shadows.gateways.gate.GatewayManager;
 
 public class GatewayCommand {
 
-	public static final SuggestionProvider<CommandSourceStack> SUGGEST_TYPE = (ctx, builder) -> {
-		return SharedSuggestionProvider.suggest(GatewayManager.INSTANCE.getKeys().stream().map(ResourceLocation::toString), builder);
+	public static final SuggestionProvider<CommandSource> SUGGEST_TYPE = (ctx, builder) -> {
+		return ISuggestionProvider.suggestResource(GatewayManager.INSTANCE.getKeys(), builder);
 	};
 
-	public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
-		LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("open_gateway").requires(s -> s.hasPermission(2));
+	public static void register(CommandDispatcher<CommandSource> pDispatcher) {
+		LiteralArgumentBuilder<CommandSource> builder = Commands.literal("open_gateway").requires(s -> s.hasPermission(2));
 
 		builder.then(Commands.argument("pos", Vec3Argument.vec3()).then(Commands.argument("type", ResourceLocationArgument.id()).suggests(SUGGEST_TYPE).executes(c -> {
 			return openGateway(c, Vec3Argument.getVec3(c, "pos"), ResourceLocationArgument.getId(c, "type"));
@@ -36,9 +36,9 @@ public class GatewayCommand {
 		pDispatcher.register(builder);
 	}
 
-	public static int openGateway(CommandContext<CommandSourceStack> c, Vec3 pos, ResourceLocation type) {
+	public static int openGateway(CommandContext<CommandSource> c, Vector3d pos, ResourceLocation type) {
 		Entity nullableSummoner = c.getSource().getEntity();
-		Player summoner = nullableSummoner instanceof Player ? (Player) nullableSummoner : c.getSource().getLevel().getNearestPlayer(pos.x(), pos.y(), pos.z(), 64, false);
+		PlayerEntity summoner = nullableSummoner instanceof PlayerEntity ? (PlayerEntity) nullableSummoner : c.getSource().getLevel().getNearestPlayer(pos.x(), pos.y(), pos.z(), 64, false);
 		GatewayEntity gate = new GatewayEntity(c.getSource().getLevel(), summoner, GatewayManager.INSTANCE.getValue(type));
 		gate.moveTo(pos);
 		c.getSource().getLevel().addFreshEntity(gate);

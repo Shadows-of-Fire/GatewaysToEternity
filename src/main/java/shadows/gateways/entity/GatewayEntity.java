@@ -7,48 +7,49 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import com.mojang.authlib.GameProfile;
 
-import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
-import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextColor;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerBossEvent;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.Mth;
-import net.minecraft.world.BossEvent.BossBarColor;
-import net.minecraft.world.BossEvent.BossBarOverlay;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityDimensions;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.ExperienceOrb;
-import net.minecraft.world.entity.LightningBolt;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityPredicate;
+import net.minecraft.entity.EntitySize;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.Pose;
+import net.minecraft.entity.effect.LightningBoltEntity;
+import net.minecraft.entity.item.ExperienceOrbEntity;
+import net.minecraft.entity.item.ItemEntity;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.ServerPlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.INBT;
+import net.minecraft.nbt.ListNBT;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.network.IPacket;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.Util;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.Color;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.BossInfo;
+import net.minecraft.world.World;
+import net.minecraft.world.server.ServerBossInfo;
+import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.FakePlayerFactory;
-import net.minecraftforge.entity.IEntityAdditionalSpawnData;
-import net.minecraftforge.network.NetworkHooks;
+import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
+import net.minecraftforge.fml.network.NetworkHooks;
 import shadows.gateways.GatewayObjects;
 import shadows.gateways.Gateways;
 import shadows.gateways.client.ParticleHandler;
@@ -56,17 +57,17 @@ import shadows.gateways.gate.Gateway;
 import shadows.gateways.gate.GatewayManager;
 import shadows.gateways.gate.Wave;
 import shadows.gateways.net.ParticleMessage;
-import shadows.placebo.network.PacketDistro;
+import shadows.placebo.util.NetworkUtils;
 
 public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData {
 
-	public static final EntityDataAccessor<Boolean> WAVE_ACTIVE = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.BOOLEAN);
-	public static final EntityDataAccessor<Integer> TICKS_ACTIVE = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
-	public static final EntityDataAccessor<Integer> WAVE = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
-	public static final EntityDataAccessor<Integer> ENEMIES = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
+	public static final DataParameter<Boolean> WAVE_ACTIVE = EntityDataManager.defineId(GatewayEntity.class, DataSerializers.BOOLEAN);
+	public static final DataParameter<Integer> TICKS_ACTIVE = EntityDataManager.defineId(GatewayEntity.class, DataSerializers.INT);
+	public static final DataParameter<Integer> WAVE = EntityDataManager.defineId(GatewayEntity.class, DataSerializers.INT);
+	public static final DataParameter<Integer> ENEMIES = EntityDataManager.defineId(GatewayEntity.class, DataSerializers.INT);
 
 	protected Gateway gate;
-	protected ServerBossEvent bossEvent;
+	protected ServerBossInfo bossEvent;
 
 	protected final Set<LivingEntity> currentWaveEntities = new HashSet<>();
 	protected final Set<UUID> unresolvedWaveEntities = new HashSet<>();
@@ -78,11 +79,11 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	/**
 	 * Primary constructor.
 	 */
-	public GatewayEntity(Level level, Player placer, Gateway gate) {
+	public GatewayEntity(World level, PlayerEntity placer, Gateway gate) {
 		super(GatewayObjects.GATEWAY, level);
 		this.summonerId = placer.getUUID();
 		this.gate = gate;
-		this.setCustomName(new TranslatableComponent(gate.getId().toString().replace(':', '.')).withStyle(Style.EMPTY.withColor(gate.getColor())));
+		this.setCustomName(new TranslationTextComponent(gate.getId().toString().replace(':', '.')).withStyle(Style.EMPTY.withColor(gate.getColor())));
 		this.bossEvent = this.createBossEvent();
 		this.refreshDimensions();
 	}
@@ -90,12 +91,12 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	/**
 	 * Client/Load constructor.
 	 */
-	public GatewayEntity(EntityType<?> type, Level level) {
+	public GatewayEntity(EntityType<?> type, World level) {
 		super(type, level);
 	}
 
 	@Override
-	public EntityDimensions getDimensions(Pose pPose) {
+	public EntitySize getDimensions(Pose pPose) {
 		return this.gate.getSize().dims;
 	}
 
@@ -105,7 +106,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		if (!level.isClientSide) {
 			if (!unresolvedWaveEntities.isEmpty()) {
 				for (UUID id : unresolvedWaveEntities) {
-					Entity e = ((ServerLevel) level).getEntity(id);
+					Entity e = ((ServerWorld) level).getEntity(id);
 					if (e instanceof LivingEntity) this.currentWaveEntities.add((LivingEntity) e);
 				}
 				unresolvedWaveEntities.clear();
@@ -114,17 +115,17 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 			if (isWaveActive()) {
 				int maxWaveTime = getCurrentWave().maxWaveTime();
 				if (this.getTicksActive() > maxWaveTime) {
-					this.onFailure(this.currentWaveEntities, new TranslatableComponent("error.gateways.wave_elapsed").withStyle(ChatFormatting.RED, ChatFormatting.UNDERLINE));
+					this.onFailure(this.currentWaveEntities, new TranslationTextComponent("error.gateways.wave_elapsed").withStyle(TextFormatting.RED, TextFormatting.UNDERLINE));
 					return;
 				}
 				this.entityData.set(TICKS_ACTIVE, this.getTicksActive() + 1);
 			}
 
 			boolean active = isWaveActive();
-			List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(Entity::isAlive).toList();
+			List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(Entity::isAlive).collect(Collectors.toList());
 			for (LivingEntity entity : enemies) {
 				if (entity.distanceToSqr(this) > this.gate.getLeashRangeSq()) {
-					this.onFailure(currentWaveEntities, new TranslatableComponent("error.gateways.too_far").withStyle(ChatFormatting.RED));
+					this.onFailure(currentWaveEntities, new TranslationTextComponent("error.gateways.too_far").withStyle(TextFormatting.RED));
 					return;
 				}
 				if (entity.tickCount % 20 == 0) this.spawnParticle(this.gate.getColor(), entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), 0);
@@ -175,7 +176,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	public void spawnWave() {
 		BlockPos blockpos = this.blockPosition();
 
-		List<LivingEntity> spawned = this.gate.getWave(getWave()).spawnWave((ServerLevel) this.level, blockpos, this);
+		List<LivingEntity> spawned = this.gate.getWave(getWave()).spawnWave((ServerWorld) this.level, blockpos, this);
 		this.currentWaveEntities.addAll(spawned);
 
 		this.entityData.set(WAVE_ACTIVE, true);
@@ -188,17 +189,17 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		while (completionXp > 0) {
 			int i = 5;
 			completionXp -= i;
-			this.level.addFreshEntity(new ExperienceOrb(this.level, this.getX(), this.getY(), this.getZ(), i));
+			this.level.addFreshEntity(new ExperienceOrbEntity(this.level, this.getX(), this.getY(), this.getZ(), i));
 		}
-		Player player = summonerOrClosest();
+		PlayerEntity player = summonerOrClosest();
 		this.gate.getRewards().forEach(r -> {
-			r.generateLoot((ServerLevel) this.level, this, player, this::spawnCompletionItem);
+			r.generateLoot((ServerWorld) this.level, this, player, this::spawnCompletionItem);
 		});
 
-		this.remove(RemovalReason.KILLED);
+		this.remove();
 		this.playSound(GatewayObjects.GATE_END, 1, 1);
 
-		this.level.getNearbyPlayers(TargetingConditions.DEFAULT, null, getBoundingBox().inflate(15)).forEach(p -> p.awardStat(GatewayObjects.Stats.STAT_GATES_DEFEATED));
+		this.level.getNearbyPlayers(EntityPredicate.DEFAULT, null, getBoundingBox().inflate(15)).forEach(p -> p.awardStat(GatewayObjects.Stats.STAT_GATES_DEFEATED));
 	}
 
 	public void onGateCreated() {
@@ -209,17 +210,17 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	 * Called when a wave is completed.  Responsible for loot spawns.
 	 */
 	protected void onWaveEnd(Wave wave) {
-		Player player = summonerOrClosest();
-		undroppedItems.addAll(wave.spawnRewards((ServerLevel) level, this, player));
+		PlayerEntity player = summonerOrClosest();
+		undroppedItems.addAll(wave.spawnRewards((ServerWorld) level, this, player));
 	}
 
-	public Player summonerOrClosest() {
-		Player player = this.summonerId == null ? null : level.getPlayerByUUID(summonerId);
+	public PlayerEntity summonerOrClosest() {
+		PlayerEntity player = this.summonerId == null ? null : level.getPlayerByUUID(summonerId);
 		if (player == null) {
 			player = level.getNearestPlayer(this, 50);
 		}
 		if (player == null) {
-			return summonerId == null ? FakePlayerFactory.getMinecraft((ServerLevel) level) : FakePlayerFactory.get((ServerLevel) level, new GameProfile(summonerId, ""));
+			return summonerId == null ? FakePlayerFactory.getMinecraft((ServerWorld) level) : FakePlayerFactory.get((ServerWorld) level, new GameProfile(summonerId, ""));
 		}
 		return player;
 	}
@@ -227,23 +228,23 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	/**
 	 * Called when a player fails to complete a wave in time, closing the gateway.
 	 */
-	public void onFailure(Collection<LivingEntity> remaining, Component message) {
-		Player player = summonerOrClosest();
+	public void onFailure(Collection<LivingEntity> remaining, ITextComponent message) {
+		PlayerEntity player = summonerOrClosest();
 		if (player != null) player.sendMessage(message, Util.NIL_UUID);
 		spawnLightningOn(this, false);
 		remaining.stream().filter(Entity::isAlive).forEach(e -> spawnLightningOn(e, true));
-		remaining.forEach(e -> e.remove(RemovalReason.DISCARDED));
-		this.remove(RemovalReason.DISCARDED);
+		remaining.forEach(e -> e.remove());
+		this.remove();
 	}
 
-	protected ServerBossEvent createBossEvent() {
-		ServerBossEvent event = new ServerBossEvent(new TextComponent("GATEWAY_ID" + this.getId()), BossBarColor.BLUE, BossBarOverlay.PROGRESS);
+	protected ServerBossInfo createBossEvent() {
+		ServerBossInfo event = new ServerBossInfo(new StringTextComponent("GATEWAY_ID" + this.getId()), BossInfo.Color.BLUE, BossInfo.Overlay.PROGRESS);
 		event.setCreateWorldFog(true);
 		return event;
 	}
 
 	@Override
-	protected void addAdditionalSaveData(CompoundTag tag) {
+	protected void addAdditionalSaveData(CompoundNBT tag) {
 		tag.putInt("wave", getWave());
 		tag.putString("gate", this.gate.getId().toString());
 		long[] ids = new long[this.currentWaveEntities.size() * 2];
@@ -257,7 +258,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		tag.putBoolean("active", isWaveActive());
 		tag.putInt("ticks_active", getTicksActive());
 		if (this.summonerId != null) tag.putUUID("summoner", this.summonerId);
-		ListTag stacks = new ListTag();
+		ListNBT stacks = new ListNBT();
 		for (ItemStack s : this.undroppedItems) {
 			stacks.add(s.serializeNBT());
 		}
@@ -265,12 +266,12 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	}
 
 	@Override
-	protected void readAdditionalSaveData(CompoundTag tag) {
+	protected void readAdditionalSaveData(CompoundNBT tag) {
 		this.entityData.set(WAVE, tag.getInt("wave"));
 		this.gate = GatewayManager.INSTANCE.getOrDefault(new ResourceLocation(tag.getString("gate")), this.gate);
 		if (this.gate == null) {
 			Gateways.LOGGER.error("Invalid gateway at {} will be removed.", this.position());
-			this.remove(RemovalReason.DISCARDED);
+			this.remove();
 		}
 		long[] entities = tag.getLongArray("wave_entities");
 		for (int i = 0; i < entities.length; i += 2) {
@@ -279,9 +280,9 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		this.entityData.set(WAVE_ACTIVE, tag.getBoolean("active"));
 		this.entityData.set(TICKS_ACTIVE, tag.getInt("ticks_active"));
 		if (tag.contains("summoner")) this.summonerId = tag.getUUID("summoner");
-		ListTag stacks = tag.getList("queued_stacks", Tag.TAG_COMPOUND);
-		for (Tag inbt : stacks) {
-			undroppedItems.add(ItemStack.of((CompoundTag) inbt));
+		ListNBT stacks = tag.getList("queued_stacks", Constants.NBT.TAG_COMPOUND);
+		for (INBT inbt : stacks) {
+			undroppedItems.add(ItemStack.of((CompoundNBT) inbt));
 		}
 		this.bossEvent = createBossEvent();
 	}
@@ -295,18 +296,18 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	}
 
 	@Override
-	public Packet<?> getAddEntityPacket() {
+	public IPacket<?> getAddEntityPacket() {
 		return NetworkHooks.getEntitySpawningPacket(this);
 	}
 
 	@Override
-	public void startSeenByPlayer(ServerPlayer player) {
+	public void startSeenByPlayer(ServerPlayerEntity player) {
 		super.startSeenByPlayer(player);
 		this.bossEvent.addPlayer(player);
 	}
 
 	@Override
-	public void stopSeenByPlayer(ServerPlayer player) {
+	public void stopSeenByPlayer(ServerPlayerEntity player) {
 		super.stopSeenByPlayer(player);
 		this.bossEvent.removePlayer(player);
 	}
@@ -331,7 +332,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		return gate;
 	}
 
-	public ServerBossEvent getBossInfo() {
+	public ServerBossInfo getBossInfo() {
 		return bossEvent;
 	}
 
@@ -344,40 +345,40 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	}
 
 	public static void spawnLightningOn(Entity entity, boolean effectOnly) {
-		LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(entity.level);
+		LightningBoltEntity bolt = EntityType.LIGHTNING_BOLT.create(entity.level);
 		bolt.setPos(entity.getX(), entity.getY(), entity.getZ());
 		bolt.setVisualOnly(effectOnly);
 		entity.level.addFreshEntity(bolt);
 	}
 
-	public void spawnParticle(TextColor color, double x, double y, double z, int type) {
-		PacketDistro.sendToTracking(Gateways.CHANNEL, new ParticleMessage(this, x, y, z, color, type), (ServerLevel) level, new BlockPos((int) x, (int) y, (int) z));
+	public void spawnParticle(Color color, double x, double y, double z, int type) {
+		NetworkUtils.sendToTracking(Gateways.CHANNEL, new ParticleMessage(this, x, y, z, color, type), (ServerWorld) level, new BlockPos((int) x, (int) y, (int) z));
 	}
 
 	public void spawnItem(ItemStack stack) {
 		ItemEntity i = new ItemEntity(level, 0, 0, 0, stack);
-		i.setPos(this.getX() + Mth.nextDouble(random, -0.5, 0.5), this.getY() + 1.5, this.getZ() + Mth.nextDouble(random, -0.5, 0.5));
-		i.setDeltaMovement(Mth.nextDouble(random, -0.15, 0.15), 0.4, Mth.nextDouble(random, -0.15, 0.15));
+		i.setPos(this.getX() + MathHelper.nextDouble(random, -0.5, 0.5), this.getY() + 1.5, this.getZ() + MathHelper.nextDouble(random, -0.5, 0.5));
+		i.setDeltaMovement(MathHelper.nextDouble(random, -0.15, 0.15), 0.4, MathHelper.nextDouble(random, -0.15, 0.15));
 		level.addFreshEntity(i);
-		this.level.playSound(null, i.getX(), i.getY(), i.getZ(), GatewayObjects.GATE_WARP, SoundSource.HOSTILE, 0.25F, 2.0F);
+		this.level.playSound(null, i.getX(), i.getY(), i.getZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.25F, 2.0F);
 	}
 
 	public void spawnCompletionItem(ItemStack stack) {
 		ItemEntity i = new ItemEntity(level, 0, 0, 0, stack);
 		double variance = 0.05F * this.gate.getSize().getScale();
 		i.setPos(this.getX(), this.getY() + this.getBbHeight() / 2, this.getZ());
-		i.setDeltaMovement(Mth.nextDouble(random, -variance, variance), this.getBbHeight() / 20F, Mth.nextDouble(random, -variance, variance));
-		i.setUnlimitedLifetime();
+		i.setDeltaMovement(MathHelper.nextDouble(random, -variance, variance), this.getBbHeight() / 20F, MathHelper.nextDouble(random, -variance, variance));
+		i.setExtendedLifetime();
 		level.addFreshEntity(i);
 	}
 
 	@Override
-	public void writeSpawnData(FriendlyByteBuf buf) {
+	public void writeSpawnData(PacketBuffer buf) {
 		buf.writeResourceLocation(this.gate.getId());
 	}
 
 	@Override
-	public void readSpawnData(FriendlyByteBuf buf) {
+	public void readSpawnData(PacketBuffer buf) {
 		this.gate = GatewayManager.INSTANCE.getValue(buf.readResourceLocation());
 		if (this.gate == null) throw new RuntimeException("Invalid gateway received on client!");
 	}
@@ -388,14 +389,14 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	}
 
 	public static enum GatewaySize {
-		SMALL(EntityDimensions.scalable(2F, 3F), 1F),
-		MEDIUM(EntityDimensions.scalable(4F, 6F), 2F),
-		LARGE(EntityDimensions.scalable(6F, 9F), 3F);
+		SMALL(EntitySize.scalable(2F, 3F), 1F),
+		MEDIUM(EntitySize.scalable(4F, 6F), 2F),
+		LARGE(EntitySize.scalable(6F, 9F), 3F);
 
-		private final EntityDimensions dims;
+		private final EntitySize dims;
 		private final float scale;
 
-		GatewaySize(EntityDimensions dims, float scale) {
+		GatewaySize(EntitySize dims, float scale) {
 			this.dims = dims;
 			this.scale = scale;
 		}

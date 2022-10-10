@@ -1,23 +1,22 @@
 package shadows.gateways.item;
 
-import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction.Axis;
-import net.minecraft.core.NonNullList;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.CreativeModeTab;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.UseOnContext;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.block.BlockState;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemGroup;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemUseContext;
+import net.minecraft.util.ActionResultType;
+import net.minecraft.util.Direction.Axis;
+import net.minecraft.util.NonNullList;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Util;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.Style;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.World;
 import shadows.gateways.entity.GatewayEntity;
 import shadows.gateways.gate.Gateway;
 import shadows.gateways.gate.GatewayManager;
@@ -29,14 +28,14 @@ public class GatePearlItem extends Item {
 	}
 
 	@Override
-	public InteractionResult useOn(UseOnContext ctx) {
-		Level world = ctx.getLevel();
+	public ActionResultType useOn(ItemUseContext ctx) {
+		World world = ctx.getLevel();
 		ItemStack stack = ctx.getItemInHand();
 		BlockPos pos = ctx.getClickedPos();
 
-		if (world.isClientSide) return InteractionResult.SUCCESS;
+		if (world.isClientSide) return ActionResultType.SUCCESS;
 
-		if (!world.getEntitiesOfClass(GatewayEntity.class, new AABB(pos).inflate(25, 25, 25)).isEmpty()) return InteractionResult.FAIL;
+		if (!world.getEntitiesOfClass(GatewayEntity.class, new AxisAlignedBB(pos).inflate(25, 25, 25)).isEmpty()) return ActionResultType.FAIL;
 
 		GatewayEntity entity = new GatewayEntity(world, ctx.getPlayer(), getGate(stack));
 		BlockState state = world.getBlockState(pos);
@@ -48,13 +47,13 @@ public class GatePearlItem extends Item {
 			} else break;
 		}
 		if (!world.noCollision(entity)) {
-			ctx.getPlayer().sendMessage(new TranslatableComponent("error.gateways.no_space").withStyle(ChatFormatting.RED), Util.NIL_UUID);
-			return InteractionResult.FAIL;
+			ctx.getPlayer().sendMessage(new TranslationTextComponent("error.gateways.no_space").withStyle(TextFormatting.RED), Util.NIL_UUID);
+			return ActionResultType.FAIL;
 		}
 		world.addFreshEntity(entity);
 		entity.onGateCreated();
 		if (!ctx.getPlayer().isCreative()) stack.shrink(1);
-		return InteractionResult.CONSUME;
+		return ActionResultType.CONSUME;
 	}
 
 	public static void setGate(ItemStack opener, Gateway gate) {
@@ -66,19 +65,15 @@ public class GatePearlItem extends Item {
 	}
 
 	@Override
-	public Component getName(ItemStack stack) {
+	public ITextComponent getName(ItemStack stack) {
 		if (stack.hasCustomHoverName()) return super.getName(stack);
 		Gateway gate = getGate(stack);
-		if (gate != null) return new TranslatableComponent("gateways.gate_pearl", new TranslatableComponent(gate.getId().toString().replace(':', '.'))).withStyle(Style.EMPTY.withColor(gate.getColor()));
+		if (gate != null) return new TranslationTextComponent("gateways.gate_pearl", new TranslationTextComponent(gate.getId().toString().replace(':', '.'))).withStyle(Style.EMPTY.withColor(gate.getColor()));
 		return super.getName(stack);
 	}
 
-	public static interface IGateSupplier {
-		GatewayEntity createGate(Level world, Player player, Gateway gate);
-	}
-
 	@Override
-	public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> items) {
+	public void fillItemCategory(ItemGroup group, NonNullList<ItemStack> items) {
 		if (this.allowdedIn(group)) {
 			GatewayManager.INSTANCE.getValues().stream().sorted((g1, g2) -> g1.getId().compareTo(g2.getId())).forEach(gate -> {
 				ItemStack stack = new ItemStack(this);

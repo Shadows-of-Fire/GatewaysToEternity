@@ -14,7 +14,7 @@ public class GatewayManager extends PlaceboJsonReloadListener<Gateway> {
 
 	@Override
 	protected void registerBuiltinSerializers() {
-		this.registerSerializer(DEFAULT, new SerializerBuilder<Gateway>("Gateway").json(Gateway::read, Gateway::write).net(Gateway::read, Gateway::write));
+		this.registerSerializer(DEFAULT, new SerializerBuilder<Gateway>("Gateway").withJsonDeserializer(Gateway::read).withJsonSerializer(Gateway::write).withNetworkDeserializer(Gateway::read).withNetworkSerializer(Gateway::write));
 	}
 
 }

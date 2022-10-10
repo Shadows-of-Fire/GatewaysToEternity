@@ -15,31 +15,32 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 
-import net.minecraft.ChatFormatting;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TranslatableComponent;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.effect.MobEffects;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MobEntity;
+import net.minecraft.entity.SpawnReason;
+import net.minecraft.entity.ai.attributes.Attribute;
+import net.minecraft.entity.ai.attributes.AttributeModifier.Operation;
+import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.ItemStack;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.potion.EffectInstance;
+import net.minecraft.potion.Effects;
+import net.minecraft.util.JSONUtils;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.TextFormatting;
+import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.world.World;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.event.ForgeEventFactory;
 import shadows.gateways.GatewayObjects;
 import shadows.gateways.Gateways;
 import shadows.gateways.entity.GatewayEntity;
+import shadows.gateways.misc.RandomAttributeModifier;
+import shadows.gateways.misc.StepFunction;
 import shadows.placebo.json.PlaceboJsonReloadListener;
-import shadows.placebo.json.RandomAttributeModifier;
-import shadows.placebo.util.StepFunction;
+import shadows.placebo.json.SerializerBuilder;
 
 /**
  * A single wave of a gateway.
@@ -49,9 +50,23 @@ import shadows.placebo.util.StepFunction;
  * @param maxWaveTime The time the player has to complete this wave.
  * @param setupTime The delay after this wave before the next wave starts.  Ignored if this is the last wave.
  */
-public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modifiers, List<Reward> rewards, int maxWaveTime, int setupTime) {
+public class Wave {
 
-	public List<LivingEntity> spawnWave(ServerLevel level, BlockPos pos, GatewayEntity gate) {
+	private final List<WaveEntity> entities;
+	private final List<RandomAttributeModifier> modifiers;
+	private final List<Reward> rewards;
+	private final int maxWaveTime;
+	private final int setupTime;
+
+	public Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modifiers, List<Reward> rewards, int maxWaveTime, int setupTime) {
+		this.entities = entities;
+		this.modifiers = modifiers;
+		this.rewards = rewards;
+		this.maxWaveTime = maxWaveTime;
+		this.setupTime = setupTime;
+	}
+
+	public List<LivingEntity> spawnWave(ServerWorld level, BlockPos pos, GatewayEntity gate) {
 		List<LivingEntity> spawned = new ArrayList<>();
 		for (WaveEntity toSpawn : entities) {
 
@@ -79,25 +94,26 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 
 				entity.moveTo(fx, fy, fz, level.random.nextFloat() * 360, level.random.nextFloat() * 360);
 
-				entity.getPassengersAndSelf().filter(e -> e instanceof LivingEntity).map(LivingEntity.class::cast).forEach(e -> {
+				entity.getSelfAndPassengers().filter(e -> e instanceof LivingEntity).map(LivingEntity.class::cast).forEach(e -> {
 					modifiers.forEach(m -> m.apply(level.random, e));
 					e.setHealth(entity.getMaxHealth());
-					e.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 5, 100, true, false));
+					e.addEffect(new EffectInstance(Effects.DAMAGE_RESISTANCE, 5, 100, true, false));
 				});
 
-				if (entity instanceof Mob mob) {
-					if (toSpawn.shouldFinalizeSpawn() && !ForgeEventFactory.doSpecialSpawn((Mob) entity, (LevelAccessor) level, (float) entity.getX(), (float) entity.getY(), (float) entity.getZ(), null, MobSpawnType.SPAWNER)) {
-						mob.finalizeSpawn(level, level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.SPAWNER, null, null);
+				if (entity instanceof MobEntity) {
+					MobEntity mob = (MobEntity) entity;
+					if (toSpawn.shouldFinalizeSpawn() && !ForgeEventFactory.doSpecialSpawn((MobEntity) entity, (World) level, (float) entity.getX(), (float) entity.getY(), (float) entity.getZ(), null, SpawnReason.SPAWNER)) {
+						mob.finalizeSpawn(level, level.getCurrentDifficultyAt(entity.blockPosition()), SpawnReason.SPAWNER, null, null);
 					}
-					mob.setTarget(gate.getLevel().getNearestPlayer(gate, 12));
+					mob.setTarget(gate.level.getNearestPlayer(gate, 12));
 				}
 
 				level.addFreshEntityWithPassengers(entity);
-				level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP, SoundSource.HOSTILE, 0.5F, 1);
+				level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.5F, 1);
 				spawned.add((LivingEntity) entity);
 				gate.spawnParticle(gate.getGateway().getColor(), entity.getX() + entity.getBbWidth() / 2, entity.getY() + entity.getBbHeight() / 2, entity.getZ() + entity.getBbWidth() / 2, 0);
 			} else {
-				gate.onFailure(spawned, new TranslatableComponent("error.gateways.wave_failed").withStyle(ChatFormatting.RED));
+				gate.onFailure(spawned, new TranslationTextComponent("error.gateways.wave_failed").withStyle(TextFormatting.RED));
 				break;
 			}
 		}
@@ -105,7 +121,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 		return spawned;
 	}
 
-	public List<ItemStack> spawnRewards(ServerLevel level, GatewayEntity gate, Player summoner) {
+	public List<ItemStack> spawnRewards(ServerWorld level, GatewayEntity gate, PlayerEntity summoner) {
 		List<ItemStack> stacks = new ArrayList<>();
 		this.rewards.forEach(r -> r.generateLoot(level, gate, summoner, s -> {
 			if (!s.isEmpty()) stacks.add(s);
@@ -117,9 +133,9 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 		JsonObject obj = new JsonObject();
 		JsonArray arr = new JsonArray();
 		for (WaveEntity entity : entities) {
-			var s = entity.getSerializer();
+			SerializerBuilder<WaveEntity>.Serializer s = entity.getSerializer();
 			ResourceLocation id = WaveEntity.SERIALIZERS.inverse().get(s);
-			JsonObject entityData = s.write(entity);
+			JsonObject entityData = s.serialize(entity);
 			entityData.addProperty("type", id.toString());
 			arr.add(entityData);
 		}
@@ -137,8 +153,8 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 		for (JsonElement e : entities) {
 			JsonObject entity = e.getAsJsonObject();
 			ResourceLocation id = entity.has("type") ? new ResourceLocation(entity.get("type").getAsString()) : PlaceboJsonReloadListener.DEFAULT;
-			var s = WaveEntity.SERIALIZERS.get(id);
-			entityList.add(s.read(entity));
+			SerializerBuilder<WaveEntity>.Serializer s = WaveEntity.SERIALIZERS.get(id);
+			entityList.add(s.deserialize(entity));
 		}
 		List<RandomAttributeModifier> modifiers = Gateway.GSON.fromJson(obj.get("modifiers"), new TypeToken<List<RandomAttributeModifier>>() {
 		}.getType());
@@ -146,18 +162,18 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 		List<Reward> rewards = Gateway.GSON.fromJson(obj.get("rewards"), new TypeToken<List<Reward>>() {
 		}.getType());
 		if (rewards == null) rewards = Collections.emptyList();
-		int maxWaveTime = GsonHelper.getAsInt(obj, "max_wave_time");
-		int recoveryTime = GsonHelper.getAsInt(obj, "setup_time");
+		int maxWaveTime = JSONUtils.getAsInt(obj, "max_wave_time");
+		int recoveryTime = JSONUtils.getAsInt(obj, "setup_time");
 		return new Wave(entityList, modifiers, rewards, maxWaveTime, recoveryTime);
 	}
 
-	public void write(FriendlyByteBuf buf) {
+	public void write(PacketBuffer buf) {
 		buf.writeVarInt(entities.size());
 		for (WaveEntity entity : entities) {
-			var s = entity.getSerializer();
+			SerializerBuilder<WaveEntity>.Serializer s = entity.getSerializer();
 			ResourceLocation id = WaveEntity.SERIALIZERS.inverse().get(s);
 			buf.writeResourceLocation(id);
-			s.write(entity, buf);
+			s.serialize(entity, buf);
 		}
 		buf.writeVarInt(modifiers.size());
 		modifiers.forEach(m -> {
@@ -171,13 +187,13 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 		buf.writeInt(setupTime);
 	}
 
-	public static Wave read(FriendlyByteBuf buf) {
+	public static Wave read(PacketBuffer buf) {
 		int size = buf.readVarInt();
 		List<WaveEntity> entities = new ArrayList<>(size);
 		for (int i = 0; i < size; i++) {
 			ResourceLocation id = buf.readResourceLocation();
-			var s = WaveEntity.SERIALIZERS.get(id);
-			entities.add(s.read(buf));
+			SerializerBuilder<WaveEntity>.Serializer s = WaveEntity.SERIALIZERS.get(id);
+			entities.add(s.deserialize(buf));
 		}
 		size = buf.readVarInt();
 		List<RandomAttributeModifier> modifiers = new ArrayList<>(size);
@@ -209,6 +225,26 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 			return Wave.read(json.getAsJsonObject());
 		}
 
+	}
+
+	public int maxWaveTime() {
+		return this.maxWaveTime;
+	}
+
+	public int setupTime() {
+		return this.setupTime;
+	}
+
+	public List<WaveEntity> entities() {
+		return this.entities;
+	}
+
+	public List<RandomAttributeModifier> modifiers() {
+		return this.modifiers;
+	}
+
+	public List<Reward> rewards() {
+		return this.rewards;
 	}
 
 }

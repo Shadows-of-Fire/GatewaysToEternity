@@ -7,14 +7,14 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.core.Registry;
-import net.minecraft.core.particles.ParticleOptions;
-import net.minecraft.core.particles.ParticleType;
-import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.PacketBuffer;
+import net.minecraft.particles.IParticleData;
+import net.minecraft.particles.ParticleType;
+import net.minecraft.util.registry.Registry;
 import shadows.gateways.GatewayObjects;
 
 @SuppressWarnings("deprecation")
-public class GatewayParticleData implements ParticleOptions {
+public class GatewayParticleData implements IParticleData {
 
 	public final float red, green, blue;
 
@@ -43,7 +43,7 @@ public class GatewayParticleData implements ParticleOptions {
 		})).apply(builder, GatewayParticleData::new);
 	});
 
-	public static final ParticleOptions.Deserializer<GatewayParticleData> DESERIALIZER = new ParticleOptions.Deserializer<GatewayParticleData>() {
+	public static final IParticleData.IDeserializer<GatewayParticleData> DESERIALIZER = new IParticleData.IDeserializer<GatewayParticleData>() {
 		public GatewayParticleData fromCommand(ParticleType<GatewayParticleData> type, StringReader reader) throws CommandSyntaxException {
 			reader.expect(' ');
 			float f = (float) reader.readDouble();
@@ -54,13 +54,13 @@ public class GatewayParticleData implements ParticleOptions {
 			return new GatewayParticleData(f, f1, f2);
 		}
 
-		public GatewayParticleData fromNetwork(ParticleType<GatewayParticleData> type, FriendlyByteBuf buf) {
+		public GatewayParticleData fromNetwork(ParticleType<GatewayParticleData> type, PacketBuffer buf) {
 			return new GatewayParticleData(buf.readFloat(), buf.readFloat(), buf.readFloat());
 		}
 	};
 
 	@Override
-	public void writeToNetwork(FriendlyByteBuf buffer) {
+	public void writeToNetwork(PacketBuffer buffer) {
 		buffer.writeFloat(this.red);
 		buffer.writeFloat(this.green);
 		buffer.writeFloat(this.blue);
