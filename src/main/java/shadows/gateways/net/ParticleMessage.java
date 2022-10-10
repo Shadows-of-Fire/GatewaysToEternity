@@ -7,6 +7,7 @@ import net.minecraft.util.text.Color;
 import net.minecraftforge.fml.network.NetworkEvent.Context;
 import shadows.gateways.client.ParticleHandler;
 import shadows.gateways.entity.GatewayEntity;
+import shadows.gateways.mixin.MixinColor;
 import shadows.placebo.util.NetworkUtils;
 import shadows.placebo.util.NetworkUtils.MessageProvider;
 
@@ -18,7 +19,7 @@ public class ParticleMessage extends MessageProvider<ParticleMessage> {
 	public int color;
 
 	public ParticleMessage(GatewayEntity source, double x, double y, double z, Color color, int type) {
-		this(source.getId(), x, y, z, color.getValue(), type);
+		this(source.getId(), x, y, z, ((MixinColor) (Object) color).getValue(), type);
 	}
 
 	public ParticleMessage(int id, double x, double y, double z, int color, int type) {
