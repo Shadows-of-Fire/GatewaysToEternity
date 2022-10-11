@@ -29,3 +29,4 @@
 
 ## 1.0.0
 * Backported version 2.1.3 to Minecraft 1.16.5. Makes the chronology look a little weird, doesn't it?
+  * Commissioned by adam98991
