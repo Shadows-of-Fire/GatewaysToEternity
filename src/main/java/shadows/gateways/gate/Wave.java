@@ -18,7 +18,7 @@ import com.google.gson.reflect.TypeToken;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TranslatableComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
@@ -34,6 +34,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraftforge.event.ForgeEventFactory;
+import net.minecraftforge.registries.ForgeRegistries;
 import shadows.gateways.GatewayObjects;
 import shadows.gateways.Gateways;
 import shadows.gateways.entity.GatewayEntity;
@@ -93,11 +94,11 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 				}
 
 				level.addFreshEntityWithPassengers(entity);
-				level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP, SoundSource.HOSTILE, 0.5F, 1);
+				level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP.get(), SoundSource.HOSTILE, 0.5F, 1);
 				spawned.add((LivingEntity) entity);
 				gate.spawnParticle(gate.getGateway().getColor(), entity.getX() + entity.getBbWidth() / 2, entity.getY() + entity.getBbHeight() / 2, entity.getZ() + entity.getBbWidth() / 2, 0);
 			} else {
-				gate.onFailure(spawned, new TranslatableComponent("error.gateways.wave_failed").withStyle(ChatFormatting.RED));
+				gate.onFailure(spawned, Component.translatable("error.gateways.wave_failed").withStyle(ChatFormatting.RED));
 				break;
 			}
 		}
@@ -119,7 +120,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 		for (WaveEntity entity : entities) {
 			var s = entity.getSerializer();
 			ResourceLocation id = WaveEntity.SERIALIZERS.inverse().get(s);
-			JsonObject entityData = s.write(entity);
+			JsonObject entityData = s.write(entity).getAsJsonObject();
 			entityData.addProperty("type", id.toString());
 			arr.add(entityData);
 		}
@@ -161,7 +162,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 		}
 		buf.writeVarInt(modifiers.size());
 		modifiers.forEach(m -> {
-			buf.writeRegistryId(m.getAttribute());
+			buf.writeRegistryId(ForgeRegistries.ATTRIBUTES, m.getAttribute());
 			buf.writeByte(m.getOp().ordinal());
 			buf.writeFloat((float) m.getValue().min());
 		});

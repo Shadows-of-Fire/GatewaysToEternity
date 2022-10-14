@@ -1,8 +1,8 @@
 package shadows.gateways.gate;
 
 import shadows.gateways.Gateways;
+import shadows.placebo.json.PSerializer;
 import shadows.placebo.json.PlaceboJsonReloadListener;
-import shadows.placebo.json.SerializerBuilder;
 
 public class GatewayManager extends PlaceboJsonReloadListener<Gateway> {
 
@@ -14,7 +14,7 @@ public class GatewayManager extends PlaceboJsonReloadListener<Gateway> {
 
 	@Override
 	protected void registerBuiltinSerializers() {
-		this.registerSerializer(DEFAULT, new SerializerBuilder<Gateway>("Gateway").json(Gateway::read, Gateway::write).net(Gateway::read, Gateway::write));
+		this.registerSerializer(DEFAULT, PSerializer.autoRegister("Gateway", Gateway.class));
 	}
 
 }

@@ -10,7 +10,7 @@ public class GatewayTickableSound extends AbstractTickableSoundInstance {
 	private final GatewayEntity gateway;
 
 	public GatewayTickableSound(GatewayEntity gateway) {
-		super(GatewayObjects.GATE_AMBIENT, SoundSource.HOSTILE);
+		super(GatewayObjects.GATE_AMBIENT.get(), SoundSource.HOSTILE, gateway.level.getRandom());
 		this.gateway = gateway;
 		this.looping = true;
 		this.delay = 0;

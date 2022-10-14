@@ -16,16 +16,15 @@ import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.TextComponent;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.CustomizeGuiOverlayEvent;
 import net.minecraftforge.client.event.EntityRenderersEvent.RegisterRenderers;
-import net.minecraftforge.client.event.ParticleFactoryRegisterEvent;
-import net.minecraftforge.client.event.RenderGameOverlayEvent;
+import net.minecraftforge.client.event.RegisterColorHandlersEvent;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.client.event.TextureStitchEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -49,13 +48,7 @@ public class GatewaysClient {
 	@SubscribeEvent
 	public static void setup(FMLClientSetupEvent e) {
 		e.enqueueWork(() -> {
-			Minecraft.getInstance().getItemColors().register((stack, tint) -> {
-				Gateway gate = GatePearlItem.getGate(stack);
-				if (gate != null) return gate.getColor().getValue();
-				return 0xAAAAFF;
-			}, GatewayObjects.GATE_PEARL);
-
-			ItemProperties.register(GatewayObjects.GATE_PEARL, new ResourceLocation(Gateways.MODID, "size"), (stack, level, entity, seed) -> {
+			ItemProperties.register(GatewayObjects.GATE_PEARL.get(), new ResourceLocation(Gateways.MODID, "size"), (stack, level, entity, seed) -> {
 				Gateway gate = GatePearlItem.getGate(stack);
 				if (gate == null) return 2;
 				return gate.getSize().ordinal();
@@ -66,13 +59,22 @@ public class GatewaysClient {
 	}
 
 	@SubscribeEvent
-	public static void eRenders(RegisterRenderers e) {
-		e.registerEntityRenderer(GatewayObjects.GATEWAY, GatewayRenderer::new);
+	public static void colors(RegisterColorHandlersEvent.Item e) {
+		e.register((stack, tint) -> {
+			Gateway gate = GatePearlItem.getGate(stack);
+			if (gate != null) return gate.getColor().getValue();
+			return 0xAAAAFF;
+		}, GatewayObjects.GATE_PEARL.get());
 	}
 
 	@SubscribeEvent
-	public static void factories(ParticleFactoryRegisterEvent e) {
-		Minecraft.getInstance().particleEngine.register(GatewayObjects.GLOW, GatewayParticle.Factory::new);
+	public static void eRenders(RegisterRenderers e) {
+		e.registerEntityRenderer(GatewayObjects.GATEWAY.get(), GatewayRenderer::new);
+	}
+
+	@SubscribeEvent
+	public static void factories(RegisterParticleProvidersEvent e) {
+		e.register(GatewayObjects.GLOW.get(), GatewayParticle.Factory::new);
 	}
 
 	@SubscribeEvent
@@ -84,68 +86,68 @@ public class GatewaysClient {
 	}
 
 	public static void tooltip(ItemTooltipEvent e) {
-		if (e.getItemStack().getItem() == GatewayObjects.GATE_PEARL) {
+		if (e.getItemStack().getItem() == GatewayObjects.GATE_PEARL.get()) {
 			Gateway gate = GatePearlItem.getGate(e.getItemStack());
 			List<Component> tooltips = e.getToolTip();
 			if (gate == null) {
-				tooltips.add(new TextComponent("Errored Gate Pearl, file a bug report detailing how you obtained this."));
+				tooltips.add(Component.literal("Errored Gate Pearl, file a bug report detailing how you obtained this."));
 				return;
 			}
 
-			Component comp = new TranslatableComponent("tooltip.gateways.max_waves", gate.getNumWaves()).withStyle(ChatFormatting.GRAY);
+			Component comp = Component.translatable("tooltip.gateways.max_waves", gate.getNumWaves()).withStyle(ChatFormatting.GRAY);
 			tooltips.add(comp);
 
 			if (Screen.hasShiftDown()) {
 				int wave = 0;
-				if (e.getPlayer() != null) {
-					wave = (e.getPlayer().tickCount / 50) % gate.getNumWaves();
+				if (e.getEntity() != null) {
+					wave = (e.getEntity().tickCount / 50) % gate.getNumWaves();
 				}
-				comp = new TranslatableComponent("tooltip.gateways.wave", wave + 1).withStyle(ChatFormatting.GREEN, ChatFormatting.UNDERLINE);
+				comp = Component.translatable("tooltip.gateways.wave", wave + 1).withStyle(ChatFormatting.GREEN, ChatFormatting.UNDERLINE);
 				tooltips.add(comp);
 				tooltips.add(Component.nullToEmpty(null));
-				comp = new TranslatableComponent("tooltip.gateways.entities").withStyle(ChatFormatting.BLUE);
+				comp = Component.translatable("tooltip.gateways.entities").withStyle(ChatFormatting.BLUE);
 				tooltips.add(comp);
 				Map<String, Integer> counts = new HashMap<>();
 				for (WaveEntity entity : gate.getWave(wave).entities()) {
 					counts.put(entity.getDescription().getString(), counts.getOrDefault(entity.getDescription().getString(), 0) + 1);
 				}
 				for (Map.Entry<String, Integer> counted : counts.entrySet()) {
-					comp = new TranslatableComponent("tooltip.gateways.list1", counted.getValue(), new TranslatableComponent(counted.getKey())).withStyle(ChatFormatting.BLUE);
+					comp = Component.translatable("tooltip.gateways.list1", counted.getValue(), Component.translatable(counted.getKey())).withStyle(ChatFormatting.BLUE);
 					tooltips.add(comp);
 				}
 				if (!gate.getWave(wave).modifiers().isEmpty()) {
-					comp = new TranslatableComponent("tooltip.gateways.modifiers").withStyle(ChatFormatting.RED);
+					comp = Component.translatable("tooltip.gateways.modifiers").withStyle(ChatFormatting.RED);
 					tooltips.add(comp);
 					for (RandomAttributeModifier inst : gate.getWave(wave).modifiers()) {
-						comp = AttributeHelper.toComponent(inst.getAttribute(), inst.genModifier(e.getPlayer().getRandom()));
-						comp = new TranslatableComponent("tooltip.gateways.list2", comp.getString()).withStyle(ChatFormatting.RED);
+						comp = AttributeHelper.toComponent(inst.getAttribute(), inst.genModifier(e.getEntity().getRandom()));
+						comp = Component.translatable("tooltip.gateways.list2", comp.getString()).withStyle(ChatFormatting.RED);
 						tooltips.add(comp);
 					}
 				}
-				comp = new TranslatableComponent("tooltip.gateways.rewards").withStyle(ChatFormatting.GOLD);
+				comp = Component.translatable("tooltip.gateways.rewards").withStyle(ChatFormatting.GOLD);
 				tooltips.add(comp);
 				for (Reward r : gate.getWave(wave).rewards()) {
 					r.appendHoverText(c -> {
-						tooltips.add(new TranslatableComponent("tooltip.gateways.list2", c).withStyle(ChatFormatting.GOLD));
+						tooltips.add(Component.translatable("tooltip.gateways.list2", c).withStyle(ChatFormatting.GOLD));
 					});
 				}
 			} else {
-				comp = new TranslatableComponent("tooltip.gateways.shift").withStyle(ChatFormatting.GRAY);
+				comp = Component.translatable("tooltip.gateways.shift").withStyle(ChatFormatting.GRAY);
 				tooltips.add(comp);
 			}
 			if (Screen.hasControlDown()) {
-				comp = new TranslatableComponent("tooltip.gateways.completion").withStyle(ChatFormatting.YELLOW, ChatFormatting.UNDERLINE);
+				comp = Component.translatable("tooltip.gateways.completion").withStyle(ChatFormatting.YELLOW, ChatFormatting.UNDERLINE);
 				tooltips.add(comp);
 				tooltips.add(Component.nullToEmpty(null));
-				comp = new TranslatableComponent("tooltip.gateways.experience", gate.getCompletionXp()).withStyle(ChatFormatting.YELLOW);
+				comp = Component.translatable("tooltip.gateways.experience", gate.getCompletionXp()).withStyle(ChatFormatting.YELLOW);
 				tooltips.add(comp);
 				for (Reward r : gate.getRewards()) {
 					r.appendHoverText(c -> {
-						tooltips.add(new TranslatableComponent("tooltip.gateways.list3", c).withStyle(ChatFormatting.YELLOW));
+						tooltips.add(Component.translatable("tooltip.gateways.list3", c).withStyle(ChatFormatting.YELLOW));
 					});
 				}
 			} else {
-				comp = new TranslatableComponent("tooltip.gateways.ctrl").withStyle(ChatFormatting.GRAY);
+				comp = Component.translatable("tooltip.gateways.ctrl").withStyle(ChatFormatting.GRAY);
 				tooltips.add(comp);
 			}
 
@@ -154,7 +156,7 @@ public class GatewaysClient {
 
 	public static final ResourceLocation BARS = new ResourceLocation("textures/gui/bars.png");
 
-	public static void bossRenderPre(RenderGameOverlayEvent.BossInfo event) {
+	public static void bossRenderPre(CustomizeGuiOverlayEvent.BossEventProgress event) {
 		BossEvent boss = event.getBossEvent();
 		String name = boss.getName().getString();
 		if (name.startsWith("GATEWAY_ID")) {
@@ -165,7 +167,7 @@ public class GatewaysClient {
 				int r = color >> 16 & 255, g = color >> 8 & 255, b = color & 255;
 				RenderSystem.setShaderColor(r / 255F, g / 255F, b / 255F, 1.0F);
 				RenderSystem.setShaderTexture(0, BARS);
-				PoseStack stack = event.getMatrixStack();
+				PoseStack stack = event.getPoseStack();
 
 				int wave = gate.getWave() + 1;
 				int maxWave = gate.getGateway().getNumWaves();
@@ -198,7 +200,7 @@ public class GatewaysClient {
 				Font font = Minecraft.getInstance().font;
 
 				int width = Minecraft.getInstance().getWindow().getGuiScaledWidth();
-				Component component = new TextComponent(gate.getCustomName().getString()).withStyle(ChatFormatting.GOLD);
+				Component component = Component.literal(gate.getCustomName().getString()).withStyle(ChatFormatting.GOLD);
 				int strWidth = font.width(component);
 				int textX = width / 2 - strWidth / 2;
 				int textY = y - 9;
@@ -213,7 +215,7 @@ public class GatewaysClient {
 						str = I18n.get("boss.gateways.done");
 					} else str = I18n.get("boss.gateways.starting", wave, StringUtil.formatTickDuration(time));
 				}
-				component = new TextComponent(str).withStyle(ChatFormatting.GREEN);
+				component = Component.literal(str).withStyle(ChatFormatting.GREEN);
 				strWidth = font.width(component);
 				textX = width / 2 - strWidth / 2;
 				font.drawShadow(stack, component, textX, textY, 16777215);

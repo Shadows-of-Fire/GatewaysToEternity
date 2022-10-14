@@ -30,7 +30,7 @@ public class GatewayParticleData implements ParticleOptions {
 
 	@Override
 	public ParticleType<GatewayParticleData> getType() {
-		return GatewayObjects.GLOW;
+		return GatewayObjects.GLOW.get();
 	}
 
 	public static final Codec<GatewayParticleData> CODEC = RecordCodecBuilder.create(builder -> {

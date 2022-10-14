@@ -1,14 +1,14 @@
 package shadows.gateways.compat;
 
-import mcp.mobius.waila.api.IWailaClientRegistration;
-import mcp.mobius.waila.api.IWailaPlugin;
-import mcp.mobius.waila.api.WailaPlugin;
 import shadows.gateways.GatewayObjects;
+import snownee.jade.api.IWailaClientRegistration;
+import snownee.jade.api.IWailaPlugin;
+import snownee.jade.api.WailaPlugin;
 
 @WailaPlugin
 public class GatewayJadePlugin implements IWailaPlugin {
 	@Override
 	public void registerClient(IWailaClientRegistration reg) {
-		reg.hideTarget(GatewayObjects.GATEWAY);
+		reg.hideTarget(GatewayObjects.GATEWAY.get());
 	}
 }

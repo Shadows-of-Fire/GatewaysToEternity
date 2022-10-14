@@ -1,9 +1,8 @@
 package shadows.gateways.client;
 
-import java.util.Random;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import shadows.gateways.entity.GatewayEntity;
@@ -19,7 +18,7 @@ public class ParticleHandler {
 		if (src == null) return;
 		if (type == 0) { //Type 0: Entity spawned from portal.  Spawns a cluster of particles around the entity.
 			GatewayParticleData data = new GatewayParticleData(color >> 16 & 255, color >> 8 & 255, color & 255);
-			Random rand = src.level.random;
+			RandomSource rand = src.level.random;
 			for (int i = 0; i < 15; i++) {
 				double velX = Mth.nextDouble(rand, -0.15, 0.15);
 				double velY = Mth.nextDouble(rand, -0.15, 0.15);
@@ -32,7 +31,7 @@ public class ParticleHandler {
 		}
 		if (type == 1) { //Type 1: Portal idle particles, called every second from the portal itself.
 			GatewayParticleData data = new GatewayParticleData(color >> 16 & 255, color >> 8 & 255, color & 255);
-			Random rand = src.level.random;
+			RandomSource rand = src.level.random;
 			for (int i = 0; i < 3; i++) {
 				double velX = Mth.nextDouble(rand, -0.05, 0.05);
 				double velY = Mth.nextDouble(rand, -0.1, -0.05);
@@ -48,7 +47,7 @@ public class ParticleHandler {
 
 	public static void spawnIdleParticles(GatewayEntity gate) {
 		Level level = gate.getLevel();
-		Random rand = level.random;
+		RandomSource rand = level.random;
 		int color = gate.getGateway().getColor().getValue();
 		GatewayParticleData data = new GatewayParticleData(color >> 16 & 255, color >> 8 & 255, color & 255);
 

@@ -1,13 +1,11 @@
 package shadows.gateways.item;
 
 import net.minecraft.ChatFormatting;
-import net.minecraft.Util;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
@@ -48,7 +46,7 @@ public class GatePearlItem extends Item {
 			} else break;
 		}
 		if (!world.noCollision(entity)) {
-			ctx.getPlayer().sendMessage(new TranslatableComponent("error.gateways.no_space").withStyle(ChatFormatting.RED), Util.NIL_UUID);
+			ctx.getPlayer().sendSystemMessage(Component.translatable("error.gateways.no_space").withStyle(ChatFormatting.RED));
 			return InteractionResult.FAIL;
 		}
 		world.addFreshEntity(entity);
@@ -69,7 +67,7 @@ public class GatePearlItem extends Item {
 	public Component getName(ItemStack stack) {
 		if (stack.hasCustomHoverName()) return super.getName(stack);
 		Gateway gate = getGate(stack);
-		if (gate != null) return new TranslatableComponent("gateways.gate_pearl", new TranslatableComponent(gate.getId().toString().replace(':', '.'))).withStyle(Style.EMPTY.withColor(gate.getColor()));
+		if (gate != null) return Component.translatable("gateways.gate_pearl", Component.translatable(gate.getId().toString().replace(':', '.'))).withStyle(Style.EMPTY.withColor(gate.getColor()));
 		return super.getName(stack);
 	}
 
@@ -79,7 +77,7 @@ public class GatePearlItem extends Item {
 
 	@Override
 	public void fillItemCategory(CreativeModeTab group, NonNullList<ItemStack> items) {
-		if (this.allowdedIn(group)) {
+		if (this.allowedIn(group)) {
 			GatewayManager.INSTANCE.getValues().stream().sorted((g1, g2) -> g1.getId().compareTo(g2.getId())).forEach(gate -> {
 				ItemStack stack = new ItemStack(this);
 				setGate(stack, gate);

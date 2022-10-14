@@ -17,16 +17,16 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
-import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
-import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.network.NetworkRegistry;
 import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegisterEvent;
 import shadows.gateways.client.GatewayParticleData;
 import shadows.gateways.client.GatewayTickableSound;
 import shadows.gateways.command.GatewayCommand;
@@ -56,7 +56,7 @@ public class Gateways {
 
 		@Override
 		public ItemStack makeIcon() {
-			return new ItemStack(GatewayObjects.GATE_PEARL);
+			return new ItemStack(GatewayObjects.GATE_PEARL.get());
 		}
 
 	};
@@ -75,54 +75,56 @@ public class Gateways {
 	}
 
 	@SubscribeEvent
-	public void registerEntities(Register<EntityType<?>> e) {
+	public void register(RegisterEvent e) {
+		if (e.getForgeRegistry() == (Object) ForgeRegistries.ITEMS) registerItems();
+		if (e.getForgeRegistry() == (Object) ForgeRegistries.ENTITY_TYPES) registerEntities();
+		if (e.getForgeRegistry() == (Object) ForgeRegistries.RECIPE_SERIALIZERS) registerSerializers();
+		if (e.getForgeRegistry() == (Object) ForgeRegistries.SOUND_EVENTS) registerSounds();
+		if (e.getForgeRegistry() == (Object) ForgeRegistries.PARTICLE_TYPES) registerParticles();
+	}
+
+	public void registerEntities() {
 		//Formatter::off
-		e.getRegistry().register(EntityType.Builder
+		ForgeRegistries.ENTITY_TYPES.register("gateway", EntityType.Builder
 				.<GatewayEntity>of(GatewayEntity::new, MobCategory.MISC)
 				.setTrackingRange(5)
 				.setUpdateInterval(20)
 				.sized(2F, 3F)
 				.setCustomClientFactory((se, w) -> {
-					GatewayEntity ent = new GatewayEntity(GatewayObjects.GATEWAY, w);
+					GatewayEntity ent = new GatewayEntity(GatewayObjects.GATEWAY.get(), w);
 					GatewayTickableSound.startGatewaySound(ent);
 					return ent;
 				})
-				.build("gateway")
-				.setRegistryName("gateway"));
+				.build("gateway"));
 		//Formatter::on
 	}
 
-	@SubscribeEvent
-	public void registerItems(Register<Item> e) {
-		e.getRegistry().register(new GatePearlItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).tab(TAB)).setRegistryName("gate_pearl"));
+	public void registerItems() {
+		ForgeRegistries.ITEMS.register("gate_pearl", new GatePearlItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON).tab(TAB)));
 		registerStat(GatewayObjects.Stats.STAT_GATES_DEFEATED, StatFormatter.DEFAULT);
 	}
 
-	@SubscribeEvent
-	public void registerSerializers(Register<RecipeSerializer<?>> e) {
-		e.getRegistry().register(GatewayRecipeSerializer.INSTANCE.setRegistryName("gate_recipe"));
+	public void registerSerializers() {
+		ForgeRegistries.RECIPE_SERIALIZERS.register("gate_recipe", GatewayRecipeSerializer.INSTANCE);
 	}
 
-	@SubscribeEvent
-	public void registerSounds(Register<SoundEvent> e) {
-		//Formatter::off
-		e.getRegistry().registerAll(
-				new SoundEvent(new ResourceLocation(MODID, "gate_warp")).setRegistryName("gate_warp"),
-				new SoundEvent(new ResourceLocation(MODID, "gate_ambient")).setRegistryName("gate_ambient"),
-				new SoundEvent(new ResourceLocation(MODID, "gate_start")).setRegistryName("gate_start"),
-				new SoundEvent(new ResourceLocation(MODID, "gate_end")).setRegistryName("gate_end")
-		);
-		//Formatter::on
+	public void registerSounds() {
+		for (String s : new String[] { "gate_warp", "gate_ambient", "gate_start", "gate_end" }) {
+			ForgeRegistries.SOUND_EVENTS.register(s, new SoundEvent(Gateways.loc(s)));
+		}
 	}
 
-	@SubscribeEvent
-	public void registerParticles(Register<ParticleType<?>> e) {
-		e.getRegistry().register(new ParticleType<GatewayParticleData>(false, GatewayParticleData.DESERIALIZER) {
+	private static ResourceLocation loc(String s) {
+		return new ResourceLocation(MODID, s);
+	}
+
+	public void registerParticles() {
+		ForgeRegistries.PARTICLE_TYPES.register("glow", new ParticleType<GatewayParticleData>(false, GatewayParticleData.DESERIALIZER) {
 			@Override
 			public Codec<GatewayParticleData> codec() {
 				return GatewayParticleData.CODEC;
 			}
-		}.setRegistryName("glow"));
+		});
 	}
 
 	public void commands(RegisterCommandsEvent e) {

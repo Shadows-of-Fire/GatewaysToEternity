@@ -1,3 +1,6 @@
+## 3.0.0
+* Updated to MC 1.19.2
+
 ## 2.1.3
 * Added the "command" reward type, which allows for execution of a command as a reward.
   * Details are in the JSON schema document.
