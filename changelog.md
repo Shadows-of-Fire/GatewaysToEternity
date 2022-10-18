@@ -1,3 +1,6 @@
+## 3.0.1
+* Added forge events that fire on various gateway actions.
+
 ## 3.0.0
 * Updated to MC 1.19.2
 

@@ -8,6 +8,8 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.UUID;
 
+import javax.annotation.Nullable;
+
 import com.mojang.authlib.GameProfile;
 
 import net.minecraft.ChatFormatting;
@@ -43,12 +45,14 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.entity.IEntityAdditionalSpawnData;
 import net.minecraftforge.network.NetworkHooks;
 import shadows.gateways.GatewayObjects;
 import shadows.gateways.Gateways;
 import shadows.gateways.client.ParticleHandler;
+import shadows.gateways.event.GateEvent;
 import shadows.gateways.gate.Gateway;
 import shadows.gateways.gate.GatewayManager;
 import shadows.gateways.gate.Wave;
@@ -71,6 +75,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 
 	protected float clientScale = 0F;
 	protected Queue<ItemStack> undroppedItems = new ArrayDeque<>();
+	protected FailureReason failureReason;
 
 	/**
 	 * Primary constructor.
@@ -111,7 +116,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 			if (isWaveActive()) {
 				int maxWaveTime = getCurrentWave().maxWaveTime();
 				if (this.getTicksActive() > maxWaveTime) {
-					this.onFailure(this.currentWaveEntities, Component.translatable("error.gateways.wave_elapsed").withStyle(ChatFormatting.RED, ChatFormatting.UNDERLINE));
+					this.onFailure(this.currentWaveEntities, FailureReason.TIMER_ELAPSED);
 					return;
 				}
 				this.entityData.set(TICKS_ACTIVE, this.getTicksActive() + 1);
@@ -121,7 +126,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 			List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(Entity::isAlive).toList();
 			for (LivingEntity entity : enemies) {
 				if (entity.distanceToSqr(this) > this.gate.getLeashRangeSq()) {
-					this.onFailure(currentWaveEntities, Component.translatable("error.gateways.too_far").withStyle(ChatFormatting.RED));
+					this.onFailure(currentWaveEntities, FailureReason.ENTITY_TOO_FAR);
 					return;
 				}
 				if (entity.tickCount % 20 == 0) this.spawnParticle(this.gate.getColor(), entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), 0);
@@ -196,10 +201,12 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		this.playSound(GatewayObjects.GATE_END.get(), 1, 1);
 
 		this.level.getNearbyPlayers(TargetingConditions.DEFAULT, null, getBoundingBox().inflate(15)).forEach(p -> p.awardStat(GatewayObjects.Stats.STAT_GATES_DEFEATED));
+		MinecraftForge.EVENT_BUS.post(new GateEvent.Completed(this));
 	}
 
 	public void onGateCreated() {
 		this.playSound(GatewayObjects.GATE_START.get(), 1, 1);
+		MinecraftForge.EVENT_BUS.post(new GateEvent.Opened(this));
 	}
 
 	/**
@@ -224,9 +231,11 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	/**
 	 * Called when a player fails to complete a wave in time, closing the gateway.
 	 */
-	public void onFailure(Collection<LivingEntity> remaining, Component message) {
+	public void onFailure(Collection<LivingEntity> remaining, FailureReason reason) {
+		this.failureReason = reason;
+		MinecraftForge.EVENT_BUS.post(new GateEvent.Failed(this));
 		Player player = summonerOrClosest();
-		if (player != null) player.sendSystemMessage(message);
+		if (player != null) player.sendSystemMessage(reason.getMsg());
 		spawnLightningOn(this, false);
 		remaining.stream().filter(Entity::isAlive).forEach(e -> spawnLightningOn(e, true));
 		remaining.forEach(e -> e.remove(RemovalReason.DISCARDED));
@@ -384,6 +393,14 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		return 2;
 	}
 
+	/**
+	 * @return The failure reason, if the gate has failed, or null otherwise.
+	 */
+	@Nullable
+	public FailureReason getFailureReason() {
+		return this.failureReason;
+	}
+
 	public static enum GatewaySize {
 		SMALL(EntityDimensions.scalable(2F, 3F), 1F),
 		MEDIUM(EntityDimensions.scalable(4F, 6F), 2F),
@@ -399,6 +416,22 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 
 		public float getScale() {
 			return this.scale;
+		}
+	}
+
+	public static enum FailureReason {
+		SPAWN_FAILED("error.gateways.wave_failed"),
+		ENTITY_TOO_FAR("error.gateways.too_far"),
+		TIMER_ELAPSED("error.gateways.wave_elapsed");
+
+		private final String langKey;
+
+		FailureReason(String langKey) {
+			this.langKey = langKey;
+		}
+
+		public Component getMsg() {
+			return Component.translatable(this.langKey).withStyle(ChatFormatting.RED, ChatFormatting.UNDERLINE);
 		}
 	}
 
