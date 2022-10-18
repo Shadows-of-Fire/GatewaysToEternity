@@ -15,10 +15,8 @@ import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 
-import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.TranslatableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
@@ -37,6 +35,7 @@ import net.minecraftforge.event.ForgeEventFactory;
 import shadows.gateways.GatewayObjects;
 import shadows.gateways.Gateways;
 import shadows.gateways.entity.GatewayEntity;
+import shadows.gateways.entity.GatewayEntity.FailureReason;
 import shadows.placebo.json.PlaceboJsonReloadListener;
 import shadows.placebo.json.RandomAttributeModifier;
 import shadows.placebo.util.StepFunction;
@@ -97,7 +96,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 				spawned.add((LivingEntity) entity);
 				gate.spawnParticle(gate.getGateway().getColor(), entity.getX() + entity.getBbWidth() / 2, entity.getY() + entity.getBbHeight() / 2, entity.getZ() + entity.getBbWidth() / 2, 0);
 			} else {
-				gate.onFailure(spawned, new TranslatableComponent("error.gateways.wave_failed").withStyle(ChatFormatting.RED));
+				gate.onFailure(spawned, FailureReason.SPAWN_FAILED);
 				break;
 			}
 		}

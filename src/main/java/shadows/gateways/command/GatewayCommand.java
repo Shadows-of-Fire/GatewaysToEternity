@@ -42,6 +42,7 @@ public class GatewayCommand {
 		GatewayEntity gate = new GatewayEntity(c.getSource().getLevel(), summoner, GatewayManager.INSTANCE.getValue(type));
 		gate.moveTo(pos);
 		c.getSource().getLevel().addFreshEntity(gate);
+		gate.onGateCreated();
 		return 0;
 	}
 
