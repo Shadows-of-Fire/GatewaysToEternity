@@ -11,7 +11,7 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
-import net.minecraft.network.chat.TextComponent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -46,7 +46,7 @@ public class GatewayCommand {
 			c.getSource().getLevel().addFreshEntity(gate);
 			gate.onGateCreated();
 		} catch (Exception ex) {	
-			c.getSource().sendFailure(new TextComponent("Exception thrown - see log"));
+			c.getSource().sendFailure(Component.literal("Exception thrown - see log"));
 			ex.printStackTrace();
 		}
 		return 0;
