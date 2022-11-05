@@ -1,3 +1,9 @@
+## 2.1.5
+* alin529: Added chinese translation
+* Wave entities will now always attempt to spawn on the surface, and will not spawn midair.
+* Waves will no longer be skipped if the gate is unloaded.
+* Gateway particles will now show through walls to indicate the position of wave entities.
+
 ## 2.1.4
 * Added forge events that fire on various gateway actions. (backport of 3.0.1)
 

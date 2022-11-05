@@ -17,6 +17,7 @@ import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.client.particle.TextureSheetParticle;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.util.Mth;
@@ -29,6 +30,7 @@ public class GatewayParticle extends TextureSheetParticle {
 		public void begin(BufferBuilder bufferBuilder, TextureManager textureManager) {
 			//RenderSystem.enableAlphaTest();
 			RenderSystem.depthMask(false);
+			RenderSystem.disableDepthTest();
 			RenderSystem.enableBlend();
 			GlStateManager._disableCull();
 			RenderSystem.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE);
@@ -62,6 +64,11 @@ public class GatewayParticle extends TextureSheetParticle {
 		RENDER_TYPE.begin((BufferBuilder) pBuffer, null);
 		super.render(pBuffer, pRenderInfo, pPartialTicks);
 		RENDER_TYPE.end(Tesselator.getInstance());
+	}
+
+	@Override
+	protected int getLightColor(float partialTicks) {
+		return LightTexture.pack(15, 15);
 	}
 
 	@Override

@@ -31,6 +31,7 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.levelgen.Heightmap.Types;
 import net.minecraftforge.event.ForgeEventFactory;
 import shadows.gateways.GatewayObjects;
 import shadows.gateways.Gateways;
@@ -66,6 +67,25 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 				z = pos.getZ() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
 			}
 
+			if (level.getBlockState(new BlockPos(x, y - 1, z)).isAir()) {
+				int height = level.getHeight(Types.MOTION_BLOCKING_NO_LEAVES, (int) x, (int) y);
+				if (height <= y) y = height;
+				else {
+					while (level.getBlockState(new BlockPos(x, y - 1, z)).isAir() && y > level.getMinBuildHeight()) {
+						y--;
+					}
+				}
+			}
+
+			while (!level.noCollision(toSpawn.getAABB(x, y, z))) {
+				y++;
+			}
+
+			if (gate.distanceToSqr(x, y, z) > gate.getGateway().getLeashRangeSq()) {
+				gate.onFailure(spawned, FailureReason.SPAWN_FAILED);
+				break;
+			}
+
 			final double fx = x, fy = y, fz = z;
 
 			if (level.noCollision(toSpawn.getAABB(fx, fy, fz))) {
@@ -89,6 +109,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 						mob.finalizeSpawn(level, level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.SPAWNER, null, null);
 					}
 					mob.setTarget(gate.getLevel().getNearestPlayer(gate, 12));
+					mob.setPersistenceRequired();
 				}
 
 				level.addFreshEntityWithPassengers(entity);
