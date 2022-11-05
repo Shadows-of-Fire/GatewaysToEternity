@@ -11,6 +11,7 @@ import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceLocationArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -37,12 +38,17 @@ public class GatewayCommand {
 	}
 
 	public static int openGateway(CommandContext<CommandSourceStack> c, Vec3 pos, ResourceLocation type) {
-		Entity nullableSummoner = c.getSource().getEntity();
-		Player summoner = nullableSummoner instanceof Player ? (Player) nullableSummoner : c.getSource().getLevel().getNearestPlayer(pos.x(), pos.y(), pos.z(), 64, false);
-		GatewayEntity gate = new GatewayEntity(c.getSource().getLevel(), summoner, GatewayManager.INSTANCE.getValue(type));
-		gate.moveTo(pos);
-		c.getSource().getLevel().addFreshEntity(gate);
-		gate.onGateCreated();
+		try {
+			Entity nullableSummoner = c.getSource().getEntity();
+			Player summoner = nullableSummoner instanceof Player ? (Player) nullableSummoner : c.getSource().getLevel().getNearestPlayer(pos.x(), pos.y(), pos.z(), 64, false);
+			GatewayEntity gate = new GatewayEntity(c.getSource().getLevel(), summoner, GatewayManager.INSTANCE.getValue(type));
+			gate.moveTo(pos);
+			c.getSource().getLevel().addFreshEntity(gate);
+			gate.onGateCreated();
+		} catch (Exception ex) {	
+			c.getSource().sendFailure(new TextComponent("Exception thrown - see log"));
+			ex.printStackTrace();
+		}
 		return 0;
 	}
 
