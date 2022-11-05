@@ -22,21 +22,23 @@ import shadows.placebo.json.PlaceboJsonReloadListener.TypeKeyedBase;
 import shadows.placebo.json.RandomAttributeModifier;
 
 public class Gateway extends TypeKeyedBase<Gateway> {
-	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().registerTypeHierarchyAdapter(Reward.class, new Reward.Serializer()).registerTypeAdapter(ItemStack.class, ItemAdapter.INSTANCE).registerTypeAdapter(CompoundTag.class, NBTAdapter.INSTANCE).registerTypeAdapter(RandomAttributeModifier.class, new RandomAttributeModifier.Deserializer()).registerTypeAdapter(Wave.class, new Wave.Serializer()).create();
+	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().registerTypeHierarchyAdapter(Reward.class, new Reward.Serializer()).registerTypeHierarchyAdapter(Failure.class, new Failure.Serializer()).registerTypeAdapter(ItemStack.class, ItemAdapter.INSTANCE).registerTypeAdapter(CompoundTag.class, NBTAdapter.INSTANCE).registerTypeAdapter(RandomAttributeModifier.class, new RandomAttributeModifier.Deserializer()).registerTypeAdapter(Wave.class, new Wave.Serializer()).create();
 
 	protected final GatewaySize size;
 	protected final TextColor color;
 	protected final List<Wave> waves;
 	protected final List<Reward> rewards;
+	protected final List<Failure> failures;
 	protected final int completionXp;
 	protected final double spawnRange;
 	protected final double leashRange;
 
-	Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Reward> rewards, int completionXp, double spawnRange, double leashRange) {
+	Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Reward> rewards, List<Failure> failures, int completionXp, double spawnRange, double leashRange) {
 		this.size = size;
 		this.color = color;
 		this.waves = waves;
 		this.rewards = rewards;
+		this.failures = failures;
 		this.completionXp = completionXp;
 		this.spawnRange = spawnRange;
 		this.leashRange = leashRange;
@@ -65,6 +67,10 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 	public List<Reward> getRewards() {
 		return rewards;
 	}
+	
+	public List<Failure> getFailures() {
+		return failures;
+	}
 
 	public int getCompletionXp() {
 		return this.completionXp;
@@ -80,6 +86,7 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 		obj.addProperty("color", color.serialize());
 		obj.add("waves", GSON.toJsonTree(waves));
 		obj.add("rewards", GSON.toJsonTree(rewards));
+		obj.add("failures", GSON.toJsonTree(failures));
 		obj.addProperty("completion_xp", completionXp);
 		obj.addProperty("spawn_range", this.spawnRange);
 		obj.addProperty("leash_range", this.leashRange);
@@ -101,10 +108,12 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 		}.getType());
 		List<Reward> rewards = GSON.fromJson(obj.get("rewards"), new TypeToken<List<Reward>>() {
 		}.getType());
+		List<Failure> failures = GSON.fromJson(obj.get("failures"), new TypeToken<List<Failure>>() {
+		}.getType());
 		int completionXp = GsonHelper.getAsInt(obj, "completion_xp");
 		double spawnRange = GsonHelper.getAsDouble(obj, "spawn_range");
 		double leashRange = GsonHelper.getAsDouble(obj, "leash_range", 32);
-		return new Gateway(size, color, waves, rewards, completionXp, spawnRange, leashRange);
+		return new Gateway(size, color, waves, rewards, failures, completionXp, spawnRange, leashRange);
 	}
 
 	public void write(FriendlyByteBuf buf) {
@@ -114,6 +123,11 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 		waves.forEach(w -> w.write(buf));
 		buf.writeVarInt(rewards.size());
 		rewards.forEach(r -> r.write(buf));
+		if(failures != null)
+		{
+			buf.writeVarInt(failures.size());
+			failures.forEach(f -> f.write(buf));
+		}
 		buf.writeInt(completionXp);
 		buf.writeDouble(spawnRange);
 		buf.writeDouble(leashRange);
@@ -132,10 +146,15 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 		for (int i = 0; i < nRewards; i++) {
 			rewards.add(Reward.read(buf));
 		}
+		int nFailures = buf.readVarInt();
+		List<Failure> failures = new ArrayList<>(nFailures);
+		for (int i = 0; i < nFailures; i++) {
+			failures.add(Failure.read(buf));
+		}
 		int completionXp = buf.readInt();
 		double spawnRange = buf.readDouble();
 		double leashRange = buf.readDouble();
-		return new Gateway(size, color, waves, rewards, completionXp, spawnRange, leashRange);
+		return new Gateway(size, color, waves, rewards, failures, completionXp, spawnRange, leashRange);
 	}
 
 	public double getLeashRangeSq() {

@@ -56,6 +56,7 @@ import shadows.gateways.GatewayObjects;
 import shadows.gateways.Gateways;
 import shadows.gateways.client.ParticleHandler;
 import shadows.gateways.event.GateEvent;
+import shadows.gateways.gate.Failure;
 import shadows.gateways.gate.Gateway;
 import shadows.gateways.gate.GatewayManager;
 import shadows.gateways.gate.Wave;
@@ -237,8 +238,17 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	 */
 	public void onFailure(Collection<LivingEntity> remaining, FailureReason reason) {
 		this.failureReason = reason;
-		MinecraftForge.EVENT_BUS.post(new GateEvent.Failed(this));
 		Player player = summonerOrClosest();
+		
+		List<Failure> failures = this.gate.getFailures();
+		if(failures != null && reason == FailureReason.TIMER_ELAPSED)
+		{
+			failures.forEach(r -> {
+				r.generateLoot((ServerLevel) this.level, this, player, this::spawnCompletionItem);
+			});
+		}
+		
+		MinecraftForge.EVENT_BUS.post(new GateEvent.Failed(this));
 		if (player != null) player.sendMessage(reason.getMsg(), Util.NIL_UUID);
 		spawnLightningOn(this, false);
 		remaining.stream().filter(Entity::isAlive).forEach(e -> spawnLightningOn(e, true));

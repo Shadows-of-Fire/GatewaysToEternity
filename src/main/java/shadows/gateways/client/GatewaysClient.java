@@ -36,6 +36,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import shadows.gateways.GatewayObjects;
 import shadows.gateways.Gateways;
 import shadows.gateways.entity.GatewayEntity;
+import shadows.gateways.gate.Failure;
 import shadows.gateways.gate.Gateway;
 import shadows.gateways.gate.Reward;
 import shadows.gateways.gate.WaveEntity;
@@ -143,6 +144,19 @@ public class GatewaysClient {
 					r.appendHoverText(c -> {
 						tooltips.add(new TranslatableComponent("tooltip.gateways.list3", c).withStyle(ChatFormatting.YELLOW));
 					});
+				}
+				List<Failure> failures = gate.getFailures(); //can be nullable, won't show if that's the case
+				if(failures != null)
+				{
+					comp = new TranslatableComponent("tooltip.gateways.failure_consequences").withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.UNDERLINE);
+					tooltips.add(comp);
+					tooltips.add(Component.nullToEmpty(null));
+					
+					for (Failure f : failures) {
+						f.appendHoverText(c -> {
+							tooltips.add(new TranslatableComponent("tooltip.gateways.list3", c).withStyle(ChatFormatting.LIGHT_PURPLE));
+						});
+					}
 				}
 			} else {
 				comp = new TranslatableComponent("tooltip.gateways.ctrl").withStyle(ChatFormatting.GRAY);

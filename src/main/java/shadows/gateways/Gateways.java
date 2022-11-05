@@ -31,6 +31,7 @@ import shadows.gateways.client.GatewayParticleData;
 import shadows.gateways.client.GatewayTickableSound;
 import shadows.gateways.command.GatewayCommand;
 import shadows.gateways.entity.GatewayEntity;
+import shadows.gateways.gate.Failure;
 import shadows.gateways.gate.GatewayManager;
 import shadows.gateways.gate.Reward;
 import shadows.gateways.gate.WaveEntity;
@@ -71,6 +72,7 @@ public class Gateways {
 	public void setup(FMLCommonSetupEvent e) {
 		GatewayManager.INSTANCE.registerToBus();
 		Reward.initSerializers();
+		Failure.initSerializers();
 		WaveEntity.initSerializers();
 	}
 
