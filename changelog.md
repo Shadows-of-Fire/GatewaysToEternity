@@ -1,3 +1,10 @@
+## 3.1.0
+* Fixed an issue where gateways would fail to spawn wave entities or would spawn them too far away.
+* Revamped Gate Pearl tooltips! Waves can now be scrolled through manually, and the display for elements has been adjusted.
+* Added Failures, actions that trigger when the gateway is failed. These allow pack makers to increase the risk/reward ratio.
+* Changed how command rewards/failures are displayed on gate tooltips. Instead of showing the raw command, a translation key must be provided.
+* Gate entities that teleport will no longer be able to teleport outside of the gateway boundary.
+
 ## 3.0.2
 * Forward-ported all changes from 2.1.5
 

@@ -1,5 +1,7 @@
 package shadows.gateways;
 
+import java.util.UUID;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -8,9 +10,11 @@ import com.mojang.serialization.Codec;
 import net.minecraft.core.Registry;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.stats.StatFormatter;
 import net.minecraft.stats.Stats;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.item.CreativeModeTab;
@@ -19,6 +23,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
+import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -31,6 +36,7 @@ import shadows.gateways.client.GatewayParticleData;
 import shadows.gateways.client.GatewayTickableSound;
 import shadows.gateways.command.GatewayCommand;
 import shadows.gateways.entity.GatewayEntity;
+import shadows.gateways.gate.Failure;
 import shadows.gateways.gate.GatewayManager;
 import shadows.gateways.gate.Reward;
 import shadows.gateways.gate.WaveEntity;
@@ -65,6 +71,7 @@ public class Gateways {
 		FMLJavaModLoadingContext.get().getModEventBus().register(this);
 		MessageHelper.registerMessage(CHANNEL, 0, new ParticleMessage());
 		MinecraftForge.EVENT_BUS.addListener(this::commands);
+		MinecraftForge.EVENT_BUS.addListener(this::teleport);
 	}
 
 	@SubscribeEvent
@@ -72,6 +79,7 @@ public class Gateways {
 		GatewayManager.INSTANCE.registerToBus();
 		Reward.initSerializers();
 		WaveEntity.initSerializers();
+		Failure.initSerializers();
 	}
 
 	@SubscribeEvent
@@ -134,6 +142,20 @@ public class Gateways {
 	private static void registerStat(ResourceLocation id, StatFormatter pFormatter) {
 		Registry.register(Registry.CUSTOM_STAT, id, id);
 		Stats.CUSTOM.get(id, pFormatter);
+	}
+
+	public void teleport(EntityTeleportEvent e) {
+		Entity entity = e.getEntity();
+		if (entity.getPersistentData().contains("gateways.owner")) {
+			UUID id = entity.getPersistentData().getUUID("gateways.owner");
+			if (entity.level instanceof ServerLevel sl && sl.getEntity(id) instanceof GatewayEntity gate) {
+				if (gate.distanceToSqr(e.getTargetX(), e.getTargetY(), e.getTargetZ()) >= gate.getGateway().getLeashRangeSq()) {
+					e.setTargetX(gate.getX() + 0.5 * gate.getBbWidth());
+					e.setTargetY(gate.getY() + 0.5 * gate.getBbHeight());
+					e.setTargetZ(gate.getZ() + 0.5 * gate.getBbWidth());
+				}
+			}
+		}
 	}
 
 }

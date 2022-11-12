@@ -31,7 +31,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
-import net.minecraft.world.level.levelgen.Heightmap.Types;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.registries.ForgeRegistries;
 import shadows.gateways.GatewayObjects;
@@ -64,18 +63,12 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 			double z = pos.getZ() + (-1 + 2 * level.random.nextDouble()) * spawnRange;
 			while (!level.noCollision(toSpawn.getAABB(x, y, z)) && tries++ < 7) {
 				x = pos.getX() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
-				y = pos.getY() + level.random.nextInt(3 * (int) gate.getGateway().getSize().getScale()) - 1;
+				y = pos.getY() + level.random.nextInt(3 * (int) gate.getGateway().getSize().getScale()) + 1;
 				z = pos.getZ() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
 			}
 
-			if (level.getBlockState(new BlockPos(x, y - 1, z)).isAir()) {
-				int height = level.getHeight(Types.MOTION_BLOCKING_NO_LEAVES, (int) x, (int) y);
-				if (height <= y) y = height;
-				else {
-					while (level.getBlockState(new BlockPos(x, y - 1, z)).isAir() && y > level.getMinBuildHeight()) {
-						y--;
-					}
-				}
+			while (level.getBlockState(new BlockPos(x, y - 1, z)).isAir() && y > level.getMinBuildHeight()) {
+				y--;
 			}
 
 			while (!level.noCollision(toSpawn.getAABB(x, y, z))) {
@@ -113,6 +106,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 					mob.setPersistenceRequired();
 				}
 
+				entity.getPersistentData().putUUID("gateways.owner", gate.getUUID());
 				level.addFreshEntityWithPassengers(entity);
 				level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP.get(), SoundSource.HOSTILE, 0.5F, 1);
 				spawned.add((LivingEntity) entity);
