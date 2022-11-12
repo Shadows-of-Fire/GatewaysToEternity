@@ -396,7 +396,7 @@ public interface Reward {
 	/**
 	 * Provides a roll of a single loot table as a reward.
 	 */
-	public static record CommandReward(String command) implements Reward {
+	public static record CommandReward(String command, String desc) implements Reward {
 
 		@Override
 		public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
@@ -412,17 +412,17 @@ public interface Reward {
 		}
 
 		public static CommandReward read(JsonObject obj) {
-			return new CommandReward(GsonHelper.getAsString(obj, "command"));
+			return new CommandReward(GsonHelper.getAsString(obj, "command"), GsonHelper.getAsString(obj, "desc"));
 		}
 
 		@Override
 		public void write(FriendlyByteBuf buf) {
 			Reward.super.write(buf);
-			buf.writeUtf(this.command);
+			buf.writeUtf(this.desc);
 		}
 
 		public static CommandReward read(FriendlyByteBuf buf) {
-			return new CommandReward(buf.readUtf());
+			return new CommandReward("", buf.readUtf());
 		}
 
 		@Override
@@ -432,7 +432,7 @@ public interface Reward {
 
 		@Override
 		public void appendHoverText(Consumer<Component> list) {
-			list.accept(new TranslatableComponent("reward.gateways.command", command));
+			list.accept(new TranslatableComponent(desc));
 		}
 	}
 

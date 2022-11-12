@@ -128,7 +128,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 			boolean active = isWaveActive();
 			List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(e -> e.getHealth() > 0 && e.getRemovalReason() != RemovalReason.KILLED).toList();
 			for (LivingEntity entity : enemies) {
-				if (entity.distanceToSqr(this) > this.gate.getLeashRangeSq()) {
+				if (isOutOfRange(entity)) {
 					this.onFailure(currentWaveEntities, FailureReason.ENTITY_TOO_FAR);
 					return;
 				}
@@ -243,6 +243,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		spawnLightningOn(this, false);
 		remaining.stream().filter(Entity::isAlive).forEach(e -> spawnLightningOn(e, true));
 		remaining.forEach(e -> e.remove(RemovalReason.DISCARDED));
+		this.getGateway().getFailures().forEach(f -> f.onFailure((ServerLevel) this.level, this, player, reason));
 		this.remove(RemovalReason.DISCARDED);
 	}
 
@@ -403,6 +404,10 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	@Nullable
 	public FailureReason getFailureReason() {
 		return this.failureReason;
+	}
+
+	public boolean isOutOfRange(Entity entity) {
+		return entity.distanceToSqr(this) > this.gate.getLeashRangeSq();
 	}
 
 	public static enum GatewaySize {

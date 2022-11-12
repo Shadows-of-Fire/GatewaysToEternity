@@ -1,3 +1,22 @@
+## 3.1.0
+* Fixed an issue where gateways would fail to spawn wave entities or would spawn them too far away.
+* Revamped Gate Pearl tooltips! Waves can now be scrolled through manually, and the display for elements has been adjusted.
+* Added Failures, actions that trigger when the gateway is failed. These allow pack makers to increase the risk/reward ratio.
+* Changed how command rewards/failures are displayed on gate tooltips. Instead of showing the raw command, a translation key must be provided.
+* Gate entities that teleport will no longer be able to teleport outside of the gateway boundary.
+
+## 3.0.2
+* Forward-ported all changes from 2.1.5
+
+## 3.0.1
+* Added forge events that fire on various gateway actions.
+
+## 3.0.0
+* Updated to MC 1.19.2
+
+## 2.2.0
+* Backported all changes from 3.1.0
+
 ## 2.1.5
 * alin529: Added chinese translation
 * Wave entities will now always attempt to spawn on the surface, and will not spawn midair.
