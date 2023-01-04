@@ -175,7 +175,7 @@ public interface Reward {
 	/**
 	 * Provides a list of stacks as a reward.
 	 */
-	public static record StackListReward(NonNullList<ItemStack> stacks) implements Reward {
+	public static record StackListReward(List<ItemStack> stacks) implements Reward {
 
 		@Override
 		public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
@@ -233,14 +233,15 @@ public interface Reward {
 				List<ItemEntity> items = new ArrayList<>();
 
 				Entity entity = type.create(level);
+				entity.getPersistentData().putBoolean("apoth.no_pinata", true);
 				for (int i = 0; i < rolls; i++) {
 					if (nbt != null) entity.load(nbt);
 					entity.moveTo(summoner.getX(), summoner.getY(), summoner.getZ(), 0, 0);
 					entity.hurt(DamageSource.playerAttack(summoner).bypassMagic().bypassInvul().bypassArmor(), 1);
 					entity.captureDrops(items);
 					DROP_LOOT.invoke(entity, DamageSource.playerAttack(summoner), true);
-					entity.remove(RemovalReason.DISCARDED);
 				}
+				entity.remove(RemovalReason.DISCARDED);
 
 				items.stream().map(ItemEntity::getItem).forEach(list);
 			} catch (Throwable e) {
@@ -386,7 +387,7 @@ public interface Reward {
 		@Override
 		public void appendHoverText(Consumer<Component> list) {
 			this.reward.appendHoverText(c -> {
-				list.accept(Component.translatable("reward.gateways.chance", fmt.format(chance * 100), c));
+				list.accept(Component.translatable("reward.gateways.chance", fmt.format(chance), c));
 			});
 		}
 	}

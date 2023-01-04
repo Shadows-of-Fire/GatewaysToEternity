@@ -147,7 +147,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 			}
 
 			if (this.tickCount % 4 == 0 && !undroppedItems.isEmpty()) {
-				for (int i = 0; i < 3; i++) {
+				for (int i = 0; i < this.getDropCount(); i++) {
 					spawnItem(undroppedItems.remove());
 					if (undroppedItems.isEmpty()) break;
 				}
@@ -161,6 +161,10 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 				ParticleHandler.spawnIdleParticles(this);
 			}
 		}
+	}
+
+	protected int getDropCount() {
+		return 3 + this.undroppedItems.size() / 100;
 	}
 
 	public boolean isLastWave() {
@@ -197,6 +201,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 			r.generateLoot((ServerLevel) this.level, this, player, this::spawnCompletionItem);
 		});
 
+		this.bossEvent.setCreateWorldFog(false);
 		this.remove(RemovalReason.KILLED);
 		this.playSound(GatewayObjects.GATE_END.get(), 1, 1);
 
@@ -240,6 +245,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		remaining.stream().filter(Entity::isAlive).forEach(e -> spawnLightningOn(e, true));
 		remaining.forEach(e -> e.remove(RemovalReason.DISCARDED));
 		this.getGateway().getFailures().forEach(f -> f.onFailure((ServerLevel) this.level, this, player, reason));
+		this.bossEvent.setCreateWorldFog(false);
 		this.remove(RemovalReason.DISCARDED);
 	}
 
@@ -403,7 +409,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	}
 
 	public boolean isOutOfRange(Entity entity) {
-		return entity.distanceToSqr(this) > this.gate.getLeashRangeSq();
+		return entity.distanceToSqr(this) > this.gate.getLeashRangeSq() || entity.getRemovalReason() == RemovalReason.CHANGED_DIMENSION;
 	}
 
 	public static enum GatewaySize {

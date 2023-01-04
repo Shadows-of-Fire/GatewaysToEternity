@@ -1,3 +1,6 @@
+## 3.1.1
+* Forward port of 2.2.1
+
 ## 3.1.0
 * Fixed an issue where gateways would fail to spawn wave entities or would spawn them too far away.
 * Revamped Gate Pearl tooltips! Waves can now be scrolled through manually, and the display for elements has been adjusted.
@@ -13,6 +16,16 @@
 
 ## 3.0.0
 * Updated to MC 1.19.2
+
+## 2.2.1
+* Increased the rate at which items are dropped if the number of dropped items is very high.
+* Added a potential fix for infinite fog.
+* Gateways will now properly fail if a gate entity is teleported to another dimension.
+* Stack List Rewards will no longer crash.
+* Chanced Rewards will no longer display incorrectly.
+
+## 2.2.0
+* Backported all changes from 3.1.0
 
 ## 2.1.5
 * alin529: Added chinese translation
