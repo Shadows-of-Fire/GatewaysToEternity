@@ -294,7 +294,7 @@ public interface Reward {
 	/**
 	 * Provides a roll of a single loot table as a reward.
 	 */
-	public static record LootTableReward(ResourceLocation table, int rolls) implements Reward {
+	public static record LootTableReward(ResourceLocation table, int rolls, String desc) implements Reward {
 
 		@Override
 		public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
@@ -309,24 +309,26 @@ public interface Reward {
 		@Override
 		public JsonObject write() {
 			JsonObject obj = Reward.super.write();
-			obj.addProperty("loot_table", table.toString());
-			obj.addProperty("rolls", rolls);
+			obj.addProperty("loot_table", this.table.toString());
+			obj.addProperty("rolls", this.rolls);
+			obj.addProperty("desc", this.desc);
 			return obj;
 		}
 
 		public static LootTableReward read(JsonObject obj) {
-			return new LootTableReward(new ResourceLocation(GsonHelper.getAsString(obj, "loot_table")), GsonHelper.getAsInt(obj, "rolls"));
+			return new LootTableReward(new ResourceLocation(GsonHelper.getAsString(obj, "loot_table")), GsonHelper.getAsInt(obj, "rolls"), GsonHelper.getAsString(obj, "desc", ""));
 		}
 
 		@Override
 		public void write(FriendlyByteBuf buf) {
 			Reward.super.write(buf);
-			buf.writeResourceLocation(table);
-			buf.writeInt(rolls);
+			buf.writeResourceLocation(this.table);
+			buf.writeInt(this.rolls);
+			buf.writeUtf(this.desc);
 		}
 
 		public static LootTableReward read(FriendlyByteBuf buf) {
-			return new LootTableReward(buf.readResourceLocation(), buf.readInt());
+			return new LootTableReward(buf.readResourceLocation(), buf.readInt(), buf.readUtf());
 		}
 
 		@Override
@@ -336,7 +338,7 @@ public interface Reward {
 
 		@Override
 		public void appendHoverText(Consumer<Component> list) {
-			list.accept(Component.translatable("reward.gateways.loot_table", rolls, table));
+			list.accept(Component.translatable("reward.gateways.loot_table", rolls, this.desc.isEmpty() ? this.table : Component.translatable(this.desc)));
 		}
 	}
 
