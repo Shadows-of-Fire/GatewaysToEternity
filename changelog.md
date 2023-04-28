@@ -1,3 +1,6 @@
+## 3.2.0
+* Updated to Placebo 7.2.0
+
 ## 3.1.1
 * Forward port of 2.2.1
 

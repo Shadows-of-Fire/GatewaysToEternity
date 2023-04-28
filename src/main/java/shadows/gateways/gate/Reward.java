@@ -3,33 +3,23 @@ package shadows.gateways.gate;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Entity.RemovalReason;
@@ -44,22 +34,27 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
 import net.minecraftforge.registries.ForgeRegistries;
+import shadows.gateways.Gateways;
+import shadows.gateways.codec.GatewayCodecs;
 import shadows.gateways.entity.GatewayEntity;
+import shadows.placebo.codec.PlaceboCodecs.CodecProvider;
 import shadows.placebo.json.ItemAdapter;
-import shadows.placebo.json.PSerializer;
+import shadows.placebo.json.NBTAdapter;
 
 /**
  * A Reward is provided when a gateway wave is finished.
  */
-public interface Reward {
+public interface Reward extends CodecProvider<Reward> {
+
+	public static final BiMap<ResourceLocation, Codec<? extends Reward>> CODECS = HashBiMap.create();
+
+	public static final Codec<Reward> CODEC = GatewayCodecs.mapBacked("Gateway Reward", CODECS);
 
 	/**
 	 * 	Method ref to public net.minecraft.world.entity.LivingEntity m_7625_(Lnet/minecraft/world/damagesource/DamageSource;Z)V # dropFromLootTable
 	 */
 	public static final Method dropFromLootTable = ObfuscationReflectionHelper.findMethod(LivingEntity.class, "m_7625_", DamageSource.class, boolean.class);
 	public static final MethodHandle DROP_LOOT = lootMethodHandle();
-
-	public static final Map<String, PSerializer<? extends Reward>> SERIALIZERS = new HashMap<>();
 
 	/**
 	 * Called when this reward is to be granted to the player, either on gate or wave completion.
@@ -70,41 +65,19 @@ public interface Reward {
 	 */
 	public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list);
 
-	default JsonObject write() {
-		JsonObject obj = new JsonObject();
-		obj.addProperty("type", getName());
-		return obj;
-	}
-
-	default void write(FriendlyByteBuf buf) {
-		buf.writeUtf(getName());
-	}
-
-	public String getName();
-
 	public void appendHoverText(Consumer<Component> list);
 
-	public static Reward read(JsonObject obj) {
-		String type = GsonHelper.getAsString(obj, "type");
-		PSerializer<? extends Reward> serializer = SERIALIZERS.get(type);
-		if (serializer == null) throw new JsonSyntaxException("Unknown Reward Type: " + type);
-		return serializer.read(obj);
-	}
-
-	public static Reward read(FriendlyByteBuf buf) {
-		String type = buf.readUtf();
-		PSerializer<? extends Reward> serializer = SERIALIZERS.get(type);
-		if (serializer == null) throw new JsonSyntaxException("Unknown Reward Type: " + type);
-		return serializer.read(buf);
-	}
-
 	public static void initSerializers() {
-		SERIALIZERS.put("stack", PSerializer.autoRegister("Stack Reward", StackReward.class).build(true));
-		SERIALIZERS.put("stack_list", PSerializer.autoRegister("Stack List Reward", StackListReward.class).build(true));
-		SERIALIZERS.put("entity_loot", PSerializer.autoRegister("Entity Loot Reward", EntityLootReward.class).build(true));
-		SERIALIZERS.put("loot_table", PSerializer.autoRegister("Loot Table Reward", LootTableReward.class).build(true));
-		SERIALIZERS.put("chanced", PSerializer.autoRegister("Chanced Reward", ChancedReward.class).build(true));
-		SERIALIZERS.put("command", PSerializer.autoRegister("Command Reward", CommandReward.class).build(true));
+		register("stack", StackReward.CODEC);
+		register("stack_list", StackListReward.CODEC);
+		register("entity_loot", EntityLootReward.CODEC);
+		register("loot_table", LootTableReward.CODEC);
+		register("chanced", ChancedReward.CODEC);
+		register("command", CommandReward.CODEC);
+	}
+
+	private static void register(String id, Codec<? extends Reward> codec) {
+		CODECS.put(Gateways.loc(id), codec);
 	}
 
 	private static MethodHandle lootMethodHandle() {
@@ -116,24 +89,18 @@ public interface Reward {
 		}
 	}
 
-	public static class Serializer implements JsonDeserializer<Reward>, JsonSerializer<Reward> {
-
-		@Override
-		public JsonElement serialize(Reward src, Type typeOfSrc, JsonSerializationContext context) {
-			return src.write();
-		}
-
-		@Override
-		public Reward deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-			return Reward.read(json.getAsJsonObject());
-		}
-
-	}
-
 	/**
 	 * Provides a single stack as a reward.
 	 */
 	public static record StackReward(ItemStack stack) implements Reward {
+
+		//Formatter::off
+		public static Codec<StackReward> CODEC = RecordCodecBuilder.create(inst -> inst
+			.group(
+				ItemAdapter.CODEC.fieldOf("stack").forGetter(StackReward::stack))
+				.apply(inst, StackReward::new)
+			);
+		//Formatter::on
 
 		@Override
 		public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
@@ -141,34 +108,13 @@ public interface Reward {
 		}
 
 		@Override
-		public JsonObject write() {
-			JsonObject obj = Reward.super.write();
-			obj.add("stack", ItemAdapter.ITEM_READER.toJsonTree(stack));
-			return obj;
-		}
-
-		public static StackReward read(JsonObject obj) {
-			return new StackReward(ItemAdapter.ITEM_READER.fromJson(obj.get("stack"), ItemStack.class));
-		}
-
-		@Override
-		public void write(FriendlyByteBuf buf) {
-			Reward.super.write(buf);
-			buf.writeItem(stack);
-		}
-
-		public static StackReward read(FriendlyByteBuf buf) {
-			return new StackReward(buf.readItem());
-		}
-
-		@Override
-		public String getName() {
-			return "stack";
-		}
-
-		@Override
 		public void appendHoverText(Consumer<Component> list) {
-			list.accept(Component.translatable("reward.gateways.stack", this.stack.getCount(), this.stack.getDisplayName()));
+			list.accept(Component.translatable("reward.gateways.stack", this.stack.getCount(), this.stack.getHoverName()));
+		}
+
+		@Override
+		public Codec<? extends Reward> getCodec() {
+			return CODEC;
 		}
 	}
 
@@ -177,48 +123,29 @@ public interface Reward {
 	 */
 	public static record StackListReward(List<ItemStack> stacks) implements Reward {
 
+		//Formatter::off
+		public static Codec<StackListReward> CODEC = RecordCodecBuilder.create(inst -> inst
+			.group(
+				ItemAdapter.CODEC.listOf().fieldOf("stacks").forGetter(StackListReward::stacks))
+				.apply(inst, StackListReward::new)
+			);
+		//Formatter::on
+
 		@Override
 		public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
 			stacks.forEach(s -> list.accept(s.copy()));
 		}
 
 		@Override
-		public JsonObject write() {
-			JsonObject obj = Reward.super.write();
-			obj.add("stacks", ItemAdapter.ITEM_READER.toJsonTree(stacks));
-			return obj;
-		};
-
-		public static StackListReward read(JsonObject obj) {
-			return new StackListReward(ItemAdapter.ITEM_READER.fromJson(obj.get("stacks"), new TypeToken<List<ItemStack>>() {
-			}.getType()));
-		}
-
-		@Override
-		public void write(FriendlyByteBuf buf) {
-			Reward.super.write(buf);
-			buf.writeVarInt(stacks.size());
-			stacks.forEach(buf::writeItem);
-		}
-
-		public static StackListReward read(FriendlyByteBuf buf) {
-			NonNullList<ItemStack> stacks = NonNullList.withSize(buf.readVarInt(), ItemStack.EMPTY);
-			for (int i = 0; i < stacks.size(); i++) {
-				stacks.set(i, buf.readItem());
-			}
-			return new StackListReward(stacks);
-		}
-
-		@Override
-		public String getName() {
-			return "stack_list";
-		}
-
-		@Override
 		public void appendHoverText(Consumer<Component> list) {
 			for (ItemStack stack : this.stacks) {
-				list.accept(Component.translatable("reward.gateways.stack", stack.getCount(), stack.getDisplayName()));
+				list.accept(Component.translatable("reward.gateways.stack", stack.getCount(), stack.getHoverName()));
 			}
+		}
+
+		@Override
+		public Codec<? extends Reward> getCodec() {
+			return CODEC;
 		}
 	}
 
@@ -226,6 +153,16 @@ public interface Reward {
 	 * Provides multiple rolls of an entity's loot table as a reward.
 	 */
 	public static record EntityLootReward(EntityType<?> type, @Nullable CompoundTag nbt, int rolls) implements Reward {
+
+		//Formatter::off
+		public static Codec<EntityLootReward> CODEC = RecordCodecBuilder.create(inst -> inst
+			.group(
+				ForgeRegistries.ENTITY_TYPES.getCodec().fieldOf("entity").forGetter(EntityLootReward::type),
+				NBTAdapter.EITHER_CODEC.optionalFieldOf("nbt").forGetter(r -> Optional.ofNullable(r.nbt)),
+				Codec.INT.fieldOf("rolls").forGetter(EntityLootReward::rolls))
+				.apply(inst, (type, nbt, rolls) -> new EntityLootReward(type, nbt.orElse(null), rolls))
+			);
+		//Formatter::on
 
 		@Override
 		public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
@@ -250,44 +187,13 @@ public interface Reward {
 		}
 
 		@Override
-		public JsonObject write() {
-			JsonObject obj = Reward.super.write();
-			obj.addProperty("entity", ForgeRegistries.ENTITY_TYPES.getKey(type).toString());
-			if (nbt != null) obj.add("nbt", ItemAdapter.ITEM_READER.toJsonTree(nbt));
-			obj.addProperty("rolls", rolls);
-			return obj;
-		}
-
-		public static EntityLootReward read(JsonObject obj) {
-			EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(obj.get("entity").getAsString()));
-			CompoundTag tag = obj.has("nbt") ? ItemAdapter.ITEM_READER.fromJson(obj.get("nbt"), CompoundTag.class) : null;
-			int rolls = GsonHelper.getAsInt(obj, "rolls");
-			return new EntityLootReward(type, tag, rolls);
-		}
-
-		@Override
-		public void write(FriendlyByteBuf buf) {
-			Reward.super.write(buf);
-			buf.writeRegistryId(ForgeRegistries.ENTITY_TYPES, type);
-			buf.writeNbt(nbt == null ? new CompoundTag() : nbt);
-			buf.writeVarInt(rolls);
-		}
-
-		public static EntityLootReward read(FriendlyByteBuf buf) {
-			EntityType<?> type = buf.readRegistryIdSafe(EntityType.class);
-			CompoundTag tag = buf.readNbt();
-			int rolls = buf.readVarInt();
-			return new EntityLootReward(type, tag, rolls);
-		}
-
-		@Override
-		public String getName() {
-			return "entity_loot";
-		}
-
-		@Override
 		public void appendHoverText(Consumer<Component> list) {
 			list.accept(Component.translatable("reward.gateways.entity", rolls, Component.translatable(type.getDescriptionId())));
+		}
+
+		@Override
+		public Codec<? extends Reward> getCodec() {
+			return CODEC;
 		}
 	}
 
@@ -295,6 +201,16 @@ public interface Reward {
 	 * Provides a roll of a single loot table as a reward.
 	 */
 	public static record LootTableReward(ResourceLocation table, int rolls, String desc) implements Reward {
+
+		//Formatter::off
+		public static Codec<LootTableReward> CODEC = RecordCodecBuilder.create(inst -> inst
+			.group(
+				ResourceLocation.CODEC.fieldOf("loot_table").forGetter(LootTableReward::table),
+				Codec.INT.fieldOf("rolls").forGetter(LootTableReward::rolls),
+				Codec.STRING.fieldOf("desc").forGetter(LootTableReward::desc))
+				.apply(inst, LootTableReward::new)
+			);
+		//Formatter::on
 
 		@Override
 		public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
@@ -307,38 +223,13 @@ public interface Reward {
 		}
 
 		@Override
-		public JsonObject write() {
-			JsonObject obj = Reward.super.write();
-			obj.addProperty("loot_table", this.table.toString());
-			obj.addProperty("rolls", this.rolls);
-			obj.addProperty("desc", this.desc);
-			return obj;
-		}
-
-		public static LootTableReward read(JsonObject obj) {
-			return new LootTableReward(new ResourceLocation(GsonHelper.getAsString(obj, "loot_table")), GsonHelper.getAsInt(obj, "rolls"), GsonHelper.getAsString(obj, "desc", ""));
-		}
-
-		@Override
-		public void write(FriendlyByteBuf buf) {
-			Reward.super.write(buf);
-			buf.writeResourceLocation(this.table);
-			buf.writeInt(this.rolls);
-			buf.writeUtf(this.desc);
-		}
-
-		public static LootTableReward read(FriendlyByteBuf buf) {
-			return new LootTableReward(buf.readResourceLocation(), buf.readInt(), buf.readUtf());
-		}
-
-		@Override
-		public String getName() {
-			return "loot_table";
-		}
-
-		@Override
 		public void appendHoverText(Consumer<Component> list) {
 			list.accept(Component.translatable("reward.gateways.loot_table", rolls, this.desc.isEmpty() ? this.table : Component.translatable(this.desc)));
+		}
+
+		@Override
+		public Codec<? extends Reward> getCodec() {
+			return CODEC;
 		}
 	}
 
@@ -347,50 +238,32 @@ public interface Reward {
 	 */
 	public static record ChancedReward(Reward reward, float chance) implements Reward {
 
+		//Formatter::off
+		public static Codec<ChancedReward> CODEC = RecordCodecBuilder.create(inst -> inst
+			.group(
+				Reward.CODEC.fieldOf("reward").forGetter(ChancedReward::reward),
+				Codec.FLOAT.fieldOf("chance").forGetter(ChancedReward::chance))
+				.apply(inst, ChancedReward::new)
+			);
+		//Formatter::on
+
+		protected static final DecimalFormat fmt = new DecimalFormat("##.##%");
+
 		@Override
 		public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
 			if (level.random.nextFloat() < chance) reward.generateLoot(level, gate, summoner, list);
 		}
 
 		@Override
-		public JsonObject write() {
-			JsonObject obj = Reward.super.write();
-			obj.addProperty("chance", chance);
-			obj.add("reward", reward.write());
-			return obj;
-		}
-
-		public static ChancedReward read(JsonObject obj) {
-			float chance = GsonHelper.getAsFloat(obj, "chance");
-			Reward reward = Reward.read(GsonHelper.getAsJsonObject(obj, "reward"));
-			return new ChancedReward(reward, chance);
-		}
-
-		@Override
-		public void write(FriendlyByteBuf buf) {
-			Reward.super.write(buf);
-			buf.writeFloat(chance);
-			reward.write(buf);
-		}
-
-		public static ChancedReward read(FriendlyByteBuf buf) {
-			float chance = buf.readFloat();
-			Reward reward = Reward.read(buf);
-			return new ChancedReward(reward, chance);
-		}
-
-		@Override
-		public String getName() {
-			return "chanced";
-		}
-
-		static DecimalFormat fmt = new DecimalFormat("##.##%");
-
-		@Override
 		public void appendHoverText(Consumer<Component> list) {
 			this.reward.appendHoverText(c -> {
 				list.accept(Component.translatable("reward.gateways.chance", fmt.format(chance), c));
 			});
+		}
+
+		@Override
+		public Codec<? extends Reward> getCodec() {
+			return CODEC;
 		}
 	}
 
@@ -399,6 +272,15 @@ public interface Reward {
 	 */
 	public static record CommandReward(String command, String desc) implements Reward {
 
+		//Formatter::off
+		public static Codec<CommandReward> CODEC = RecordCodecBuilder.create(inst -> inst
+			.group(
+				Codec.STRING.fieldOf("command").forGetter(CommandReward::command),
+				Codec.STRING.fieldOf("desc").forGetter(CommandReward::desc))
+				.apply(inst, CommandReward::new)
+			);
+		//Formatter::on
+
 		@Override
 		public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
 			String realCmd = command.replace("<summoner>", summoner.getGameProfile().getName());
@@ -406,34 +288,13 @@ public interface Reward {
 		}
 
 		@Override
-		public JsonObject write() {
-			JsonObject obj = Reward.super.write();
-			obj.addProperty("command", this.command);
-			return obj;
-		}
-
-		public static CommandReward read(JsonObject obj) {
-			return new CommandReward(GsonHelper.getAsString(obj, "command"), GsonHelper.getAsString(obj, "desc"));
-		}
-
-		@Override
-		public void write(FriendlyByteBuf buf) {
-			Reward.super.write(buf);
-			buf.writeUtf(this.desc);
-		}
-
-		public static CommandReward read(FriendlyByteBuf buf) {
-			return new CommandReward("", buf.readUtf());
-		}
-
-		@Override
-		public String getName() {
-			return "command";
-		}
-
-		@Override
 		public void appendHoverText(Consumer<Component> list) {
 			list.accept(Component.translatable(desc));
+		}
+
+		@Override
+		public Codec<? extends Reward> getCodec() {
+			return CODEC;
 		}
 	}
 

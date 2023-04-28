@@ -11,6 +11,7 @@ import java.util.UUID;
 import javax.annotation.Nullable;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.serialization.Codec;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -57,6 +58,7 @@ import shadows.gateways.gate.Gateway;
 import shadows.gateways.gate.GatewayManager;
 import shadows.gateways.gate.Wave;
 import shadows.gateways.net.ParticleMessage;
+import shadows.placebo.codec.EnumCodec;
 import shadows.placebo.network.PacketDistro;
 
 public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData {
@@ -416,6 +418,8 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		SMALL(EntityDimensions.scalable(2F, 3F), 1F),
 		MEDIUM(EntityDimensions.scalable(4F, 6F), 2F),
 		LARGE(EntityDimensions.scalable(6F, 9F), 3F);
+
+		public static final Codec<GatewaySize> CODEC = new EnumCodec<>(GatewaySize.class);
 
 		private final EntityDimensions dims;
 		private final float scale;

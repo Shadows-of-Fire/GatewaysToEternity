@@ -1,29 +1,34 @@
 package shadows.gateways.gate;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.reflect.TypeToken;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.TextColor;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.item.ItemStack;
 import shadows.gateways.entity.GatewayEntity.GatewaySize;
-import shadows.placebo.json.ItemAdapter;
-import shadows.placebo.json.NBTAdapter;
-import shadows.placebo.json.PlaceboJsonReloadListener.TypeKeyedBase;
-import shadows.placebo.json.RandomAttributeModifier;
+import shadows.placebo.json.PSerializer;
+import shadows.placebo.json.TypeKeyed.TypeKeyedBase;
 
 public class Gateway extends TypeKeyedBase<Gateway> {
-	public static final Gson GSON = new GsonBuilder().setPrettyPrinting().registerTypeHierarchyAdapter(Failure.class, new Failure.Serializer()).registerTypeHierarchyAdapter(Reward.class, new Reward.Serializer()).registerTypeAdapter(ItemStack.class, ItemAdapter.INSTANCE).registerTypeAdapter(CompoundTag.class, NBTAdapter.INSTANCE).registerTypeAdapter(RandomAttributeModifier.class, new RandomAttributeModifier.Deserializer()).registerTypeAdapter(Wave.class, new Wave.Serializer()).create();
+
+	//Formatter::off
+	public static Codec<Gateway> CODEC = RecordCodecBuilder.create(inst -> inst
+		.group(
+			GatewaySize.CODEC.fieldOf("size").forGetter(Gateway::getSize),
+			TextColor.CODEC.fieldOf("color").forGetter(Gateway::getColor),
+			Wave.CODEC.listOf().fieldOf("waves").forGetter(Gateway::getWaves),
+			Reward.CODEC.listOf().optionalFieldOf("rewards", Collections.emptyList()).forGetter(Gateway::getRewards),
+			Failure.CODEC.listOf().optionalFieldOf("failures", Collections.emptyList()).forGetter(Gateway::getFailures),
+			Codec.INT.fieldOf("completion_xp").forGetter(Gateway::getCompletionXp),
+			Codec.DOUBLE.fieldOf("spawn_range").forGetter(Gateway::getSpawnRange),
+			Codec.DOUBLE.optionalFieldOf("leash_range", 32D).forGetter(g -> g.leashRange))
+			.apply(inst, Gateway::new)
+		);
+	//Formatter::on
+
+	public static final PSerializer<Gateway> SERIALIZER = PSerializer.fromCodec("Gateway", CODEC);
 
 	protected final GatewaySize size;
 	protected final TextColor color;
@@ -81,81 +86,13 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 		return this.spawnRange;
 	}
 
-	public JsonObject write() {
-		JsonObject obj = new JsonObject();
-		obj.addProperty("size", size.name().toLowerCase(Locale.ROOT));
-		obj.addProperty("color", color.serialize());
-		obj.add("waves", GSON.toJsonTree(waves));
-		obj.add("rewards", GSON.toJsonTree(rewards));
-		obj.addProperty("completion_xp", completionXp);
-		obj.addProperty("spawn_range", this.spawnRange);
-		obj.addProperty("leash_range", this.leashRange);
-		return obj;
-	}
-
-	public static Gateway read(JsonObject obj) {
-		String _size = GsonHelper.getAsString(obj, "size").toUpperCase(Locale.ROOT);
-		GatewaySize size;
-		try {
-			size = GatewaySize.valueOf(_size);
-		} catch (IllegalArgumentException ex) {
-			throw new JsonParseException("Invalid gateway size " + _size);
-		}
-		String _color = GsonHelper.getAsString(obj, "color");
-		TextColor color = TextColor.parseColor(_color);
-		if (color == null) { throw new JsonParseException("Invalid gateway color " + _color); }
-		List<Wave> waves = GSON.fromJson(obj.get("waves"), new TypeToken<List<Wave>>() {
-		}.getType());
-		List<Reward> rewards = GSON.fromJson(obj.get("rewards"), new TypeToken<List<Reward>>() {
-		}.getType());
-		List<Failure> failures = GSON.fromJson(obj.get("failures"), new TypeToken<List<Failure>>() {
-		}.getType());
-		if (failures == null) failures = Collections.emptyList();
-		int completionXp = GsonHelper.getAsInt(obj, "completion_xp");
-		double spawnRange = GsonHelper.getAsDouble(obj, "spawn_range");
-		double leashRange = GsonHelper.getAsDouble(obj, "leash_range", 32);
-		return new Gateway(size, color, waves, rewards, failures, completionXp, spawnRange, leashRange);
-	}
-
-	public void write(FriendlyByteBuf buf) {
-		buf.writeByte(size.ordinal());
-		buf.writeUtf(color.serialize());
-		buf.writeVarInt(waves.size());
-		waves.forEach(w -> w.write(buf));
-		buf.writeVarInt(rewards.size());
-		rewards.forEach(r -> r.write(buf));
-		buf.writeVarInt(failures.size());
-		failures.forEach(r -> r.write(buf));
-		buf.writeInt(completionXp);
-		buf.writeDouble(spawnRange);
-		buf.writeDouble(leashRange);
-	}
-
-	public static Gateway read(FriendlyByteBuf buf) {
-		GatewaySize size = GatewaySize.values()[buf.readByte()];
-		TextColor color = TextColor.parseColor(buf.readUtf());
-		int nWaves = buf.readVarInt();
-		List<Wave> waves = new ArrayList<>(nWaves);
-		for (int i = 0; i < nWaves; i++) {
-			waves.add(Wave.read(buf));
-		}
-		int nRewards = buf.readVarInt();
-		List<Reward> rewards = new ArrayList<>(nRewards);
-		for (int i = 0; i < nRewards; i++) {
-			rewards.add(Reward.read(buf));
-		}
-		int nFailures = buf.readVarInt();
-		List<Failure> failures = new ArrayList<>(nFailures);
-		for (int i = 0; i < nFailures; i++) {
-			failures.add(Failure.read(buf));
-		}
-		int completionXp = buf.readInt();
-		double spawnRange = buf.readDouble();
-		double leashRange = buf.readDouble();
-		return new Gateway(size, color, waves, rewards, failures, completionXp, spawnRange, leashRange);
-	}
-
 	public double getLeashRangeSq() {
 		return this.leashRange * this.leashRange;
 	}
+
+	@Override
+	public PSerializer<? extends Gateway> getSerializer() {
+		return SERIALIZER;
+	}
+
 }

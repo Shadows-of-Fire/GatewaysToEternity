@@ -1,29 +1,21 @@
 package shadows.gateways.gate;
 
-import java.lang.reflect.Type;
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
-import com.google.gson.JsonSyntaxException;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.GsonHelper;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
@@ -33,18 +25,21 @@ import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Explosion.BlockInteraction;
 import net.minecraftforge.registries.ForgeRegistries;
+import shadows.gateways.Gateways;
+import shadows.gateways.codec.GatewayCodecs;
 import shadows.gateways.entity.GatewayEntity;
 import shadows.gateways.entity.GatewayEntity.FailureReason;
-import shadows.placebo.json.ItemAdapter;
-import shadows.placebo.json.JsonUtil;
-import shadows.placebo.json.PSerializer;
+import shadows.placebo.codec.PlaceboCodecs.CodecProvider;
+import shadows.placebo.json.NBTAdapter;
 
 /**
  * A Failure is a negative effect that triggers when a gateway errors for some reason.
  */
-public interface Failure {
+public interface Failure extends CodecProvider<Failure> {
 
-	public static final Map<String, PSerializer<? extends Failure>> SERIALIZERS = new HashMap<>();
+	public static final BiMap<ResourceLocation, Codec<? extends Failure>> CODECS = HashBiMap.create();
+
+	public static final Codec<Failure> CODEC = GatewayCodecs.mapBacked("Gateway Failure", CODECS);
 
 	/**
 	 * Called when this failure is to be applied.
@@ -55,60 +50,34 @@ public interface Failure {
 	 */
 	public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason);
 
-	default JsonObject write() {
-		JsonObject obj = new JsonObject();
-		obj.addProperty("type", getName());
-		return obj;
-	}
-
-	default void write(FriendlyByteBuf buf) {
-		buf.writeUtf(getName());
-	}
-
-	public String getName();
-
 	public void appendHoverText(Consumer<Component> list);
 
-	public static Failure read(JsonObject obj) {
-		String type = GsonHelper.getAsString(obj, "type");
-		PSerializer<? extends Failure> serializer = SERIALIZERS.get(type);
-		if (serializer == null) throw new JsonSyntaxException("Unknown Failure Type: " + type);
-		return serializer.read(obj);
-	}
-
-	public static Failure read(FriendlyByteBuf buf) {
-		String type = buf.readUtf();
-		PSerializer<? extends Failure> serializer = SERIALIZERS.get(type);
-		if (serializer == null) throw new JsonSyntaxException("Unknown Failure Type: " + type);
-		return serializer.read(buf);
-	}
-
 	public static void initSerializers() {
-		SERIALIZERS.put("explosion", PSerializer.autoRegister("Explosion Failure", ExplosionFailure.class).build(true));
-		SERIALIZERS.put("mob_effect", PSerializer.autoRegister("Mob Effect Failure", MobEffectFailure.class).build(true));
-		SERIALIZERS.put("summon", PSerializer.autoRegister("Summon Failure", SummonFailure.class).build(true));
-		SERIALIZERS.put("chanced", PSerializer.autoRegister("Chanced Failure", ChancedFailure.class).build(true));
-		SERIALIZERS.put("command", PSerializer.autoRegister("Command Failure", CommandFailure.class).build(true));
+		register("explosion", ExplosionFailure.CODEC);
+		register("mob_effect", MobEffectFailure.CODEC);
+		register("summon", SummonFailure.CODEC);
+		register("chanced", ChancedFailure.CODEC);
+		register("command", CommandFailure.CODEC);
 	}
 
-	public static class Serializer implements JsonDeserializer<Failure>, JsonSerializer<Failure> {
-
-		@Override
-		public JsonElement serialize(Failure src, Type typeOfSrc, JsonSerializationContext context) {
-			return src.write();
-		}
-
-		@Override
-		public Failure deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
-			return Failure.read(json.getAsJsonObject());
-		}
-
+	private static void register(String id, Codec<? extends Failure> codec) {
+		CODECS.put(Gateways.loc(id), codec);
 	}
 
 	/**
-	 * Provides a single stack as a reward.
+	 * Triggers an explosion on failure, with a specific strength, and optional fire/block damage.
 	 */
 	public static record ExplosionFailure(float strength, boolean fire, boolean blockDamage) implements Failure {
+
+		//Formatter::off
+		public static Codec<ExplosionFailure> CODEC = RecordCodecBuilder.create(inst -> inst
+			.group(
+				Codec.FLOAT.fieldOf("strength").forGetter(ExplosionFailure::strength),
+				Codec.BOOL.fieldOf("fire").forGetter(ExplosionFailure::fire),
+				Codec.BOOL.fieldOf("block_damage").forGetter(ExplosionFailure::blockDamage))
+				.apply(inst, ExplosionFailure::new)
+			);
+		//Formatter::on
 
 		@Override
 		public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
@@ -116,33 +85,8 @@ public interface Failure {
 		}
 
 		@Override
-		public JsonObject write() {
-			JsonObject obj = Failure.super.write();
-			obj.addProperty("strength", this.strength);
-			obj.addProperty("fire", this.fire);
-			obj.addProperty("block_damage", this.blockDamage);
-			return obj;
-		}
-
-		public static ExplosionFailure read(JsonObject obj) {
-			return new ExplosionFailure(GsonHelper.getAsFloat(obj, "strength"), GsonHelper.getAsBoolean(obj, "fire", true), GsonHelper.getAsBoolean(obj, "block_damage", true));
-		}
-
-		@Override
-		public void write(FriendlyByteBuf buf) {
-			Failure.super.write(buf);
-			buf.writeFloat(this.strength);
-			buf.writeBoolean(this.fire);
-			buf.writeBoolean(this.blockDamage);
-		}
-
-		public static ExplosionFailure read(FriendlyByteBuf buf) {
-			return new ExplosionFailure(buf.readFloat(), buf.readBoolean(), buf.readBoolean());
-		}
-
-		@Override
-		public String getName() {
-			return "explosion";
+		public Codec<? extends Failure> getCodec() {
+			return CODEC;
 		}
 
 		@Override
@@ -156,6 +100,16 @@ public interface Failure {
 	 */
 	public static record MobEffectFailure(MobEffect effect, int duration, int amplifier) implements Failure {
 
+		//Formatter::off
+		public static Codec<MobEffectFailure> CODEC = RecordCodecBuilder.create(inst -> inst
+			.group(
+				ForgeRegistries.MOB_EFFECTS.getCodec().fieldOf("effect").forGetter(MobEffectFailure::effect),
+				Codec.INT.fieldOf("duration").forGetter(MobEffectFailure::duration),
+				Codec.INT.fieldOf("amplifier").forGetter(MobEffectFailure::amplifier))
+				.apply(inst, MobEffectFailure::new)
+			);
+		//Formatter::on
+
 		@Override
 		public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
 			level.getNearbyPlayers(TargetingConditions.forNonCombat(), null, gate.getBoundingBox().inflate(gate.getGateway().leashRange)).forEach(p -> {
@@ -164,33 +118,8 @@ public interface Failure {
 		}
 
 		@Override
-		public JsonObject write() {
-			JsonObject obj = Failure.super.write();
-			obj.addProperty("effect", ForgeRegistries.MOB_EFFECTS.getKey(effect).toString());
-			obj.addProperty("duration", duration);
-			obj.addProperty("amplifier", amplifier);
-			return obj;
-		};
-
-		public static MobEffectFailure read(JsonObject obj) {
-			return new MobEffectFailure(JsonUtil.getRegistryObject(obj, "effect", ForgeRegistries.MOB_EFFECTS), GsonHelper.getAsInt(obj, "duration"), GsonHelper.getAsInt(obj, "amplifier", 0));
-		}
-
-		@Override
-		public void write(FriendlyByteBuf buf) {
-			Failure.super.write(buf);
-			buf.writeRegistryId(ForgeRegistries.MOB_EFFECTS, this.effect);
-			buf.writeInt(this.duration);
-			buf.writeInt(this.amplifier);
-		}
-
-		public static MobEffectFailure read(FriendlyByteBuf buf) {
-			return new MobEffectFailure(buf.readRegistryIdSafe(MobEffect.class), buf.readInt(), buf.readInt());
-		}
-
-		@Override
-		public String getName() {
-			return "mob_effect";
+		public Codec<? extends Failure> getCodec() {
+			return CODEC;
 		}
 
 		@Override
@@ -219,6 +148,16 @@ public interface Failure {
 	 */
 	public static record SummonFailure(EntityType<?> type, @Nullable CompoundTag nbt, int count) implements Failure {
 
+		//Formatter::off
+		public static Codec<SummonFailure> CODEC = RecordCodecBuilder.create(inst -> inst
+			.group(
+				ForgeRegistries.ENTITY_TYPES.getCodec().fieldOf("entity").forGetter(SummonFailure::type),
+				NBTAdapter.EITHER_CODEC.optionalFieldOf("nbt").forGetter(f -> Optional.ofNullable(f.nbt)),
+				Codec.INT.fieldOf("count").forGetter(SummonFailure::count))
+				.apply(inst, (type, nbt, count) -> new SummonFailure(type, nbt.orElse(null), count))
+			);
+		//Formatter::on
+
 		@Override
 		public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
 			for (int i = 0; i < count; i++) {
@@ -230,39 +169,8 @@ public interface Failure {
 		}
 
 		@Override
-		public JsonObject write() {
-			JsonObject obj = Failure.super.write();
-			obj.addProperty("entity", ForgeRegistries.ENTITY_TYPES.getKey(type).toString());
-			if (nbt != null) obj.add("nbt", ItemAdapter.ITEM_READER.toJsonTree(nbt));
-			obj.addProperty("count", count);
-			return obj;
-		}
-
-		public static SummonFailure read(JsonObject obj) {
-			EntityType<?> type = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(obj.get("entity").getAsString()));
-			CompoundTag tag = obj.has("nbt") ? ItemAdapter.ITEM_READER.fromJson(obj.get("nbt"), CompoundTag.class) : null;
-			int count = GsonHelper.getAsInt(obj, "count");
-			return new SummonFailure(type, tag, count);
-		}
-
-		@Override
-		public void write(FriendlyByteBuf buf) {
-			Failure.super.write(buf);
-			buf.writeRegistryId(ForgeRegistries.ENTITY_TYPES, type);
-			buf.writeNbt(nbt == null ? new CompoundTag() : nbt);
-			buf.writeVarInt(count);
-		}
-
-		public static SummonFailure read(FriendlyByteBuf buf) {
-			EntityType<?> type = buf.readRegistryIdSafe(EntityType.class);
-			CompoundTag tag = buf.readNbt();
-			int count = buf.readVarInt();
-			return new SummonFailure(type, tag, count);
-		}
-
-		@Override
-		public String getName() {
-			return "summon";
+		public Codec<? extends Failure> getCodec() {
+			return CODEC;
 		}
 
 		@Override
@@ -276,41 +184,23 @@ public interface Failure {
 	 */
 	public static record ChancedFailure(Failure failure, float chance) implements Failure {
 
+		//Formatter::off
+		public static Codec<ChancedFailure> CODEC = RecordCodecBuilder.create(inst -> inst
+			.group(
+				Failure.CODEC.fieldOf("failure").forGetter(ChancedFailure::failure),
+				Codec.FLOAT.fieldOf("chance").forGetter(ChancedFailure::chance))
+				.apply(inst, ChancedFailure::new)
+			);
+		//Formatter::on
+
 		@Override
 		public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
 			if (level.random.nextFloat() < chance) failure.onFailure(level, gate, summoner, reason);
 		}
 
 		@Override
-		public JsonObject write() {
-			JsonObject obj = Failure.super.write();
-			obj.addProperty("chance", chance);
-			obj.add("failure", failure.write());
-			return obj;
-		}
-
-		public static ChancedFailure read(JsonObject obj) {
-			float chance = GsonHelper.getAsFloat(obj, "chance");
-			Failure reward = Failure.read(GsonHelper.getAsJsonObject(obj, "failure"));
-			return new ChancedFailure(reward, chance);
-		}
-
-		@Override
-		public void write(FriendlyByteBuf buf) {
-			Failure.super.write(buf);
-			buf.writeFloat(chance);
-			failure.write(buf);
-		}
-
-		public static ChancedFailure read(FriendlyByteBuf buf) {
-			float chance = buf.readFloat();
-			Failure reward = Failure.read(buf);
-			return new ChancedFailure(reward, chance);
-		}
-
-		@Override
-		public String getName() {
-			return "chanced";
+		public Codec<? extends Failure> getCodec() {
+			return CODEC;
 		}
 
 		static DecimalFormat fmt = new DecimalFormat("##.##%");
@@ -328,6 +218,15 @@ public interface Failure {
 	 */
 	public static record CommandFailure(String command, String desc) implements Failure {
 
+		//Formatter::off
+		public static Codec<CommandFailure> CODEC = RecordCodecBuilder.create(inst -> inst
+			.group(
+				Codec.STRING.fieldOf("command").forGetter(CommandFailure::command),
+				Codec.STRING.fieldOf("desc").forGetter(CommandFailure::desc))
+				.apply(inst, CommandFailure::new)
+			);
+		//Formatter::on
+
 		@Override
 		public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
 			String realCmd = command.replace("<summoner>", summoner.getGameProfile().getName());
@@ -335,29 +234,8 @@ public interface Failure {
 		}
 
 		@Override
-		public JsonObject write() {
-			JsonObject obj = Failure.super.write();
-			obj.addProperty("command", this.command);
-			return obj;
-		}
-
-		public static CommandFailure read(JsonObject obj) {
-			return new CommandFailure(GsonHelper.getAsString(obj, "command"), GsonHelper.getAsString(obj, "desc"));
-		}
-
-		@Override
-		public void write(FriendlyByteBuf buf) {
-			Failure.super.write(buf);
-			buf.writeUtf(this.desc);
-		}
-
-		public static CommandFailure read(FriendlyByteBuf buf) {
-			return new CommandFailure("", buf.readUtf());
-		}
-
-		@Override
-		public String getName() {
-			return "command";
+		public Codec<? extends Failure> getCodec() {
+			return CODEC;
 		}
 
 		@Override

@@ -122,7 +122,7 @@ public class Gateways {
 		}
 	}
 
-	private static ResourceLocation loc(String s) {
+	public static ResourceLocation loc(String s) {
 		return new ResourceLocation(MODID, s);
 	}
 
