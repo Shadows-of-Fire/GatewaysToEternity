@@ -91,6 +91,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 					continue;
 				}
 
+				entity.getPersistentData().putUUID("gateways.owner", gate.getUUID());
 				entity.moveTo(fx, fy, fz, level.random.nextFloat() * 360, level.random.nextFloat() * 360);
 
 				entity.getPassengersAndSelf().filter(e -> e instanceof LivingEntity).map(LivingEntity.class::cast).forEach(e -> {
@@ -108,7 +109,6 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 				}
 
 				MinecraftForge.EVENT_BUS.post(new GateEvent.WaveEntitySpawned(gate, entity));
-				entity.getPersistentData().putUUID("gateways.owner", gate.getUUID());
 				level.addFreshEntityWithPassengers(entity);
 				level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP, SoundSource.HOSTILE, 0.5F, 1);
 				spawned.add((LivingEntity) entity);

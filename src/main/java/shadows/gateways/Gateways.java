@@ -26,6 +26,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.RegistryEvent.Register;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
+import net.minecraftforge.event.entity.living.LivingConversionEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -72,6 +73,7 @@ public class Gateways {
 		MessageHelper.registerMessage(CHANNEL, 0, new ParticleMessage());
 		MinecraftForge.EVENT_BUS.addListener(this::commands);
 		MinecraftForge.EVENT_BUS.addListener(this::teleport);
+		MinecraftForge.EVENT_BUS.addListener(this::convert);
 	}
 
 	@SubscribeEvent
@@ -152,6 +154,16 @@ public class Gateways {
 					e.setTargetY(gate.getY() + 0.5 * gate.getBbHeight());
 					e.setTargetZ(gate.getZ() + 0.5 * gate.getBbWidth());
 				}
+			}
+		}
+	}
+
+	public void convert(LivingConversionEvent.Post e) {
+		Entity entity = e.getEntity();
+		if (entity.getPersistentData().contains("gateways.owner")) {
+			UUID id = entity.getPersistentData().getUUID("gateways.owner");
+			if (entity.level instanceof ServerLevel sl && sl.getEntity(id) instanceof GatewayEntity gate) {
+				gate.handleConversion(entity, e.getOutcome());
 			}
 		}
 	}

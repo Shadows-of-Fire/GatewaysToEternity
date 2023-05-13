@@ -9,7 +9,7 @@ public class GatewayManager extends PlaceboJsonReloadListener<Gateway> {
 	public static final GatewayManager INSTANCE = new GatewayManager();
 
 	private GatewayManager() {
-		super(Gateways.LOGGER, "gateways", true, true);
+		super(Gateways.LOGGER, "gateways", true, false);
 	}
 
 	@Override
