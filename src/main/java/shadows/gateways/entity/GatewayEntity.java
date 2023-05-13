@@ -127,7 +127,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 			boolean active = isWaveActive();
 			List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(e -> e.getHealth() > 0 && e.getRemovalReason() != RemovalReason.KILLED).toList();
 			for (LivingEntity entity : enemies) {
-				if (isOutOfRange(entity)) {
+				if (isOutOfRange(entity) || entity.isRemoved()) {
 					this.onFailure(currentWaveEntities, FailureReason.ENTITY_TOO_FAR);
 					return;
 				}
