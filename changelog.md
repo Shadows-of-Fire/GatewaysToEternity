@@ -1,5 +1,15 @@
 ## 3.2.0
 * Updated to Placebo 7.2.0
+* Added some more color to the tooltips.
+* The "Hold Alt to show Failures" text will no longer show if the Gateway has no failure penalties.
+* Gateways will now properly fail (instead of stalling) when a mob is removed but not killed.
+* Gateways now have three new fields: "spawn_algorithm", "player_damage_only", and "allow_discarding".
+  * "spawn_algorithm" allows for selecting how Wave Entity spawn positions are selected.
+  * "player_damage_only" can be used to enforce that the Wave Entities are only hurt by player damage (excluding fake players).
+  * "allow_discarding" can be used to enable discards (entity removals that are not kills) to count as kills. This is enabled by default for the creeper gates.
+  * See the schema for more information.
+* The "allow_discarding" and "player_damage_only" properties will be reflected in the gate tooltip. The "spawn_algorithm" property will not.
+* The JSON Schema has been updated to reflect 3.2.0, and is available [here](https://gist.github.com/Shadows-of-Fire/a45a2742b7a0842c50738d3df3ce8148).
 
 ## 3.1.1
 * Forward port of 2.2.1

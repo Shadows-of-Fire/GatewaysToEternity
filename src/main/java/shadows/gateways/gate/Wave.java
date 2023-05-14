@@ -7,7 +7,6 @@ import java.util.List;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -18,9 +17,9 @@ import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.event.ForgeEventFactory;
 import shadows.gateways.GatewayObjects;
-import shadows.gateways.Gateways;
 import shadows.gateways.entity.GatewayEntity;
 import shadows.gateways.entity.GatewayEntity.FailureReason;
 import shadows.placebo.json.RandomAttributeModifier;
@@ -47,70 +46,39 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 		);
 	//Formatter::on
 
-	public List<LivingEntity> spawnWave(ServerLevel level, BlockPos pos, GatewayEntity gate) {
+	public List<LivingEntity> spawnWave(ServerLevel level, Vec3 pos, GatewayEntity gate) {
 		List<LivingEntity> spawned = new ArrayList<>();
 		for (WaveEntity toSpawn : entities) {
+			Vec3 spawnPos = gate.getGateway().getSpawnAlgo().spawn(level, pos, gate, toSpawn);
+			LivingEntity entity = toSpawn.createEntity(level);
 
-			double spawnRange = gate.getGateway().getSpawnRange();
-
-			int tries = 0;
-			double x = pos.getX() + (-1 + 2 * level.random.nextDouble()) * spawnRange;
-			double y = pos.getY() + level.random.nextInt(3) - 1;
-			double z = pos.getZ() + (-1 + 2 * level.random.nextDouble()) * spawnRange;
-			while (!level.noCollision(toSpawn.getAABB(x, y, z)) && tries++ < 7) {
-				x = pos.getX() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
-				y = pos.getY() + level.random.nextInt(3 * (int) gate.getGateway().getSize().getScale()) + 1;
-				z = pos.getZ() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
-			}
-
-			while (level.getBlockState(new BlockPos(x, y - 1, z)).isAir() && y > level.getMinBuildHeight()) {
-				y--;
-			}
-
-			while (!level.noCollision(toSpawn.getAABB(x, y, z))) {
-				y++;
-			}
-
-			if (gate.distanceToSqr(x, y, z) > gate.getGateway().getLeashRangeSq()) {
+			if (spawnPos == null || entity == null) {
 				gate.onFailure(spawned, FailureReason.SPAWN_FAILED);
 				break;
 			}
 
-			final double fx = x, fy = y, fz = z;
+			entity.getPersistentData().putUUID("gateways.owner", gate.getUUID());
+			entity.moveTo(spawnPos.x(), spawnPos.y(), spawnPos.z(), level.random.nextFloat() * 360, level.random.nextFloat() * 360);
 
-			if (level.noCollision(toSpawn.getAABB(fx, fy, fz))) {
-				LivingEntity entity = toSpawn.createEntity(level);
+			entity.getPassengersAndSelf().filter(e -> e instanceof LivingEntity).map(LivingEntity.class::cast).forEach(e -> {
+				modifiers.forEach(m -> m.apply(level.random, e));
+				e.setHealth(entity.getMaxHealth());
+				e.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 5, 100, true, false));
+			});
 
-				if (entity == null) {
-					Gateways.LOGGER.error("Gate {} failed to create a living entity during wave {}!", gate.getName().getString(), gate.getWave());
-					continue;
+			if (entity instanceof Mob mob) {
+				if (toSpawn.shouldFinalizeSpawn() && !ForgeEventFactory.doSpecialSpawn((Mob) entity, (LevelAccessor) level, (float) entity.getX(), (float) entity.getY(), (float) entity.getZ(), null, MobSpawnType.SPAWNER)) {
+					mob.finalizeSpawn(level, level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.SPAWNER, null, null);
 				}
-
-				entity.getPersistentData().putUUID("gateways.owner", gate.getUUID());
-				entity.moveTo(fx, fy, fz, level.random.nextFloat() * 360, level.random.nextFloat() * 360);
-
-				entity.getPassengersAndSelf().filter(e -> e instanceof LivingEntity).map(LivingEntity.class::cast).forEach(e -> {
-					modifiers.forEach(m -> m.apply(level.random, e));
-					e.setHealth(entity.getMaxHealth());
-					e.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 5, 100, true, false));
-				});
-
-				if (entity instanceof Mob mob) {
-					if (toSpawn.shouldFinalizeSpawn() && !ForgeEventFactory.doSpecialSpawn((Mob) entity, (LevelAccessor) level, (float) entity.getX(), (float) entity.getY(), (float) entity.getZ(), null, MobSpawnType.SPAWNER)) {
-						mob.finalizeSpawn(level, level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.SPAWNER, null, null);
-					}
-					mob.setTarget(gate.getLevel().getNearestPlayer(gate, 12));
-					mob.setPersistenceRequired();
-				}
-
-				level.addFreshEntityWithPassengers(entity);
-				level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP.get(), SoundSource.HOSTILE, 0.5F, 1);
-				spawned.add((LivingEntity) entity);
-				gate.spawnParticle(gate.getGateway().getColor(), entity.getX() + entity.getBbWidth() / 2, entity.getY() + entity.getBbHeight() / 2, entity.getZ() + entity.getBbWidth() / 2, 0);
-			} else {
-				gate.onFailure(spawned, FailureReason.SPAWN_FAILED);
-				break;
+				mob.setTarget(gate.getLevel().getNearestPlayer(gate, 12));
+				mob.setPersistenceRequired();
 			}
+
+			level.addFreshEntityWithPassengers(entity);
+			level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP.get(), SoundSource.HOSTILE, 0.5F, 1);
+			spawned.add((LivingEntity) entity);
+			gate.spawnParticle(gate.getGateway().getColor(), entity.getX() + entity.getBbWidth() / 2, entity.getY() + entity.getBbHeight() / 2, entity.getZ() + entity.getBbWidth() / 2, 0);
+
 		}
 
 		return spawned;

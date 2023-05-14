@@ -96,7 +96,7 @@ public interface Failure extends CodecProvider<Failure> {
 	}
 
 	/**
-	 * Provides a list of stacks as a reward.
+	 * Applies a mob effect to all nearby players on failure.
 	 */
 	public static record MobEffectFailure(MobEffect effect, int duration, int amplifier) implements Failure {
 
@@ -144,7 +144,7 @@ public interface Failure extends CodecProvider<Failure> {
 	}
 
 	/**
-	 * Provides multiple rolls of an entity's loot table as a reward.
+	 * Summons a specific entity on failure.
 	 */
 	public static record SummonFailure(EntityType<?> type, @Nullable CompoundTag nbt, int count) implements Failure {
 
@@ -180,7 +180,7 @@ public interface Failure extends CodecProvider<Failure> {
 	}
 
 	/**
-	 * Wraps a reward with a random chance applied to it.
+	 * Wraps a failure with a random chance applied to it.
 	 */
 	public static record ChancedFailure(Failure failure, float chance) implements Failure {
 
@@ -214,7 +214,7 @@ public interface Failure extends CodecProvider<Failure> {
 	}
 
 	/**
-	 * Provides a roll of a single loot table as a reward.
+	 * Executes a command on Gateway failure.
 	 */
 	public static record CommandFailure(String command, String desc) implements Failure {
 

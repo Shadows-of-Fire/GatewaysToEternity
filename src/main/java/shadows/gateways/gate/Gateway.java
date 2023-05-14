@@ -7,7 +7,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import net.minecraft.network.chat.TextColor;
+import shadows.gateways.Gateways;
 import shadows.gateways.entity.GatewayEntity.GatewaySize;
+import shadows.gateways.gate.SpawnAlgorithms.SpawnAlgorithm;
 import shadows.placebo.json.PSerializer;
 import shadows.placebo.json.TypeKeyed.TypeKeyedBase;
 
@@ -23,7 +25,10 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 			Failure.CODEC.listOf().optionalFieldOf("failures", Collections.emptyList()).forGetter(Gateway::getFailures),
 			Codec.INT.fieldOf("completion_xp").forGetter(Gateway::getCompletionXp),
 			Codec.DOUBLE.fieldOf("spawn_range").forGetter(Gateway::getSpawnRange),
-			Codec.DOUBLE.optionalFieldOf("leash_range", 32D).forGetter(g -> g.leashRange))
+			Codec.DOUBLE.optionalFieldOf("leash_range", 32D).forGetter(g -> g.leashRange),
+			SpawnAlgorithms.CODEC.optionalFieldOf("spawn_algorithm", SpawnAlgorithms.NAMED_ALGORITHMS.get(Gateways.loc("open_field"))).forGetter(g -> g.spawnAlgo),
+			Codec.BOOL.optionalFieldOf("player_damage_only", false).forGetter(g -> g.playerDamageOnly),
+			Codec.BOOL.optionalFieldOf("allow_discarding", false).forGetter(g -> g.allowDiscarding))
 			.apply(inst, Gateway::new)
 		);
 	//Formatter::on
@@ -38,8 +43,11 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 	protected final int completionXp;
 	protected final double spawnRange;
 	protected final double leashRange;
+	protected final SpawnAlgorithm spawnAlgo;
+	protected final boolean playerDamageOnly;
+	protected final boolean allowDiscarding;
 
-	Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Reward> rewards, List<Failure> failures, int completionXp, double spawnRange, double leashRange) {
+	public Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Reward> rewards, List<Failure> failures, int completionXp, double spawnRange, double leashRange, SpawnAlgorithm spawnAlgo, boolean onlyPlayerDamage, boolean allowDiscarding) {
 		this.size = size;
 		this.color = color;
 		this.waves = waves;
@@ -48,6 +56,9 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 		this.completionXp = completionXp;
 		this.spawnRange = spawnRange;
 		this.leashRange = leashRange;
+		this.spawnAlgo = spawnAlgo;
+		this.playerDamageOnly = onlyPlayerDamage;
+		this.allowDiscarding = allowDiscarding;
 	}
 
 	public GatewaySize getSize() {
@@ -88,6 +99,18 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 
 	public double getLeashRangeSq() {
 		return this.leashRange * this.leashRange;
+	}
+
+	public SpawnAlgorithm getSpawnAlgo() {
+		return this.spawnAlgo;
+	}
+
+	public boolean playerDamageOnly() {
+		return this.playerDamageOnly;
+	}
+
+	public boolean allowsDiscarding() {
+		return this.allowDiscarding;
 	}
 
 	@Override

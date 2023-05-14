@@ -129,8 +129,7 @@ public class GatewaysClient {
 				return;
 			}
 
-			Component comp;// = Component.translatable("tooltip.gateways.max_waves", gate.getNumWaves()).withStyle(ChatFormatting.GRAY);
-			//tooltips.add(comp);
+			Component comp;
 
 			if (Screen.hasShiftDown()) {
 				waveIdx = Math.floorMod(waveIdx, gate.getNumWaves());
@@ -167,7 +166,7 @@ public class GatewaysClient {
 					});
 				}
 			} else {
-				comp = Component.translatable("tooltip.gateways.shift").withStyle(ChatFormatting.GRAY);
+				comp = Component.translatable("tooltip.gateways.shift").withStyle(ChatFormatting.GREEN);
 				tooltips.add(comp);
 			}
 			if (Screen.hasControlDown()) {
@@ -182,21 +181,29 @@ public class GatewaysClient {
 					});
 				}
 			} else {
-				comp = Component.translatable("tooltip.gateways.ctrl").withStyle(ChatFormatting.GRAY);
+				comp = Component.translatable("tooltip.gateways.ctrl").withStyle(Style.EMPTY.withColor(0xFCFF00));
 				tooltips.add(comp);
 			}
-			if (Screen.hasAltDown()) {
-				comp = Component.translatable("tooltip.gateways.failure").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED).withUnderlined(true));
-				tooltips.add(comp);
-				tooltips.add(Component.nullToEmpty(null));
-				for (Failure f : gate.getFailures()) {
-					f.appendHoverText(c -> {
-						tooltips.add(Component.translatable("tooltip.gateways.list2", c).withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED)));
-					});
+			if (!gate.getFailures().isEmpty()) {
+				if (Screen.hasAltDown()) {
+					comp = Component.translatable("tooltip.gateways.failure").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED).withUnderlined(true));
+					tooltips.add(comp);
+					tooltips.add(Component.nullToEmpty(null));
+					for (Failure f : gate.getFailures()) {
+						f.appendHoverText(c -> {
+							tooltips.add(Component.translatable("tooltip.gateways.list2", c).withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED)));
+						});
+					}
+				} else {
+					comp = Component.translatable("tooltip.gateways.alt").withStyle(ChatFormatting.DARK_RED);
+					tooltips.add(comp);
 				}
-			} else {
-				comp = Component.translatable("tooltip.gateways.alt").withStyle(ChatFormatting.GRAY);
-				tooltips.add(comp);
+			}
+			if (gate.playerDamageOnly()) {
+				tooltips.add(Component.translatable("tooltip.gateways.player_damage_only").withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.ITALIC));
+			}
+			if (gate.allowsDiscarding()) {
+				tooltips.add(Component.translatable("tooltip.gateways.allows_discarding").withStyle(ChatFormatting.AQUA, ChatFormatting.ITALIC));
 			}
 		}
 	}

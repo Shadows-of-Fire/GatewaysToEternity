@@ -17,14 +17,17 @@ import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Rarity;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityTeleportEvent;
 import net.minecraftforge.event.entity.living.LivingConversionEvent;
+import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -74,6 +77,7 @@ public class Gateways {
 		MinecraftForge.EVENT_BUS.addListener(this::commands);
 		MinecraftForge.EVENT_BUS.addListener(this::teleport);
 		MinecraftForge.EVENT_BUS.addListener(this::convert);
+		MinecraftForge.EVENT_BUS.addListener(this::hurt);
 	}
 
 	@SubscribeEvent
@@ -166,6 +170,17 @@ public class Gateways {
 			UUID id = entity.getPersistentData().getUUID("gateways.owner");
 			if (entity.level instanceof ServerLevel sl && sl.getEntity(id) instanceof GatewayEntity gate) {
 				gate.handleConversion(entity, e.getOutcome());
+			}
+		}
+	}
+
+	public void hurt(LivingHurtEvent e) {
+		Entity entity = e.getEntity();
+		if (entity.getPersistentData().contains("gateways.owner")) {
+			UUID id = entity.getPersistentData().getUUID("gateways.owner");
+			if (entity.level instanceof ServerLevel sl && sl.getEntity(id) instanceof GatewayEntity gate) {
+				boolean isPlayerDamage = e.getSource().getEntity() instanceof Player p && !(p instanceof FakePlayer);
+				if (!isPlayerDamage && gate.getGateway().playerDamageOnly()) e.setCanceled(true);
 			}
 		}
 	}
