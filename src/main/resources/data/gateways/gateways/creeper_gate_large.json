@@ -1,6 +1,7 @@
 {
     "size": "large",
     "color": "#83DE71",
+	"allow_discarding": true,
     "waves": [{
             "entities": [{
                     "entity": "minecraft:creeper"

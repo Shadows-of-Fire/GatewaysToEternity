@@ -104,6 +104,10 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		return this.gate.getSize().dims;
 	}
 
+	protected boolean isValidRemoval(RemovalReason reason) {
+		return reason == RemovalReason.KILLED || (this.gate.allowsDiscarding() && reason == RemovalReason.DISCARDED);
+	}
+
 	@Override
 	public void tick() {
 		super.tick();
@@ -126,10 +130,15 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 			}
 
 			boolean active = isWaveActive();
-			List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(e -> e.getHealth() > 0 && e.getRemovalReason() != RemovalReason.KILLED).toList();
+			// Collect all remaining enemies, which are those that are alive and not removed via a valid reason.
+			List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(e -> e.getHealth() > 0 && !isValidRemoval(e.getRemovalReason())).toList();
 			for (LivingEntity entity : enemies) {
-				if (isOutOfRange(entity) || entity.isRemoved()) {
+				if (isOutOfRange(entity)) {
 					this.onFailure(currentWaveEntities, FailureReason.ENTITY_TOO_FAR);
+					return;
+				}
+				if (entity.getRemovalReason() == RemovalReason.DISCARDED) {
+					this.onFailure(currentWaveEntities, FailureReason.ENTITY_DISCARDED);
 					return;
 				}
 				if (entity.tickCount % 20 == 0) this.spawnParticle(this.gate.getColor(), entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), 0);
@@ -182,9 +191,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	}
 
 	public void spawnWave() {
-		BlockPos blockpos = this.blockPosition();
-
-		List<LivingEntity> spawned = this.gate.getWave(getWave()).spawnWave((ServerLevel) this.level, blockpos, this);
+		List<LivingEntity> spawned = this.gate.getWave(getWave()).spawnWave((ServerLevel) this.level, this.position(), this);
 		this.currentWaveEntities.addAll(spawned);
 
 		this.entityData.set(WAVE_ACTIVE, true);
@@ -288,6 +295,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		if (this.gate == null) {
 			Gateways.LOGGER.error("Invalid gateway at {} will be removed.", this.position());
 			this.remove(RemovalReason.DISCARDED);
+			return;
 		}
 		long[] entities = tag.getLongArray("wave_entities");
 		for (int i = 0; i < entities.length; i += 2) {
@@ -437,7 +445,8 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	public static enum FailureReason {
 		SPAWN_FAILED("error.gateways.wave_failed"),
 		ENTITY_TOO_FAR("error.gateways.too_far"),
-		TIMER_ELAPSED("error.gateways.wave_elapsed");
+		TIMER_ELAPSED("error.gateways.wave_elapsed"),
+		ENTITY_DISCARDED("error.gateways.entity_discarded");
 
 		private final String langKey;
 
@@ -467,6 +476,11 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 			this.currentWaveEntities.remove(entity);
 			this.currentWaveEntities.add(outcome);
 		}
+	}
+
+	@Override
+	public boolean canBeCollidedWith() {
+		return false;
 	}
 
 }

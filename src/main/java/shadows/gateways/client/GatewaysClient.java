@@ -164,7 +164,7 @@ public class GatewaysClient {
 					});
 				}
 			} else {
-				comp = new TranslatableComponent("tooltip.gateways.shift").withStyle(ChatFormatting.GRAY);
+				comp = new TranslatableComponent("tooltip.gateways.shift").withStyle(ChatFormatting.GREEN);
 				tooltips.add(comp);
 			}
 			if (Screen.hasControlDown()) {
@@ -179,21 +179,29 @@ public class GatewaysClient {
 					});
 				}
 			} else {
-				comp = new TranslatableComponent("tooltip.gateways.ctrl").withStyle(ChatFormatting.GRAY);
+				comp = new TranslatableComponent("tooltip.gateways.ctrl").withStyle(Style.EMPTY.withColor(0xFCFF00));
 				tooltips.add(comp);
 			}
-			if (Screen.hasAltDown()) {
-				comp = new TranslatableComponent("tooltip.gateways.failure").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED).withUnderlined(true));
-				tooltips.add(comp);
-				tooltips.add(Component.nullToEmpty(null));
-				for (Failure f : gate.getFailures()) {
-					f.appendHoverText(c -> {
-						tooltips.add(new TranslatableComponent("tooltip.gateways.list2", c).withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED)));
-					});
+			if (!gate.getFailures().isEmpty()) {
+				if (Screen.hasAltDown()) {
+					comp = new TranslatableComponent("tooltip.gateways.failure").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED).withUnderlined(true));
+					tooltips.add(comp);
+					tooltips.add(Component.nullToEmpty(null));
+					for (Failure f : gate.getFailures()) {
+						f.appendHoverText(c -> {
+							tooltips.add(new TranslatableComponent("tooltip.gateways.list2", c).withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED)));
+						});
+					}
+				} else {
+					comp = new TranslatableComponent("tooltip.gateways.alt").withStyle(ChatFormatting.DARK_RED);
+					tooltips.add(comp);
 				}
-			} else {
-				comp = new TranslatableComponent("tooltip.gateways.alt").withStyle(ChatFormatting.GRAY);
-				tooltips.add(comp);
+			}
+			if (gate.playerDamageOnly()) {
+				tooltips.add(new TranslatableComponent("tooltip.gateways.player_damage_only").withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.ITALIC));
+			}
+			if (gate.allowsDiscarding()) {
+				tooltips.add(new TranslatableComponent("tooltip.gateways.allows_discarding").withStyle(ChatFormatting.AQUA, ChatFormatting.ITALIC));
 			}
 		}
 	}
