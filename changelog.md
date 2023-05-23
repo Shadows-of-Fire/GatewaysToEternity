@@ -1,5 +1,6 @@
 ## 2.3.0
 * Backport of all features added in 3.2.0
+* https://github.com/Shadows-of-Fire/GatewaysToEternity/blob/1.19/changelog.md#320
 
 ## 2.2.1
 * Increased the rate at which items are dropped if the number of dropped items is very high.
@@ -10,6 +11,7 @@
 
 ## 2.2.0
 * Backported all changes from 3.1.0
+* https://github.com/Shadows-of-Fire/GatewaysToEternity/blob/1.19/changelog.md#310
 
 ## 2.1.5
 * alin529: Added chinese translation
