@@ -26,8 +26,8 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.nbt.INBT;
 import net.minecraft.nbt.ListNBT;
-import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.IPacket;
+import net.minecraft.network.PacketBuffer;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
@@ -46,6 +46,7 @@ import net.minecraft.world.BossInfo;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerBossInfo;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.Constants;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
@@ -53,6 +54,7 @@ import net.minecraftforge.fml.network.NetworkHooks;
 import shadows.gateways.GatewayObjects;
 import shadows.gateways.Gateways;
 import shadows.gateways.client.ParticleHandler;
+import shadows.gateways.event.GateEvent;
 import shadows.gateways.gate.Gateway;
 import shadows.gateways.gate.GatewayManager;
 import shadows.gateways.gate.Wave;
@@ -200,10 +202,12 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		this.playSound(GatewayObjects.GATE_END, 1, 1);
 
 		this.level.getNearbyPlayers(EntityPredicate.DEFAULT, null, getBoundingBox().inflate(15)).forEach(p -> p.awardStat(GatewayObjects.Stats.STAT_GATES_DEFEATED));
+		MinecraftForge.EVENT_BUS.post(new GateEvent.Completed(this));
 	}
 
 	public void onGateCreated() {
 		this.playSound(GatewayObjects.GATE_START, 1, 1);
+		MinecraftForge.EVENT_BUS.post(new GateEvent.Opened(this));
 	}
 
 	/**
@@ -212,6 +216,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	protected void onWaveEnd(Wave wave) {
 		PlayerEntity player = summonerOrClosest();
 		undroppedItems.addAll(wave.spawnRewards((ServerWorld) level, this, player));
+		MinecraftForge.EVENT_BUS.post(new GateEvent.WaveEnd(this));
 	}
 
 	public PlayerEntity summonerOrClosest() {
@@ -229,6 +234,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	 * Called when a player fails to complete a wave in time, closing the gateway.
 	 */
 	public void onFailure(Collection<LivingEntity> remaining, ITextComponent message) {
+		MinecraftForge.EVENT_BUS.post(new GateEvent.Failed(this));
 		PlayerEntity player = summonerOrClosest();
 		if (player != null) player.sendMessage(message, Util.NIL_UUID);
 		spawnLightningOn(this, false);

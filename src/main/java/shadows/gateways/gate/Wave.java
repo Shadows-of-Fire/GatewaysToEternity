@@ -33,10 +33,12 @@ import net.minecraft.util.text.TextFormatting;
 import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ForgeEventFactory;
 import shadows.gateways.GatewayObjects;
 import shadows.gateways.Gateways;
 import shadows.gateways.entity.GatewayEntity;
+import shadows.gateways.event.GateEvent;
 import shadows.gateways.misc.RandomAttributeModifier;
 import shadows.gateways.misc.StepFunction;
 import shadows.placebo.json.PlaceboJsonReloadListener;
@@ -108,6 +110,7 @@ public class Wave {
 					mob.setTarget(gate.level.getNearestPlayer(gate, 12));
 				}
 
+				MinecraftForge.EVENT_BUS.post(new GateEvent.WaveEntitySpawned(gate, entity));
 				level.addFreshEntityWithPassengers(entity);
 				level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP, SoundCategory.HOSTILE, 0.5F, 1);
 				spawned.add((LivingEntity) entity);
