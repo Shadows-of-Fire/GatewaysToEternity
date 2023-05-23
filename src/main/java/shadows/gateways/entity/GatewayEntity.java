@@ -229,6 +229,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 	protected void onWaveEnd(Wave wave) {
 		Player player = summonerOrClosest();
 		undroppedItems.addAll(wave.spawnRewards((ServerLevel) level, this, player));
+		MinecraftForge.EVENT_BUS.post(new GateEvent.WaveEnd(this));
 	}
 
 	public Player summonerOrClosest() {

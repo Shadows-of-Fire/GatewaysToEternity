@@ -18,10 +18,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ForgeEventFactory;
 import shadows.gateways.GatewayObjects;
 import shadows.gateways.entity.GatewayEntity;
 import shadows.gateways.entity.GatewayEntity.FailureReason;
+import shadows.gateways.event.GateEvent;
 import shadows.placebo.json.RandomAttributeModifier;
 
 /**
@@ -74,6 +76,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 				mob.setPersistenceRequired();
 			}
 
+			MinecraftForge.EVENT_BUS.post(new GateEvent.WaveEntitySpawned(gate, entity));
 			level.addFreshEntityWithPassengers(entity);
 			level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP.get(), SoundSource.HOSTILE, 0.5F, 1);
 			spawned.add((LivingEntity) entity);

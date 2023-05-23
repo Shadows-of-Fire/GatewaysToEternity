@@ -1,3 +1,7 @@
+## 3.2.1
+* Fixed GateEvent.WaveEnd and GateEvent.WaveEntitySpawned not firing.
+  * Somehow these were lost between 1.18 and 1.19.
+
 ## 3.2.0
 * Updated to Placebo 7.2.0
 * Added some more color to the tooltips.

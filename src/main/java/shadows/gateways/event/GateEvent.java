@@ -1,5 +1,6 @@
 package shadows.gateways.event;
 
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.entity.EntityEvent;
 import shadows.gateways.entity.GatewayEntity;
 
@@ -56,6 +57,20 @@ public abstract class GateEvent extends EntityEvent {
 			super(entity);
 		}
 
+	}
+
+	public static class WaveEntitySpawned extends GateEvent {
+
+		private final LivingEntity waveEntity;
+
+		public WaveEntitySpawned(GatewayEntity gate, LivingEntity waveEntity) {
+			super(gate);
+			this.waveEntity = waveEntity;
+		}
+
+		public LivingEntity getWaveEntity() {
+			return this.waveEntity;
+		}
 	}
 
 }
