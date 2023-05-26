@@ -1,10 +1,13 @@
 package shadows.gateways;
 
+import java.util.UUID;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.mojang.serialization.Codec;
 
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityClassification;
 import net.minecraft.entity.EntityType;
 import net.minecraft.item.Item;
@@ -18,10 +21,13 @@ import net.minecraft.stats.Stats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.RegistryEvent.Register;
+import net.minecraftforge.event.entity.living.EntityTeleportEvent;
+import net.minecraftforge.event.entity.living.LivingConversionEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
@@ -67,6 +73,8 @@ public class Gateways {
 		NetworkUtils.registerMessage(CHANNEL, 0, new ParticleMessage());
 		MinecraftForge.EVENT_BUS.addListener(this::commands);
 		MinecraftForge.EVENT_BUS.addListener(this::starting);
+		MinecraftForge.EVENT_BUS.addListener(this::teleport);
+		MinecraftForge.EVENT_BUS.addListener(this::convert);
 	}
 
 	@SubscribeEvent
@@ -137,6 +145,38 @@ public class Gateways {
 	private static void registerStat(ResourceLocation id, IStatFormatter pFormatter) {
 		Registry.register(Registry.CUSTOM_STAT, id, id);
 		Stats.CUSTOM.get(id, pFormatter);
+	}
+
+	public void teleport(EntityTeleportEvent e) {
+		Entity entity = e.getEntity();
+		if (entity.getPersistentData().contains("gateways.owner")) {
+			UUID id = entity.getPersistentData().getUUID("gateways.owner");
+			if (entity.level instanceof ServerWorld) {
+				ServerWorld sl = ((ServerWorld) entity.level);
+				Entity uGate = sl.getEntity(id);
+				GatewayEntity gate = uGate instanceof GatewayEntity ? (GatewayEntity) uGate : null;
+				if (gate == null) return;
+				if (gate.distanceToSqr(e.getTargetX(), e.getTargetY(), e.getTargetZ()) >= gate.getGateway().getLeashRangeSq()) {
+					e.setTargetX(gate.getX() + 0.5 * gate.getBbWidth());
+					e.setTargetY(gate.getY() + 0.5 * gate.getBbHeight());
+					e.setTargetZ(gate.getZ() + 0.5 * gate.getBbWidth());
+				}
+			}
+		}
+	}
+
+	public void convert(LivingConversionEvent.Post e) {
+		Entity entity = e.getEntity();
+		if (entity.getPersistentData().contains("gateways.owner")) {
+			UUID id = entity.getPersistentData().getUUID("gateways.owner");
+			if (entity.level instanceof ServerWorld) {
+				ServerWorld sl = ((ServerWorld) entity.level);
+				Entity uGate = sl.getEntity(id);
+				GatewayEntity gate = uGate instanceof GatewayEntity ? (GatewayEntity) uGate : null;
+				if (gate == null) return;
+				gate.handleConversion(entity, e.getOutcome());
+			}
+		}
 	}
 
 }

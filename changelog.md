@@ -1,3 +1,6 @@
+## 1.0.2
+* Backported the Mob Teleporting and Mob Conversion fixes.
+
 ## 1.0.1
 * Backported the Gateway events, which can be listened to using KubeJS or an addon.
 * The following types exist:

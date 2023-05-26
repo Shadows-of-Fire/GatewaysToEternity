@@ -394,6 +394,25 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		return 2;
 	}
 
+	/**
+	 * Handles the conversion of entity into outcome.<br>
+	 * From the context of a gateway, this means all references must be updated to track the new entity.
+	 * @param entity The old entity, which is owned by this gateway.
+	 * @param outcome The new entity.
+	 */
+	public void handleConversion(Entity entity, LivingEntity outcome) {
+		entity.getPersistentData().remove("gateways.owner");
+		outcome.getPersistentData().putUUID("gateways.owner", this.getUUID());
+
+		if (this.unresolvedWaveEntities.contains(entity.getUUID())) {
+			this.unresolvedWaveEntities.remove(entity.getUUID());
+			this.unresolvedWaveEntities.add(outcome.getUUID());
+		} else if (this.currentWaveEntities.contains(entity)) {
+			this.currentWaveEntities.remove(entity);
+			this.currentWaveEntities.add(outcome);
+		}
+	}
+
 	public static enum GatewaySize {
 		SMALL(EntitySize.scalable(2F, 3F), 1F),
 		MEDIUM(EntitySize.scalable(4F, 6F), 2F),
