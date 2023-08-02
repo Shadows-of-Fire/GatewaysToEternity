@@ -28,7 +28,8 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 			Codec.DOUBLE.optionalFieldOf("leash_range", 32D).forGetter(g -> g.leashRange),
 			SpawnAlgorithms.CODEC.optionalFieldOf("spawn_algorithm", SpawnAlgorithms.NAMED_ALGORITHMS.get(Gateways.loc("open_field"))).forGetter(g -> g.spawnAlgo),
 			Codec.BOOL.optionalFieldOf("player_damage_only", false).forGetter(g -> g.playerDamageOnly),
-			Codec.BOOL.optionalFieldOf("allow_discarding", false).forGetter(g -> g.allowDiscarding))
+			Codec.BOOL.optionalFieldOf("allow_discarding", false).forGetter(g -> g.allowDiscarding),
+			Codec.BOOL.optionalFieldOf("remove_mobs_on_failure", true).forGetter(g -> g.removeMobsOnFailure))
 			.apply(inst, Gateway::new)
 		);
 	//Formatter::on
@@ -46,8 +47,9 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 	protected final SpawnAlgorithm spawnAlgo;
 	protected final boolean playerDamageOnly;
 	protected final boolean allowDiscarding;
+	protected final boolean removeMobsOnFailure;
 
-	public Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Reward> rewards, List<Failure> failures, int completionXp, double spawnRange, double leashRange, SpawnAlgorithm spawnAlgo, boolean onlyPlayerDamage, boolean allowDiscarding) {
+	public Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Reward> rewards, List<Failure> failures, int completionXp, double spawnRange, double leashRange, SpawnAlgorithm spawnAlgo, boolean onlyPlayerDamage, boolean allowDiscarding, boolean removeMobsOnFailure) {
 		this.size = size;
 		this.color = color;
 		this.waves = waves;
@@ -59,6 +61,7 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 		this.spawnAlgo = spawnAlgo;
 		this.playerDamageOnly = onlyPlayerDamage;
 		this.allowDiscarding = allowDiscarding;
+		this.removeMobsOnFailure = removeMobsOnFailure;
 	}
 
 	public GatewaySize getSize() {
@@ -111,6 +114,10 @@ public class Gateway extends TypeKeyedBase<Gateway> {
 
 	public boolean allowsDiscarding() {
 		return this.allowDiscarding;
+	}
+
+	public boolean removeMobsOnFailure() {
+		return this.removeMobsOnFailure;
 	}
 
 	@Override

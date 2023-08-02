@@ -252,8 +252,12 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 		Player player = summonerOrClosest();
 		if (player != null) player.sendSystemMessage(reason.getMsg());
 		spawnLightningOn(this, false);
-		remaining.stream().filter(Entity::isAlive).forEach(e -> spawnLightningOn(e, true));
-		remaining.forEach(e -> e.remove(RemovalReason.DISCARDED));
+		if (this.gate.removeMobsOnFailure()) {
+			remaining.stream().filter(Entity::isAlive).forEach(e -> {
+				spawnLightningOn(e, true);
+				e.remove(RemovalReason.DISCARDED);
+			});
+		}
 		this.getGateway().getFailures().forEach(f -> f.onFailure((ServerLevel) this.level, this, player, reason));
 		this.bossEvent.setCreateWorldFog(false);
 		this.remove(RemovalReason.DISCARDED);

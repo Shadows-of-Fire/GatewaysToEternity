@@ -1,3 +1,6 @@
+## 3.2.2
+* Added the `remove_mobs_on_failure` flag to allow keeping the mobs around if the gate is failed.
+
 ## 3.2.1
 * Fixed GateEvent.WaveEnd and GateEvent.WaveEntitySpawned not firing.
   * Somehow these were lost between 1.18 and 1.19.
