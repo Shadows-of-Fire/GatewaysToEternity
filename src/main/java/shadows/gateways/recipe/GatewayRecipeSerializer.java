@@ -11,16 +11,14 @@ import shadows.gateways.item.GatePearlItem;
 
 public class GatewayRecipeSerializer extends ShapedRecipe.Serializer {
 
-	public static final GatewayRecipeSerializer INSTANCE = new GatewayRecipeSerializer();
-
-	@Override
-	public ShapedRecipe fromJson(ResourceLocation id, JsonObject json) {
-		ShapedRecipe recipe = super.fromJson(id, json);
-		ItemStack gateway = recipe.getResultItem();
-		if (!(gateway.getItem() instanceof GatePearlItem)) {
-			throw new JsonSyntaxException("Gateway Recipe output must be a gate opener item.  Provided: " + ForgeRegistries.ITEMS.getKey(gateway.getItem()));
-		}
-		gateway.getOrCreateTag().putString("gateway", json.get("gateway").getAsString());
-		return recipe;
-	}
+    @Override
+    public ShapedRecipe fromJson(ResourceLocation id, JsonObject json) {
+        ShapedRecipe recipe = super.fromJson(id, json);
+        ItemStack gateway = recipe.getResultItem(null);
+        if (!(gateway.getItem() instanceof GatePearlItem)) {
+            throw new JsonSyntaxException("Gateway Recipe output must be a gate opener item.  Provided: " + ForgeRegistries.ITEMS.getKey(gateway.getItem()));
+        }
+        gateway.getOrCreateTag().putString("gateway", json.get("gateway").getAsString());
+        return recipe;
+    }
 }
