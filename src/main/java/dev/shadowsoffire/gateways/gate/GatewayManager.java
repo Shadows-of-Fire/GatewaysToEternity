@@ -1,7 +1,7 @@
 package dev.shadowsoffire.gateways.gate;
 
 import dev.shadowsoffire.gateways.Gateways;
-import dev.shadowsoffire.placebo.json.PlaceboJsonReloadListener;
+import dev.shadowsoffire.placebo.reload.PlaceboJsonReloadListener;
 
 public class GatewayManager extends PlaceboJsonReloadListener<Gateway> {
 

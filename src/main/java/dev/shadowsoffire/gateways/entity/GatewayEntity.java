@@ -21,7 +21,7 @@ import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.GatewayManager;
 import dev.shadowsoffire.gateways.gate.Wave;
 import dev.shadowsoffire.gateways.net.ParticleMessage;
-import dev.shadowsoffire.placebo.codec.EnumCodec;
+import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import dev.shadowsoffire.placebo.network.PacketDistro;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -435,7 +435,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         MEDIUM(EntityDimensions.scalable(4F, 6F), 2F),
         LARGE(EntityDimensions.scalable(6F, 9F), 3F);
 
-        public static final Codec<GatewaySize> CODEC = new EnumCodec<>(GatewaySize.class);
+        public static final Codec<GatewaySize> CODEC = PlaceboCodecs.enumCodec(GatewaySize.class);
 
         private final EntityDimensions dims;
         private final float scale;

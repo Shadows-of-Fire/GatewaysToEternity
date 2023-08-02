@@ -10,7 +10,7 @@ import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity.GatewaySize;
 import dev.shadowsoffire.gateways.gate.SpawnAlgorithms.SpawnAlgorithm;
 import dev.shadowsoffire.placebo.json.PSerializer;
-import dev.shadowsoffire.placebo.json.TypeKeyed.TypeKeyedBase;
+import dev.shadowsoffire.placebo.reload.TypeKeyed.TypeKeyedBase;
 import net.minecraft.network.chat.TextColor;
 
 public class Gateway extends TypeKeyedBase<Gateway> {
