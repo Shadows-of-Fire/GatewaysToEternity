@@ -25,19 +25,17 @@ public class GatewayObjects {
 
     private static final DeferredHelper R = DeferredHelper.create(Gateways.MODID);
 
-    public static final RegistryObject<EntityType<GatewayEntity>> GATEWAY = R.entity("gateway", () -> {
-        return EntityType.Builder
-            .<GatewayEntity>of(GatewayEntity::new, MobCategory.MISC)
-            .setTrackingRange(5)
-            .setUpdateInterval(20)
-            .sized(2F, 3F)
-            .setCustomClientFactory((se, w) -> {
-                GatewayEntity ent = new GatewayEntity(GatewayObjects.GATEWAY.get(), w);
-                GatewayTickableSound.startGatewaySound(ent);
-                return ent;
-            })
-            .build("gateway");
-    });
+    public static final RegistryObject<EntityType<GatewayEntity>> GATEWAY = R.entity("gateway", () -> EntityType.Builder
+        .<GatewayEntity>of(GatewayEntity::new, MobCategory.MISC)
+        .setTrackingRange(5)
+        .setUpdateInterval(20)
+        .sized(2F, 3F)
+        .setCustomClientFactory((se, w) -> {
+            GatewayEntity ent = new GatewayEntity(GatewayObjects.GATEWAY.get(), w);
+            GatewayTickableSound.startGatewaySound(ent);
+            return ent;
+        })
+        .build("gateway"));
 
     public static final RegistryObject<GatePearlItem> GATE_PEARL = R.item("gate_pearl", () -> new GatePearlItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
 
@@ -46,13 +44,11 @@ public class GatewayObjects {
     public static final RegistryObject<SoundEvent> GATE_START = sound("gate_start");
     public static final RegistryObject<SoundEvent> GATE_END = sound("gate_end");
 
-    public static final RegistryObject<ParticleType<GatewayParticleData>> GLOW = R.particle("glow", () -> {
-        return new ParticleType<GatewayParticleData>(false, GatewayParticleData.DESERIALIZER){
-            @Override
-            public Codec<GatewayParticleData> codec() {
-                return GatewayParticleData.CODEC;
-            }
-        };
+    public static final RegistryObject<ParticleType<GatewayParticleData>> GLOW = R.particle("glow", () -> new ParticleType<>(false, GatewayParticleData.DESERIALIZER){
+        @Override
+        public Codec<GatewayParticleData> codec() {
+            return GatewayParticleData.CODEC;
+        }
     });
 
     public static final RegistryObject<GatewayRecipeSerializer> GATE_RECIPE = R.recipeSerializer("gate_recipe", GatewayRecipeSerializer::new);
