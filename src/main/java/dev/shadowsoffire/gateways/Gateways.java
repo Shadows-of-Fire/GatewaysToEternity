@@ -49,7 +49,7 @@ public class Gateways {
 
     public Gateways() {
         FMLJavaModLoadingContext.get().getModEventBus().register(this);
-        MessageHelper.registerMessage(CHANNEL, 0, new ParticleMessage());
+        MessageHelper.registerMessage(CHANNEL, 0, new ParticleMessage.Provider());
         MinecraftForge.EVENT_BUS.addListener(this::commands);
         MinecraftForge.EVENT_BUS.addListener(this::teleport);
         MinecraftForge.EVENT_BUS.addListener(this::convert);

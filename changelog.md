@@ -1,3 +1,6 @@
+## 4.0.2
+* Updated to Placebo 8.2.2.
+
 ## 4.0.1
 * Updated to Placebo 8.2.0.
 
