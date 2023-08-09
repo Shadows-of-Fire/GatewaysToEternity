@@ -1,3 +1,6 @@
+## 4.1.0
+* Updated to Placebo 8.3.0 and refactored code to use DynamicHolder instead of keeping live Gateway references.
+
 ## 4.0.2
 * Updated to Placebo 8.2.2.
 

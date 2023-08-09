@@ -8,7 +8,7 @@ import org.apache.logging.log4j.Logger;
 import dev.shadowsoffire.gateways.command.GatewayCommand;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.Failure;
-import dev.shadowsoffire.gateways.gate.GatewayManager;
+import dev.shadowsoffire.gateways.gate.GatewayRegistry;
 import dev.shadowsoffire.gateways.gate.Reward;
 import dev.shadowsoffire.gateways.gate.WaveEntity;
 import dev.shadowsoffire.gateways.net.ParticleMessage;
@@ -59,7 +59,7 @@ public class Gateways {
 
     @SubscribeEvent
     public void setup(FMLCommonSetupEvent e) {
-        GatewayManager.INSTANCE.registerToBus();
+        GatewayRegistry.INSTANCE.registerToBus();
         e.enqueueWork(() -> {
             Reward.initSerializers();
             WaveEntity.initSerializers();
@@ -81,7 +81,7 @@ public class Gateways {
         Entity entity = e.getEntity();
         if (entity.getPersistentData().contains("gateways.owner")) {
             UUID id = entity.getPersistentData().getUUID("gateways.owner");
-            if (entity.level() instanceof ServerLevel sl && sl.getEntity(id) instanceof GatewayEntity gate) {
+            if (entity.level() instanceof ServerLevel sl && sl.getEntity(id) instanceof GatewayEntity gate && gate.isValid()) {
                 if (gate.distanceToSqr(e.getTargetX(), e.getTargetY(), e.getTargetZ()) >= gate.getGateway().getLeashRangeSq()) {
                     e.setTargetX(gate.getX() + 0.5 * gate.getBbWidth());
                     e.setTargetY(gate.getY() + 0.5 * gate.getBbHeight());
@@ -95,7 +95,7 @@ public class Gateways {
         Entity entity = e.getEntity();
         if (entity.getPersistentData().contains("gateways.owner")) {
             UUID id = entity.getPersistentData().getUUID("gateways.owner");
-            if (entity.level() instanceof ServerLevel sl && sl.getEntity(id) instanceof GatewayEntity gate) {
+            if (entity.level() instanceof ServerLevel sl && sl.getEntity(id) instanceof GatewayEntity gate && gate.isValid()) {
                 gate.handleConversion(entity, e.getOutcome());
             }
         }
@@ -105,7 +105,7 @@ public class Gateways {
         Entity entity = e.getEntity();
         if (entity.getPersistentData().contains("gateways.owner")) {
             UUID id = entity.getPersistentData().getUUID("gateways.owner");
-            if (entity.level() instanceof ServerLevel sl && sl.getEntity(id) instanceof GatewayEntity gate) {
+            if (entity.level() instanceof ServerLevel sl && sl.getEntity(id) instanceof GatewayEntity gate && gate.isValid()) {
                 boolean isPlayerDamage = e.getSource().getEntity() instanceof Player p && !(p instanceof FakePlayer);
                 if (!isPlayerDamage && gate.getGateway().playerDamageOnly()) e.setCanceled(true);
             }

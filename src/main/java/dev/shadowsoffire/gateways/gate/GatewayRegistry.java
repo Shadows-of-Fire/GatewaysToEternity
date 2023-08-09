@@ -1,13 +1,13 @@
 package dev.shadowsoffire.gateways.gate;
 
 import dev.shadowsoffire.gateways.Gateways;
-import dev.shadowsoffire.placebo.reload.PlaceboJsonReloadListener;
+import dev.shadowsoffire.placebo.reload.DynamicRegistry;
 
-public class GatewayManager extends PlaceboJsonReloadListener<Gateway> {
+public class GatewayRegistry extends DynamicRegistry<Gateway> {
 
-    public static final GatewayManager INSTANCE = new GatewayManager();
+    public static final GatewayRegistry INSTANCE = new GatewayRegistry();
 
-    private GatewayManager() {
+    private GatewayRegistry() {
         super(Gateways.LOGGER, "gateways", true, false);
     }
 

@@ -46,6 +46,8 @@ public class ParticleHandler {
     }
 
     public static void spawnIdleParticles(GatewayEntity gate) {
+        if (!gate.isValid()) return;
+
         Level level = gate.level();
         RandomSource rand = level.random;
         int color = gate.getGateway().getColor().getValue();

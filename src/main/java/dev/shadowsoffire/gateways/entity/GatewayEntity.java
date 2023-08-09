@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
+import com.google.common.base.Preconditions;
 import com.mojang.authlib.GameProfile;
 import com.mojang.serialization.Codec;
 
@@ -18,11 +19,12 @@ import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.client.ParticleHandler;
 import dev.shadowsoffire.gateways.event.GateEvent;
 import dev.shadowsoffire.gateways.gate.Gateway;
-import dev.shadowsoffire.gateways.gate.GatewayManager;
+import dev.shadowsoffire.gateways.gate.GatewayRegistry;
 import dev.shadowsoffire.gateways.gate.Wave;
 import dev.shadowsoffire.gateways.net.ParticleMessage;
 import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import dev.shadowsoffire.placebo.network.PacketDistro;
+import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -69,7 +71,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     public static final EntityDataAccessor<Integer> WAVE = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> ENEMIES = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
 
-    protected Gateway gate;
+    protected DynamicHolder<Gateway> gate;
     protected ServerBossEvent bossEvent;
 
     protected final Set<LivingEntity> currentWaveEntities = new HashSet<>();
@@ -83,11 +85,12 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     /**
      * Primary constructor.
      */
-    public GatewayEntity(Level level, Player placer, Gateway gate) {
+    public GatewayEntity(Level level, Player placer, DynamicHolder<Gateway> gate) {
         super(GatewayObjects.GATEWAY.get(), level);
         this.summonerId = placer.getUUID();
         this.gate = gate;
-        this.setCustomName(Component.translatable(gate.getId().toString().replace(':', '.')).withStyle(Style.EMPTY.withColor(gate.getColor())));
+        Preconditions.checkArgument(gate.isBound(), "A gateway may not be constructed for an unbound holder.");
+        this.setCustomName(Component.translatable(gate.getId().toString().replace(':', '.')).withStyle(Style.EMPTY.withColor(gate.get().getColor())));
         this.bossEvent = this.createBossEvent();
         this.refreshDimensions();
     }
@@ -101,16 +104,22 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 
     @Override
     public EntityDimensions getDimensions(Pose pPose) {
-        return this.gate.getSize().dims;
+        return this.gate.get().getSize().dims;
     }
 
     protected boolean isValidRemoval(RemovalReason reason) {
-        return reason == RemovalReason.KILLED || (this.gate.allowsDiscarding() && reason == RemovalReason.DISCARDED);
+        return reason == RemovalReason.KILLED || (this.gate.get().allowsDiscarding() && reason == RemovalReason.DISCARDED);
     }
 
     @Override
     public void tick() {
+        if (!this.gate.isBound()) {
+            this.remove(RemovalReason.DISCARDED);
+            return;
+        }
+
         super.tick();
+
         if (!level().isClientSide) {
             if (!unresolvedWaveEntities.isEmpty()) {
                 for (UUID id : unresolvedWaveEntities) {
@@ -141,7 +150,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
                     this.onFailure(currentWaveEntities, FailureReason.ENTITY_DISCARDED);
                     return;
                 }
-                if (entity.tickCount % 20 == 0) this.spawnParticle(this.gate.getColor(), entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), 0);
+                if (entity.tickCount % 20 == 0) this.spawnParticle(this.gate.get().getColor(), entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), 0);
             }
             this.entityData.set(ENEMIES, enemies.size());
             if (active && enemies.size() == 0) {
@@ -149,7 +158,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
                 this.currentWaveEntities.clear();
                 this.entityData.set(WAVE_ACTIVE, false);
                 this.entityData.set(TICKS_ACTIVE, 0);
-                this.entityData.set(WAVE, Math.min(getWave() + 1, this.gate.getNumWaves()));
+                this.entityData.set(WAVE, Math.min(getWave() + 1, this.gate.get().getNumWaves()));
             }
             else if (!active && !isLastWave()) {
                 if (this.getTicksActive() > this.getCurrentWave().setupTime()) {
@@ -182,18 +191,18 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     }
 
     public boolean isLastWave() {
-        return this.getWave() == this.gate.getNumWaves();
+        return this.getWave() == this.getGateway().getNumWaves();
     }
 
     /**
      * Returns the current wave, or returns the last wave, if the last wave has been completed.
      */
     public Wave getCurrentWave() {
-        return this.gate.getWave(Math.min(this.gate.getNumWaves() - 1, this.getWave()));
+        return this.getGateway().getWave(Math.min(this.getGateway().getNumWaves() - 1, this.getWave()));
     }
 
     public void spawnWave() {
-        List<LivingEntity> spawned = this.gate.getWave(getWave()).spawnWave((ServerLevel) this.level(), this.position(), this);
+        List<LivingEntity> spawned = this.getGateway().getWave(getWave()).spawnWave((ServerLevel) this.level(), this.position(), this);
         this.currentWaveEntities.addAll(spawned);
 
         this.entityData.set(WAVE_ACTIVE, true);
@@ -202,14 +211,14 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     }
 
     protected void completePortal() {
-        int completionXp = this.gate.getCompletionXp();
+        int completionXp = this.getGateway().getCompletionXp();
         while (completionXp > 0) {
             int i = 5;
             completionXp -= i;
             this.level().addFreshEntity(new ExperienceOrb(this.level(), this.getX(), this.getY(), this.getZ(), i));
         }
         Player player = summonerOrClosest();
-        this.gate.getRewards().forEach(r -> {
+        this.getGateway().getRewards().forEach(r -> {
             r.generateLoot((ServerLevel) this.level(), this, player, this::spawnCompletionItem);
         });
 
@@ -255,7 +264,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         Player player = summonerOrClosest();
         if (player != null) player.sendSystemMessage(reason.getMsg());
         spawnLightningOn(this, false);
-        if (this.gate.removeMobsOnFailure()) {
+        if (this.getGateway().removeMobsOnFailure()) {
             remaining.stream().filter(Entity::isAlive).forEach(e -> {
                 spawnLightningOn(e, true);
                 e.remove(RemovalReason.DISCARDED);
@@ -296,23 +305,33 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 
     @Override
     protected void readAdditionalSaveData(CompoundTag tag) {
-        this.entityData.set(WAVE, tag.getInt("wave"));
-        this.gate = GatewayManager.INSTANCE.getOrDefault(new ResourceLocation(tag.getString("gate")), this.gate);
-        if (this.gate == null) {
+        if (tag.contains("wave")) this.entityData.set(WAVE, tag.getInt("wave"));
+        if (tag.contains("gate")) this.gate = GatewayRegistry.INSTANCE.holder(new ResourceLocation(tag.getString("gate")));
+
+        if (!this.gate.isBound()) {
             Gateways.LOGGER.error("Invalid gateway at {} will be removed.", this.position());
             this.remove(RemovalReason.DISCARDED);
             return;
         }
-        long[] entities = tag.getLongArray("wave_entities");
-        for (int i = 0; i < entities.length; i += 2) {
-            unresolvedWaveEntities.add(new UUID(entities[i], entities[i + 1]));
+
+        if (tag.contains("wave_entities")) {
+            this.currentWaveEntities.clear();
+            this.unresolvedWaveEntities.clear();
+            long[] entities = tag.getLongArray("wave_entities");
+            for (int i = 0; i < entities.length; i += 2) {
+                unresolvedWaveEntities.add(new UUID(entities[i], entities[i + 1]));
+            }
         }
-        this.entityData.set(WAVE_ACTIVE, tag.getBoolean("active"));
-        this.entityData.set(TICKS_ACTIVE, tag.getInt("ticks_active"));
+
+        if (tag.contains("active")) this.entityData.set(WAVE_ACTIVE, tag.getBoolean("active"));
+        if (tag.contains("ticks_active")) this.entityData.set(TICKS_ACTIVE, tag.getInt("ticks_active"));
         if (tag.contains("summoner")) this.summonerId = tag.getUUID("summoner");
-        ListTag stacks = tag.getList("queued_stacks", Tag.TAG_COMPOUND);
-        for (Tag inbt : stacks) {
-            undroppedItems.add(ItemStack.of((CompoundTag) inbt));
+        if (tag.contains("queued_stacks")) {
+            this.undroppedItems.clear();
+            ListTag stacks = tag.getList("queued_stacks", Tag.TAG_COMPOUND);
+            for (Tag inbt : stacks) {
+                undroppedItems.add(ItemStack.of((CompoundTag) inbt));
+            }
         }
         this.bossEvent = createBossEvent();
     }
@@ -359,7 +378,11 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     }
 
     public Gateway getGateway() {
-        return gate;
+        return gate.get();
+    }
+
+    public boolean isValid() {
+        return this.gate.isBound();
     }
 
     public ServerBossEvent getBossInfo() {
@@ -395,7 +418,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 
     public void spawnCompletionItem(ItemStack stack) {
         ItemEntity i = new ItemEntity(level(), 0, 0, 0, stack);
-        double variance = 0.05F * this.gate.getSize().getScale();
+        double variance = 0.05F * this.getGateway().getSize().getScale();
         i.setPos(this.getX(), this.getY() + this.getBbHeight() / 2, this.getZ());
         i.setDeltaMovement(Mth.nextDouble(random, -variance, variance), this.getBbHeight() / 20F, Mth.nextDouble(random, -variance, variance));
         i.setUnlimitedLifetime();
@@ -404,13 +427,13 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 
     @Override
     public void writeSpawnData(FriendlyByteBuf buf) {
-        buf.writeResourceLocation(this.gate.getId());
+        buf.writeResourceLocation(this.getGateway().getId());
     }
 
     @Override
     public void readSpawnData(FriendlyByteBuf buf) {
-        this.gate = GatewayManager.INSTANCE.getValue(buf.readResourceLocation());
-        if (this.gate == null) throw new RuntimeException("Invalid gateway received on client!");
+        this.gate = GatewayRegistry.INSTANCE.holder(buf.readResourceLocation());
+        if (!this.gate.isBound()) throw new RuntimeException("Invalid gateway received on client!");
     }
 
     @Override
@@ -427,7 +450,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     }
 
     public boolean isOutOfRange(Entity entity) {
-        return entity.distanceToSqr(this) > this.gate.getLeashRangeSq() || entity.getRemovalReason() == RemovalReason.CHANGED_DIMENSION;
+        return entity.distanceToSqr(this) > this.getGateway().getLeashRangeSq() || entity.getRemovalReason() == RemovalReason.CHANGED_DIMENSION;
     }
 
     public static enum GatewaySize {

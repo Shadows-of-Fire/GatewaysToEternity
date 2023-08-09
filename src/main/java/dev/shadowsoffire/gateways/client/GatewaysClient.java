@@ -16,6 +16,7 @@ import dev.shadowsoffire.gateways.gate.WaveEntity;
 import dev.shadowsoffire.gateways.item.GatePearlItem;
 import dev.shadowsoffire.placebo.PlaceboClient;
 import dev.shadowsoffire.placebo.json.RandomAttributeModifier;
+import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import dev.shadowsoffire.placebo.util.AttributeHelper;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -53,9 +54,9 @@ public class GatewaysClient {
     public static void setup(FMLClientSetupEvent e) {
         e.enqueueWork(() -> {
             ItemProperties.register(GatewayObjects.GATE_PEARL.get(), new ResourceLocation(Gateways.MODID, "size"), (stack, level, entity, seed) -> {
-                Gateway gate = GatePearlItem.getGate(stack);
-                if (gate == null) return 2;
-                return gate.getSize().ordinal();
+                DynamicHolder<Gateway> gate = GatePearlItem.getGate(stack);
+                if (gate.isBound()) return gate.get().getSize().ordinal();
+                return 2;
             });
         });
         MinecraftForge.EVENT_BUS.addListener(GatewaysClient::bossRenderPre);
@@ -67,8 +68,8 @@ public class GatewaysClient {
     @SubscribeEvent
     public static void colors(RegisterColorHandlersEvent.Item e) {
         e.register((stack, tint) -> {
-            Gateway gate = GatePearlItem.getGate(stack);
-            if (gate != null) return gate.getColor().getValue();
+            DynamicHolder<Gateway> gate = GatePearlItem.getGate(stack);
+            if (gate.isBound()) return gate.get().getColor().getValue();
             return 0xAAAAFF;
         }, GatewayObjects.GATE_PEARL.get());
     }
@@ -113,12 +114,13 @@ public class GatewaysClient {
         currentTooltipItem = e.getItemStack();
         tooltipTick = PlaceboClient.ticks;
         if (e.getItemStack().getItem() == GatewayObjects.GATE_PEARL.get()) {
-            Gateway gate = GatePearlItem.getGate(e.getItemStack());
+            DynamicHolder<Gateway> holder = GatePearlItem.getGate(e.getItemStack());
             List<Component> tooltips = e.getToolTip();
-            if (gate == null) {
+            if (!holder.isBound()) {
                 tooltips.add(Component.literal("Errored Gate Pearl, file a bug report detailing how you obtained this."));
                 return;
             }
+            Gateway gate = holder.get();
 
             Component comp;
 
@@ -210,7 +212,7 @@ public class GatewaysClient {
         if (name.startsWith("GATEWAY_ID")) {
             Level level = Minecraft.getInstance().level;
             event.setCanceled(true);
-            if (level.getEntity(Integer.valueOf(name.substring(10))) instanceof GatewayEntity gate) {
+            if (level.getEntity(Integer.valueOf(name.substring(10))) instanceof GatewayEntity gate && gate.isValid()) {
                 int color = gate.getGateway().getColor().getValue();
                 int r = color >> 16 & 255, g = color >> 8 & 255, b = color & 255;
                 RenderSystem.setShaderColor(r / 255F, g / 255F, b / 255F, 1.0F);

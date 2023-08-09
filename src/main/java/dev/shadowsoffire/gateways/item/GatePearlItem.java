@@ -2,7 +2,8 @@ package dev.shadowsoffire.gateways.item;
 
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.Gateway;
-import dev.shadowsoffire.gateways.gate.GatewayManager;
+import dev.shadowsoffire.gateways.gate.GatewayRegistry;
+import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import dev.shadowsoffire.placebo.tabs.ITabFiller;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
@@ -31,12 +32,13 @@ public class GatePearlItem extends Item implements ITabFiller {
         Level world = ctx.getLevel();
         ItemStack stack = ctx.getItemInHand();
         BlockPos pos = ctx.getClickedPos();
+        DynamicHolder<Gateway> gate = getGate(stack);
 
+        if (!gate.isBound()) return InteractionResult.FAIL;
         if (world.isClientSide) return InteractionResult.SUCCESS;
-
         if (!world.getEntitiesOfClass(GatewayEntity.class, new AABB(pos).inflate(25, 25, 25)).isEmpty()) return InteractionResult.FAIL;
 
-        GatewayEntity entity = new GatewayEntity(world, ctx.getPlayer(), getGate(stack));
+        GatewayEntity entity = new GatewayEntity(world, ctx.getPlayer(), gate);
         BlockState state = world.getBlockState(pos);
         entity.setPos(pos.getX() + 0.5, pos.getY() + state.getShape(world, pos).max(Axis.Y), pos.getZ() + 0.5);
         int y = 0;
@@ -60,15 +62,15 @@ public class GatePearlItem extends Item implements ITabFiller {
         opener.getOrCreateTag().putString("gateway", gate.getId().toString());
     }
 
-    public static Gateway getGate(ItemStack opener) {
-        return GatewayManager.INSTANCE.getValue(new ResourceLocation(opener.getOrCreateTag().getString("gateway")));
+    public static DynamicHolder<Gateway> getGate(ItemStack opener) {
+        return GatewayRegistry.INSTANCE.holder(new ResourceLocation(opener.getOrCreateTag().getString("gateway")));
     }
 
     @Override
     public Component getName(ItemStack stack) {
         if (stack.hasCustomHoverName()) return super.getName(stack);
-        Gateway gate = getGate(stack);
-        if (gate != null) return Component.translatable("gateways.gate_pearl", Component.translatable(gate.getId().toString().replace(':', '.'))).withStyle(Style.EMPTY.withColor(gate.getColor()));
+        DynamicHolder<Gateway> gate = getGate(stack);
+        if (gate.isBound()) return Component.translatable("gateways.gate_pearl", Component.translatable(gate.getId().toString().replace(':', '.'))).withStyle(Style.EMPTY.withColor(gate.get().getColor()));
         return super.getName(stack);
     }
 
@@ -78,7 +80,7 @@ public class GatePearlItem extends Item implements ITabFiller {
 
     @Override
     public void fillItemCategory(CreativeModeTab group, CreativeModeTab.Output out) {
-        GatewayManager.INSTANCE.getValues().stream().sorted((g1, g2) -> g1.getId().compareTo(g2.getId())).forEach(gate -> {
+        GatewayRegistry.INSTANCE.getValues().stream().sorted((g1, g2) -> g1.getId().compareTo(g2.getId())).forEach(gate -> {
             ItemStack stack = new ItemStack(this);
             setGate(stack, gate);
             out.accept(stack);

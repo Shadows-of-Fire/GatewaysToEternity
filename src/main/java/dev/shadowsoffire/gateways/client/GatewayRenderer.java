@@ -35,6 +35,8 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
 
     @Override
     public void render(GatewayEntity gate, float yaw, float partialTicks, PoseStack matrix, MultiBufferSource buf, int packedLight) {
+        if (!gate.isValid()) return;
+
         matrix.pushPose();
         Player player = Minecraft.getInstance().player;
         Vec3 playerV = player.getEyePosition(partialTicks);
