@@ -25,7 +25,7 @@ public class Gateway extends TypeKeyedBase<Gateway> {
             Failure.CODEC.listOf().optionalFieldOf("failures", Collections.emptyList()).forGetter(Gateway::getFailures),
             Codec.INT.fieldOf("completion_xp").forGetter(Gateway::getCompletionXp),
             Codec.DOUBLE.fieldOf("spawn_range").forGetter(Gateway::getSpawnRange),
-            Codec.DOUBLE.optionalFieldOf("leash_range", 32D).forGetter(g -> g.leashRange),
+            Codec.DOUBLE.optionalFieldOf("leash_range", 24D).forGetter(g -> g.leashRange),
             SpawnAlgorithms.CODEC.optionalFieldOf("spawn_algorithm", SpawnAlgorithms.NAMED_ALGORITHMS.get(Gateways.loc("open_field"))).forGetter(g -> g.spawnAlgo),
             Codec.BOOL.optionalFieldOf("player_damage_only", false).forGetter(g -> g.playerDamageOnly),
             Codec.BOOL.optionalFieldOf("allow_discarding", false).forGetter(g -> g.allowDiscarding),

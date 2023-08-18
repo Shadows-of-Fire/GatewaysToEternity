@@ -1,3 +1,8 @@
+## 4.1.1
+* Removed forge dependency line from the mods.toml and marked as Forge and NeoForge for CF.
+  * The dependency will be added back and the Forge marker will be removed once CF supports Neo correctly.
+* Reduced default leash range from 32 to 24.
+
 ## 4.1.0
 * Updated to Placebo 8.3.0 and refactored code to use DynamicHolder instead of keeping live Gateway references.
 
