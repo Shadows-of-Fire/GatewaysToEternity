@@ -51,13 +51,6 @@ sourceSets.main.resources {
 
 repositories {
     maven {
-        // JEI
-        url "https://dvs1.progwml6.com/files/maven"
-        content {
-            includeGroup "mezz.jei"
-        }
-    }
-    maven {
         // CurseForge
         url "https://www.cursemaven.com"
         content {
@@ -114,6 +107,12 @@ dependencies {
     if(project.hasProperty('twilightFileId'))       implementation fg.deobf("curse.maven:the-twilight-forest-227639:${twilightFileId}")
     if(project.hasProperty('gatewaysVersion'))      implementation fg.deobf("dev.shadowsoffire:GatewaysToEternity:${mcVersion}-${gatewaysVersion}")
     if(project.hasProperty('attributeslibVersion')) implementation fg.deobf("dev.shadowsoffire:ApothicAttributes:${mcVersion}-${attributeslibVersion}")
+    if(project.hasProperty('crafttweakerVersion')) {
+        implementation fg.deobf("com.blamejared.crafttweaker:CraftTweaker-forge-${mcVersion}:${crafttweakerVersion}")
+        if(project.hasProperty('crafttweakerAPVersion')) {
+            annotationProcessor "com.blamejared.crafttweaker:Crafttweaker_Annotation_Processors:${crafttweakerAPVersion}"
+        }
+    }
 }
 
 mixin {
@@ -277,6 +276,9 @@ publishing {
 
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+    if (project.hasProperty('crafttweakerAPVersion')) {
+        options.compilerArgs << "-Acrafttweaker.processor.document.output_directory=${project.layout.buildDirectory.file('crtDocs').get().getAsFile()}"
+    }
 }
 
 tasks.withType(GenerateModuleMetadata) {
