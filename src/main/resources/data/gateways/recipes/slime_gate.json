@@ -17,5 +17,5 @@
   "result": {
     "item": "gateways:gate_pearl"
   },
-  "gateway": "gateways:slime_gate"
+  "gateway": "gateways:slime_gate_normal"
 }

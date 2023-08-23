@@ -17,5 +17,5 @@
   "result": {
     "item": "gateways:gate_pearl"
   },
-  "gateway": "gateways:enderman_gate"
+  "gateway": "gateways:enderman_gate_normal"
 }

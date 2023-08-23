@@ -17,5 +17,5 @@
   "result": {
     "item": "gateways:gate_pearl"
   },
-  "gateway": "gateways:creeper_gate"
+  "gateway": "gateways:creeper_gate_normal"
 }

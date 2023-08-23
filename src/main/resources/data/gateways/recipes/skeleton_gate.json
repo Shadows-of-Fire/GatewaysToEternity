@@ -17,5 +17,5 @@
   "result": {
     "item": "gateways:gate_pearl"
   },
-  "gateway": "gateways:skeleton_gate"
+  "gateway": "gateways:skeleton_gate_normal"
 }
