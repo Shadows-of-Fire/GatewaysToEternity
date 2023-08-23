@@ -23,5 +23,5 @@
   "result": {
     "item": "gateways:gate_pearl"
   },
-  "gateway": "gateways:witch_gate"
+  "gateway": "gateways:witch_gate_normal"
 }
