@@ -516,4 +516,15 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         return false;
     }
 
+    @Nullable
+    public static GatewayEntity getOwner(Entity entity) {
+        if (entity.getPersistentData().contains("gateways.owner")) {
+            UUID id = entity.getPersistentData().getUUID("gateways.owner");
+            if (entity.level() instanceof ServerLevel sl && sl.getEntity(id) instanceof GatewayEntity gate && gate.isValid()) {
+                return gate;
+            }
+        }
+        return null;
+    }
+
 }
