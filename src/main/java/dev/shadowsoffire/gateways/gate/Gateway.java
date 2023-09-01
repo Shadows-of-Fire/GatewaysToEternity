@@ -10,71 +10,33 @@ import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity.GatewaySize;
 import dev.shadowsoffire.gateways.gate.SpawnAlgorithms.SpawnAlgorithm;
 import dev.shadowsoffire.placebo.json.PSerializer;
-import dev.shadowsoffire.placebo.reload.TypeKeyed.TypeKeyedBase;
+import dev.shadowsoffire.placebo.json.PSerializer.PSerializable;
 import net.minecraft.network.chat.TextColor;
 
-public class Gateway extends TypeKeyedBase<Gateway> {
+/**
+ * A Gateway is the definition of a Gateway Entity.
+ */
+public record Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Reward> rewards, List<Failure> failures, int completionXp, double spawnRange, double leashRange, SpawnAlgorithm spawnAlgo, boolean playerDamageOnly,
+    boolean allowDiscarding, boolean removeMobsOnFailure, boolean requiresNearbyPlayer) implements PSerializable<Gateway> {
 
-    // Formatter::off
     public static Codec<Gateway> CODEC = RecordCodecBuilder.create(inst -> inst
         .group(
-            GatewaySize.CODEC.fieldOf("size").forGetter(Gateway::getSize),
-            TextColor.CODEC.fieldOf("color").forGetter(Gateway::getColor),
-            Wave.CODEC.listOf().fieldOf("waves").forGetter(Gateway::getWaves),
-            Reward.CODEC.listOf().optionalFieldOf("rewards", Collections.emptyList()).forGetter(Gateway::getRewards),
-            Failure.CODEC.listOf().optionalFieldOf("failures", Collections.emptyList()).forGetter(Gateway::getFailures),
-            Codec.INT.fieldOf("completion_xp").forGetter(Gateway::getCompletionXp),
-            Codec.DOUBLE.fieldOf("spawn_range").forGetter(Gateway::getSpawnRange),
-            Codec.DOUBLE.optionalFieldOf("leash_range", 24D).forGetter(g -> g.leashRange),
-            SpawnAlgorithms.CODEC.optionalFieldOf("spawn_algorithm", SpawnAlgorithms.NAMED_ALGORITHMS.get(Gateways.loc("open_field"))).forGetter(g -> g.spawnAlgo),
-            Codec.BOOL.optionalFieldOf("player_damage_only", false).forGetter(g -> g.playerDamageOnly),
-            Codec.BOOL.optionalFieldOf("allow_discarding", false).forGetter(g -> g.allowDiscarding),
-            Codec.BOOL.optionalFieldOf("remove_mobs_on_failure", true).forGetter(g -> g.removeMobsOnFailure))
+            GatewaySize.CODEC.fieldOf("size").forGetter(Gateway::size),
+            TextColor.CODEC.fieldOf("color").forGetter(Gateway::color),
+            Wave.CODEC.listOf().fieldOf("waves").forGetter(Gateway::waves),
+            Reward.CODEC.listOf().optionalFieldOf("rewards", Collections.emptyList()).forGetter(Gateway::rewards),
+            Failure.CODEC.listOf().optionalFieldOf("failures", Collections.emptyList()).forGetter(Gateway::failures),
+            Codec.INT.fieldOf("completion_xp").forGetter(Gateway::completionXp),
+            Codec.DOUBLE.fieldOf("spawn_range").forGetter(Gateway::spawnRange),
+            Codec.DOUBLE.optionalFieldOf("leash_range", 24D).forGetter(Gateway::leashRange),
+            SpawnAlgorithms.CODEC.optionalFieldOf("spawn_algorithm", SpawnAlgorithms.NAMED_ALGORITHMS.get(Gateways.loc("open_field"))).forGetter(Gateway::spawnAlgo),
+            Codec.BOOL.optionalFieldOf("player_damage_only", false).forGetter(Gateway::playerDamageOnly),
+            Codec.BOOL.optionalFieldOf("allow_discarding", false).forGetter(Gateway::allowDiscarding),
+            Codec.BOOL.optionalFieldOf("remove_mobs_on_failure", true).forGetter(Gateway::removeMobsOnFailure),
+            Codec.BOOL.optionalFieldOf("requires_nearby_player", true).forGetter(Gateway::requiresNearbyPlayer))
         .apply(inst, Gateway::new));
-    // Formatter::on
 
     public static final PSerializer<Gateway> SERIALIZER = PSerializer.fromCodec("Gateway", CODEC);
-
-    protected final GatewaySize size;
-    protected final TextColor color;
-    protected final List<Wave> waves;
-    protected final List<Reward> rewards;
-    protected final List<Failure> failures;
-    protected final int completionXp;
-    protected final double spawnRange;
-    protected final double leashRange;
-    protected final SpawnAlgorithm spawnAlgo;
-    protected final boolean playerDamageOnly;
-    protected final boolean allowDiscarding;
-    protected final boolean removeMobsOnFailure;
-
-    public Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Reward> rewards, List<Failure> failures, int completionXp, double spawnRange, double leashRange, SpawnAlgorithm spawnAlgo, boolean onlyPlayerDamage,
-        boolean allowDiscarding, boolean removeMobsOnFailure) {
-        this.size = size;
-        this.color = color;
-        this.waves = waves;
-        this.rewards = rewards;
-        this.failures = failures;
-        this.completionXp = completionXp;
-        this.spawnRange = spawnRange;
-        this.leashRange = leashRange;
-        this.spawnAlgo = spawnAlgo;
-        this.playerDamageOnly = onlyPlayerDamage;
-        this.allowDiscarding = allowDiscarding;
-        this.removeMobsOnFailure = removeMobsOnFailure;
-    }
-
-    public GatewaySize getSize() {
-        return size;
-    }
-
-    public TextColor getColor() {
-        return color;
-    }
-
-    public List<Wave> getWaves() {
-        return waves;
-    }
 
     public int getNumWaves() {
         return waves.size();
@@ -84,40 +46,8 @@ public class Gateway extends TypeKeyedBase<Gateway> {
         return this.waves.get(n);
     }
 
-    public List<Reward> getRewards() {
-        return rewards;
-    }
-
-    public List<Failure> getFailures() {
-        return failures;
-    }
-
-    public int getCompletionXp() {
-        return this.completionXp;
-    }
-
-    public double getSpawnRange() {
-        return this.spawnRange;
-    }
-
     public double getLeashRangeSq() {
         return this.leashRange * this.leashRange;
-    }
-
-    public SpawnAlgorithm getSpawnAlgo() {
-        return this.spawnAlgo;
-    }
-
-    public boolean playerDamageOnly() {
-        return this.playerDamageOnly;
-    }
-
-    public boolean allowsDiscarding() {
-        return this.allowDiscarding;
-    }
-
-    public boolean removeMobsOnFailure() {
-        return this.removeMobsOnFailure;
     }
 
     @Override

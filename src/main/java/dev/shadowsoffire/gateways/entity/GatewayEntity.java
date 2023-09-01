@@ -90,7 +90,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         this.summonerId = placer.getUUID();
         this.gate = gate;
         Preconditions.checkArgument(gate.isBound(), "A gateway may not be constructed for an unbound holder.");
-        this.setCustomName(Component.translatable(gate.getId().toString().replace(':', '.')).withStyle(Style.EMPTY.withColor(gate.get().getColor())));
+        this.setCustomName(Component.translatable(gate.getId().toString().replace(':', '.')).withStyle(Style.EMPTY.withColor(gate.get().color())));
         this.bossEvent = this.createBossEvent();
         this.refreshDimensions();
     }
@@ -104,11 +104,11 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 
     @Override
     public EntityDimensions getDimensions(Pose pPose) {
-        return this.gate.get().getSize().dims;
+        return this.gate.get().size().dims;
     }
 
     protected boolean isValidRemoval(RemovalReason reason) {
-        return reason == RemovalReason.KILLED || (this.gate.get().allowsDiscarding() && reason == RemovalReason.DISCARDED);
+        return reason == RemovalReason.KILLED || (this.gate.get().allowDiscarding() && reason == RemovalReason.DISCARDED);
     }
 
     @Override
@@ -150,7 +150,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
                     this.onFailure(currentWaveEntities, FailureReason.ENTITY_DISCARDED);
                     return;
                 }
-                if (entity.tickCount % 20 == 0) this.spawnParticle(this.gate.get().getColor(), entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), 0);
+                if (entity.tickCount % 20 == 0) this.spawnParticle(this.gate.get().color(), entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), 0);
             }
             this.entityData.set(ENEMIES, enemies.size());
             if (active && enemies.size() == 0) {
@@ -211,14 +211,14 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     }
 
     protected void completePortal() {
-        int completionXp = this.getGateway().getCompletionXp();
+        int completionXp = this.getGateway().completionXp();
         while (completionXp > 0) {
             int i = 5;
             completionXp -= i;
             this.level().addFreshEntity(new ExperienceOrb(this.level(), this.getX(), this.getY(), this.getZ(), i));
         }
         Player player = summonerOrClosest();
-        this.getGateway().getRewards().forEach(r -> {
+        this.getGateway().rewards().forEach(r -> {
             r.generateLoot((ServerLevel) this.level(), this, player, this::spawnCompletionItem);
         });
 
@@ -270,7 +270,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
                 e.remove(RemovalReason.DISCARDED);
             });
         }
-        this.getGateway().getFailures().forEach(f -> f.onFailure((ServerLevel) this.level(), this, player, reason));
+        this.getGateway().failures().forEach(f -> f.onFailure((ServerLevel) this.level(), this, player, reason));
         this.bossEvent.setCreateWorldFog(false);
         this.remove(RemovalReason.DISCARDED);
     }
@@ -418,7 +418,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 
     public void spawnCompletionItem(ItemStack stack) {
         ItemEntity i = new ItemEntity(level(), 0, 0, 0, stack);
-        double variance = 0.05F * this.getGateway().getSize().getScale();
+        double variance = 0.05F * this.getGateway().size().getScale();
         i.setPos(this.getX(), this.getY() + this.getBbHeight() / 2, this.getZ());
         i.setDeltaMovement(Mth.nextDouble(random, -variance, variance), this.getBbHeight() / 20F, Mth.nextDouble(random, -variance, variance));
         i.setUnlimitedLifetime();
@@ -427,7 +427,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 
     @Override
     public void writeSpawnData(FriendlyByteBuf buf) {
-        buf.writeResourceLocation(this.getGateway().getId());
+        buf.writeResourceLocation(this.gate.getId());
     }
 
     @Override

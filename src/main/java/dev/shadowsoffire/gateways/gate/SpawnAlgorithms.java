@@ -47,7 +47,7 @@ public class SpawnAlgorithms {
     @Nullable
     public static Vec3 openField(ServerLevel level, Vec3 pos, GatewayEntity gate, WaveEntity toSpawn) {
 
-        double spawnRange = gate.getGateway().getSpawnRange();
+        double spawnRange = gate.getGateway().spawnRange();
 
         int tries = 0;
         double x = pos.x() + (-1 + 2 * level.random.nextDouble()) * spawnRange;
@@ -55,7 +55,7 @@ public class SpawnAlgorithms {
         double z = pos.z() + (-1 + 2 * level.random.nextDouble()) * spawnRange;
         while (!level.noCollision(toSpawn.getAABB(x, y, z)) && tries++ < MAX_SPAWN_TRIES) {
             x = pos.x() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
-            y = pos.y() + level.random.nextInt(3 * (int) gate.getGateway().getSize().getScale()) + 1;
+            y = pos.y() + level.random.nextInt(3 * (int) gate.getGateway().size().getScale()) + 1;
             z = pos.z() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
         }
 
@@ -83,7 +83,7 @@ public class SpawnAlgorithms {
     @Nullable
     public static Vec3 inwardSpiral(ServerLevel level, Vec3 pos, GatewayEntity gate, WaveEntity toSpawn) {
 
-        double spawnRange = gate.getGateway().getSpawnRange();
+        double spawnRange = gate.getGateway().spawnRange();
 
         int tries = 0;
         double x = pos.x() + (-1 + 2 * level.random.nextDouble()) * spawnRange;
@@ -92,7 +92,7 @@ public class SpawnAlgorithms {
         while (!level.noCollision(toSpawn.getAABB(x, y, z)) && tries++ < MAX_SPAWN_TRIES) {
             float scaleFactor = (MAX_SPAWN_TRIES - 1 - tries) / (float) MAX_SPAWN_TRIES;
             x = pos.x() + scaleFactor * (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
-            y = pos.y() + scaleFactor * level.random.nextInt(3 * (int) gate.getGateway().getSize().getScale()) + 1;
+            y = pos.y() + scaleFactor * level.random.nextInt(3 * (int) gate.getGateway().size().getScale()) + 1;
             z = pos.z() + scaleFactor * (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
         }
 

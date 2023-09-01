@@ -50,7 +50,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
     public List<LivingEntity> spawnWave(ServerLevel level, Vec3 pos, GatewayEntity gate) {
         List<LivingEntity> spawned = new ArrayList<>();
         for (WaveEntity toSpawn : entities) {
-            Vec3 spawnPos = gate.getGateway().getSpawnAlgo().spawn(level, pos, gate, toSpawn);
+            Vec3 spawnPos = gate.getGateway().spawnAlgo().spawn(level, pos, gate, toSpawn);
             LivingEntity entity = toSpawn.createEntity(level);
 
             if (spawnPos == null || entity == null) {
@@ -79,7 +79,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
             level.addFreshEntityWithPassengers(entity);
             level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP.get(), SoundSource.HOSTILE, 0.5F, 1);
             spawned.add((LivingEntity) entity);
-            gate.spawnParticle(gate.getGateway().getColor(), entity.getX() + entity.getBbWidth() / 2, entity.getY() + entity.getBbHeight() / 2, entity.getZ() + entity.getBbWidth() / 2, 0);
+            gate.spawnParticle(gate.getGateway().color(), entity.getX() + entity.getBbWidth() / 2, entity.getY() + entity.getBbHeight() / 2, entity.getZ() + entity.getBbWidth() / 2, 0);
 
         }
 

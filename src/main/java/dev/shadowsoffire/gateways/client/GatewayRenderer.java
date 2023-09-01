@@ -42,7 +42,7 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
         Vec3 playerV = player.getEyePosition(partialTicks);
         Vec3 portal = gate.position();
 
-        float baseScale = gate.getGateway().getSize().getScale();
+        float baseScale = gate.getGateway().size().getScale();
         float scale = baseScale;
         double yOffset = gate.getBbHeight() / 2;
 
@@ -82,7 +82,7 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, this.getTextureLocation(gate));
         VertexConsumer builder = buf.getBuffer(RenderType.entityCutout(getTextureLocation(gate)));
-        int color = gate.getGateway().getColor().getValue();
+        int color = gate.getGateway().color().getValue();
         int r = color >> 16 & 255, g = color >> 8 & 255, b = color & 255;
         float frameHeight = 1 / 9F;
         int frame = gate.tickCount % 9;

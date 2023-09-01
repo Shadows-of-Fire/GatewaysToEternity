@@ -50,13 +50,13 @@ public class ParticleHandler {
 
         Level level = gate.level();
         RandomSource rand = level.random;
-        int color = gate.getGateway().getColor().getValue();
+        int color = gate.getGateway().color().getValue();
         GatewayParticleData data = new GatewayParticleData(color >> 16 & 255, color >> 8 & 255, color & 255);
 
         double x = gate.getX();
         double y = gate.getY() + gate.getBbHeight() / 2;
         double z = gate.getZ();
-        float scale = gate.getGateway().getSize().getScale();
+        float scale = gate.getGateway().size().getScale();
 
         for (int i = 0; i < 30; i++) {
             float deg = (float) (i * 12 * Math.PI / 180F);

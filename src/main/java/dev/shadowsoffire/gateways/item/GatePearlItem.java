@@ -1,5 +1,7 @@
 package dev.shadowsoffire.gateways.item;
 
+import java.util.Comparator;
+
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
@@ -59,7 +61,7 @@ public class GatePearlItem extends Item implements ITabFiller {
     }
 
     public static void setGate(ItemStack opener, Gateway gate) {
-        opener.getOrCreateTag().putString("gateway", gate.getId().toString());
+        opener.getOrCreateTag().putString("gateway", GatewayRegistry.INSTANCE.getKey(gate).toString());
     }
 
     public static DynamicHolder<Gateway> getGate(ItemStack opener) {
@@ -70,7 +72,7 @@ public class GatePearlItem extends Item implements ITabFiller {
     public Component getName(ItemStack stack) {
         if (stack.hasCustomHoverName()) return super.getName(stack);
         DynamicHolder<Gateway> gate = getGate(stack);
-        if (gate.isBound()) return Component.translatable("gateways.gate_pearl", Component.translatable(gate.getId().toString().replace(':', '.'))).withStyle(Style.EMPTY.withColor(gate.get().getColor()));
+        if (gate.isBound()) return Component.translatable("gateways.gate_pearl", Component.translatable(gate.getId().toString().replace(':', '.'))).withStyle(Style.EMPTY.withColor(gate.get().color()));
         return super.getName(stack);
     }
 
@@ -80,7 +82,7 @@ public class GatePearlItem extends Item implements ITabFiller {
 
     @Override
     public void fillItemCategory(CreativeModeTab group, CreativeModeTab.Output out) {
-        GatewayRegistry.INSTANCE.getValues().stream().sorted((g1, g2) -> g1.getId().compareTo(g2.getId())).forEach(gate -> {
+        GatewayRegistry.INSTANCE.getValues().stream().sorted(Comparator.comparing(GatewayRegistry.INSTANCE::getKey)).forEach(gate -> {
             ItemStack stack = new ItemStack(this);
             setGate(stack, gate);
             out.accept(stack);

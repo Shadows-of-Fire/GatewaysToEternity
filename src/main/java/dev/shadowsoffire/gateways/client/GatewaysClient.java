@@ -55,7 +55,7 @@ public class GatewaysClient {
         e.enqueueWork(() -> {
             ItemProperties.register(GatewayObjects.GATE_PEARL.get(), new ResourceLocation(Gateways.MODID, "size"), (stack, level, entity, seed) -> {
                 DynamicHolder<Gateway> gate = GatePearlItem.getGate(stack);
-                if (gate.isBound()) return gate.get().getSize().ordinal();
+                if (gate.isBound()) return gate.get().size().ordinal();
                 return 2;
             });
         });
@@ -69,7 +69,7 @@ public class GatewaysClient {
     public static void colors(RegisterColorHandlersEvent.Item e) {
         e.register((stack, tint) -> {
             DynamicHolder<Gateway> gate = GatePearlItem.getGate(stack);
-            if (gate.isBound()) return gate.get().getColor().getValue();
+            if (gate.isBound()) return gate.get().color().getValue();
             return 0xAAAAFF;
         }, GatewayObjects.GATE_PEARL.get());
     }
@@ -167,9 +167,9 @@ public class GatewaysClient {
                 comp = Component.translatable("tooltip.gateways.completion").withStyle(Style.EMPTY.withColor(0xFCFF00).withUnderlined(true));
                 tooltips.add(comp);
                 tooltips.add(Component.nullToEmpty(null));
-                comp = Component.translatable("tooltip.gateways.experience", gate.getCompletionXp()).withStyle(Style.EMPTY.withColor(0xFCFF00));
+                comp = Component.translatable("tooltip.gateways.experience", gate.completionXp()).withStyle(Style.EMPTY.withColor(0xFCFF00));
                 tooltips.add(comp);
-                for (Reward r : gate.getRewards()) {
+                for (Reward r : gate.rewards()) {
                     r.appendHoverText(c -> {
                         tooltips.add(Component.translatable("tooltip.gateways.list2", c).withStyle(Style.EMPTY.withColor(0xFCFF00)));
                     });
@@ -179,12 +179,12 @@ public class GatewaysClient {
                 comp = Component.translatable("tooltip.gateways.ctrl").withStyle(Style.EMPTY.withColor(0xFCFF00));
                 tooltips.add(comp);
             }
-            if (!gate.getFailures().isEmpty()) {
+            if (!gate.failures().isEmpty()) {
                 if (Screen.hasAltDown()) {
                     comp = Component.translatable("tooltip.gateways.failure").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED).withUnderlined(true));
                     tooltips.add(comp);
                     tooltips.add(Component.nullToEmpty(null));
-                    for (Failure f : gate.getFailures()) {
+                    for (Failure f : gate.failures()) {
                         f.appendHoverText(c -> {
                             tooltips.add(Component.translatable("tooltip.gateways.list2", c).withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_RED)));
                         });
@@ -198,7 +198,7 @@ public class GatewaysClient {
             if (gate.playerDamageOnly()) {
                 tooltips.add(Component.translatable("tooltip.gateways.player_damage_only").withStyle(ChatFormatting.LIGHT_PURPLE, ChatFormatting.ITALIC));
             }
-            if (gate.allowsDiscarding()) {
+            if (gate.allowDiscarding()) {
                 tooltips.add(Component.translatable("tooltip.gateways.allows_discarding").withStyle(ChatFormatting.AQUA, ChatFormatting.ITALIC));
             }
         }
@@ -213,7 +213,7 @@ public class GatewaysClient {
             Level level = Minecraft.getInstance().level;
             event.setCanceled(true);
             if (level.getEntity(Integer.valueOf(name.substring(10))) instanceof GatewayEntity gate && gate.isValid()) {
-                int color = gate.getGateway().getColor().getValue();
+                int color = gate.getGateway().color().getValue();
                 int r = color >> 16 & 255, g = color >> 8 & 255, b = color & 255;
                 RenderSystem.setShaderColor(r / 255F, g / 255F, b / 255F, 1.0F);
                 GuiGraphics gfx = event.getGuiGraphics();
