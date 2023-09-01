@@ -1,15 +1,17 @@
 package dev.shadowsoffire.gateways.compat.crafttweaker.natives.entity;
 
+import org.openzen.zencode.java.ZenCodeType;
+
 import com.blamejared.crafttweaker.api.annotation.ZenRegister;
 import com.blamejared.crafttweaker.api.item.IItemStack;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 import com.blamejared.crafttweaker_annotations.annotations.NativeTypeRegistration;
+
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.Wave;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
-import org.openzen.zencode.java.ZenCodeType;
 
 @ZenRegister
 @Document("mods/Gateways/entity/GatewayEntity")

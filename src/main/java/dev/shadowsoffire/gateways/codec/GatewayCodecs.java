@@ -19,7 +19,7 @@ public class GatewayCodecs {
         return new NamespaceDefaultedMapBackedCodec<>(name, reg);
     }
 
-    public static class NamespaceDefaultedMapBackedCodec<V extends CodecProvider<V>>extends MapBackedCodec<V> {
+    public static class NamespaceDefaultedMapBackedCodec<V extends CodecProvider<V>> extends MapBackedCodec<V> {
 
         public NamespaceDefaultedMapBackedCodec(String name, BiMap<ResourceLocation, Codec<? extends V>> registry) {
             super(name, registry);
@@ -33,7 +33,7 @@ public class GatewayCodecs {
             Codec codec = this.registry.get(type);
 
             if (codec == null) {
-                return DataResult.error(() -> "Failure when parsing a " + name + ". Unrecognized type: " + type);
+                return DataResult.error(() -> "Failure when parsing a " + this.name + ". Unrecognized type: " + type);
             }
 
             return codec.decode(ops, input);

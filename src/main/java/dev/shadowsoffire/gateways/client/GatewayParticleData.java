@@ -33,17 +33,16 @@ public class GatewayParticleData implements ParticleOptions {
         return GatewayObjects.GLOW.get();
     }
 
-    public static final Codec<GatewayParticleData> CODEC = RecordCodecBuilder.create(builder -> {
-        return builder.group(Codec.FLOAT.fieldOf("r").forGetter((data) -> {
-            return data.red;
-        }), Codec.FLOAT.fieldOf("g").forGetter((data) -> {
-            return data.green;
-        }), Codec.FLOAT.fieldOf("b").forGetter((data) -> {
-            return data.blue;
-        })).apply(builder, GatewayParticleData::new);
-    });
+    public static final Codec<GatewayParticleData> CODEC = RecordCodecBuilder.create(builder -> builder.group(Codec.FLOAT.fieldOf("r").forGetter((data) -> {
+        return data.red;
+    }), Codec.FLOAT.fieldOf("g").forGetter((data) -> {
+        return data.green;
+    }), Codec.FLOAT.fieldOf("b").forGetter((data) -> {
+        return data.blue;
+    })).apply(builder, GatewayParticleData::new));
 
-    public static final ParticleOptions.Deserializer<GatewayParticleData> DESERIALIZER = new ParticleOptions.Deserializer<GatewayParticleData>(){
+    public static final ParticleOptions.Deserializer<GatewayParticleData> DESERIALIZER = new ParticleOptions.Deserializer<>(){
+        @Override
         public GatewayParticleData fromCommand(ParticleType<GatewayParticleData> type, StringReader reader) throws CommandSyntaxException {
             reader.expect(' ');
             float f = (float) reader.readDouble();
@@ -54,6 +53,7 @@ public class GatewayParticleData implements ParticleOptions {
             return new GatewayParticleData(f, f1, f2);
         }
 
+        @Override
         public GatewayParticleData fromNetwork(ParticleType<GatewayParticleData> type, FriendlyByteBuf buf) {
             return new GatewayParticleData(buf.readFloat(), buf.readFloat(), buf.readFloat());
         }

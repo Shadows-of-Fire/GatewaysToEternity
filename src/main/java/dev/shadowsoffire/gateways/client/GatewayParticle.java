@@ -24,6 +24,7 @@ import net.minecraft.world.level.Level;
 public class GatewayParticle extends TextureSheetParticle {
 
     static final ParticleRenderType RENDER_TYPE = new ParticleRenderType(){
+        @Override
         public void begin(BufferBuilder bufferBuilder, TextureManager textureManager) {
             // RenderSystem.enableAlphaTest();
             RenderSystem.depthMask(false);
@@ -36,10 +37,12 @@ public class GatewayParticle extends TextureSheetParticle {
             bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
         }
 
+        @Override
         public void end(Tesselator tesselator) {
             tesselator.end();
         }
 
+        @Override
         public String toString() {
             return "GatewayParticleType";
         }
@@ -73,10 +76,12 @@ public class GatewayParticle extends TextureSheetParticle {
         return ParticleRenderType.CUSTOM;
     }
 
+    @Override
     public float getQuadSize(float p_217561_1_) {
-        return 0.75F * this.quadSize * Mth.clamp(((float) this.age + p_217561_1_) / (float) this.lifetime * 32.0F, 0.0F, 1.0F);
+        return 0.75F * this.quadSize * Mth.clamp((this.age + p_217561_1_) / this.lifetime * 32.0F, 0.0F, 1.0F);
     }
 
+    @Override
     public void tick() {
         this.xo = this.x;
         this.yo = this.y;
@@ -92,12 +97,12 @@ public class GatewayParticle extends TextureSheetParticle {
                 this.zd *= 1.1D;
             }
 
-            this.xd *= (double) 0.86F;
-            this.yd *= (double) 0.86F;
-            this.zd *= (double) 0.86F;
+            this.xd *= 0.86F;
+            this.yd *= 0.86F;
+            this.zd *= 0.86F;
             if (this.onGround) {
-                this.xd *= (double) 0.7F;
-                this.zd *= (double) 0.7F;
+                this.xd *= 0.7F;
+                this.zd *= 0.7F;
             }
 
         }

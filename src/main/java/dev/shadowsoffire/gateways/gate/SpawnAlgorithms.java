@@ -19,7 +19,7 @@ public class SpawnAlgorithms {
     public interface SpawnAlgorithm {
         /**
          * Spawns a Wave Entity, including all passengers.
-         * 
+         *
          * @param level   The level the entity will be spawned in.
          * @param pos     The block position of the Gateway entity.
          * @param gate    The controlling Gateway entity.

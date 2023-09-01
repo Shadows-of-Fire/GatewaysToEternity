@@ -43,7 +43,7 @@ public interface Failure extends CodecProvider<Failure> {
 
     /**
      * Called when this failure is to be applied.
-     * 
+     *
      * @param level    The level the gateway is in
      * @param gate     The gateway entity
      * @param summoner The summoning player
@@ -81,7 +81,7 @@ public interface Failure extends CodecProvider<Failure> {
 
         @Override
         public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
-            level.explode(gate, gate.getX(), gate.getY(), gate.getZ(), strength, fire, blockDamage ? ExplosionInteraction.MOB : ExplosionInteraction.NONE);
+            level.explode(gate, gate.getX(), gate.getY(), gate.getZ(), this.strength, this.fire, this.blockDamage ? ExplosionInteraction.MOB : ExplosionInteraction.NONE);
         }
 
         @Override
@@ -112,7 +112,7 @@ public interface Failure extends CodecProvider<Failure> {
         @Override
         public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
             level.getNearbyPlayers(TargetingConditions.forNonCombat(), null, gate.getBoundingBox().inflate(gate.getGateway().leashRange())).forEach(p -> {
-                p.addEffect(new MobEffectInstance(effect, duration, amplifier));
+                p.addEffect(new MobEffectInstance(this.effect, this.duration, this.amplifier));
             });
         }
 
@@ -123,7 +123,7 @@ public interface Failure extends CodecProvider<Failure> {
 
         @Override
         public void appendHoverText(Consumer<Component> list) {
-            list.accept(Component.translatable("failure.gateways.mob_effect", toComponent(new MobEffectInstance(effect, duration, amplifier))));
+            list.accept(Component.translatable("failure.gateways.mob_effect", toComponent(new MobEffectInstance(this.effect, this.duration, this.amplifier))));
         }
 
         private static Component toComponent(MobEffectInstance mobeffectinstance) {
@@ -158,9 +158,9 @@ public interface Failure extends CodecProvider<Failure> {
 
         @Override
         public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
-            for (int i = 0; i < count; i++) {
-                Entity entity = type.create(level);
-                if (nbt != null) entity.load(nbt);
+            for (int i = 0; i < this.count; i++) {
+                Entity entity = this.type.create(level);
+                if (this.nbt != null) entity.load(this.nbt);
                 entity.moveTo(gate.getX(), gate.getY(), gate.getZ(), 0, 0);
                 level.addFreshEntity(entity);
             }
@@ -173,7 +173,7 @@ public interface Failure extends CodecProvider<Failure> {
 
         @Override
         public void appendHoverText(Consumer<Component> list) {
-            list.accept(Component.translatable("failure.gateways.summon", count, Component.translatable(type.getDescriptionId())));
+            list.accept(Component.translatable("failure.gateways.summon", this.count, Component.translatable(this.type.getDescriptionId())));
         }
     }
 
@@ -192,7 +192,7 @@ public interface Failure extends CodecProvider<Failure> {
 
         @Override
         public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
-            if (level.random.nextFloat() < chance) failure.onFailure(level, gate, summoner, reason);
+            if (level.random.nextFloat() < this.chance) this.failure.onFailure(level, gate, summoner, reason);
         }
 
         @Override
@@ -205,7 +205,7 @@ public interface Failure extends CodecProvider<Failure> {
         @Override
         public void appendHoverText(Consumer<Component> list) {
             this.failure.appendHoverText(c -> {
-                list.accept(Component.translatable("failure.gateways.chance", fmt.format(chance * 100), c));
+                list.accept(Component.translatable("failure.gateways.chance", fmt.format(this.chance * 100), c));
             });
         }
     }
@@ -225,7 +225,7 @@ public interface Failure extends CodecProvider<Failure> {
 
         @Override
         public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
-            String realCmd = command.replace("<summoner>", summoner.getGameProfile().getName());
+            String realCmd = this.command.replace("<summoner>", summoner.getGameProfile().getName());
             level.getServer().getCommands().performPrefixedCommand(gate.createCommandSourceStack(), realCmd);
         }
 
@@ -236,7 +236,7 @@ public interface Failure extends CodecProvider<Failure> {
 
         @Override
         public void appendHoverText(Consumer<Component> list) {
-            list.accept(Component.translatable(desc));
+            list.accept(Component.translatable(this.desc));
         }
     }
 

@@ -60,7 +60,7 @@ public interface Reward extends CodecProvider<Reward> {
 
     /**
      * Called when this reward is to be granted to the player, either on gate or wave completion.
-     * 
+     *
      * @param level    The level the gateway is in
      * @param gate     The gateway entity
      * @param summoner The summoning player
@@ -107,7 +107,7 @@ public interface Reward extends CodecProvider<Reward> {
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
-            list.accept(stack.copy());
+            list.accept(this.stack.copy());
         }
 
         @Override
@@ -135,7 +135,7 @@ public interface Reward extends CodecProvider<Reward> {
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
-            stacks.forEach(s -> list.accept(s.copy()));
+            this.stacks.forEach(s -> list.accept(s.copy()));
         }
 
         @Override
@@ -170,10 +170,10 @@ public interface Reward extends CodecProvider<Reward> {
             try {
                 List<ItemEntity> items = new ArrayList<>();
 
-                Entity entity = type.create(level);
+                Entity entity = this.type.create(level);
                 entity.getPersistentData().putBoolean("apoth.no_pinata", true);
-                for (int i = 0; i < rolls; i++) {
-                    if (nbt != null) entity.load(nbt);
+                for (int i = 0; i < this.rolls; i++) {
+                    if (this.nbt != null) entity.load(this.nbt);
                     entity.moveTo(summoner.getX(), summoner.getY(), summoner.getZ(), 0, 0);
                     DamageSource src = new DamageSource(level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.GENERIC_KILL), summoner);
                     entity.hurt(src, 1);
@@ -191,7 +191,7 @@ public interface Reward extends CodecProvider<Reward> {
 
         @Override
         public void appendHoverText(Consumer<Component> list) {
-            list.accept(Component.translatable("reward.gateways.entity", rolls, Component.translatable(type.getDescriptionId())));
+            list.accept(Component.translatable("reward.gateways.entity", this.rolls, Component.translatable(this.type.getDescriptionId())));
         }
 
         @Override
@@ -216,8 +216,8 @@ public interface Reward extends CodecProvider<Reward> {
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
-            LootTable realTable = level.getServer().getLootData().getLootTable(table);
-            for (int i = 0; i < rolls; i++) {
+            LootTable realTable = level.getServer().getLootData().getLootTable(this.table);
+            for (int i = 0; i < this.rolls; i++) {
                 LootParams.Builder ctx = new LootParams.Builder(level).withParameter(LootContextParams.ORIGIN, gate.getPosition(1));
                 ctx.withLuck(summoner.getLuck()).withParameter(LootContextParams.THIS_ENTITY, summoner).withParameter(LootContextParams.TOOL, summoner.getMainHandItem());
                 realTable.getRandomItems(ctx.create(LootContextParamSets.CHEST)).forEach(list);
@@ -226,7 +226,7 @@ public interface Reward extends CodecProvider<Reward> {
 
         @Override
         public void appendHoverText(Consumer<Component> list) {
-            list.accept(Component.translatable("reward.gateways.loot_table", rolls, this.desc.isEmpty() ? this.table : Component.translatable(this.desc)));
+            list.accept(Component.translatable("reward.gateways.loot_table", this.rolls, this.desc.isEmpty() ? this.table : Component.translatable(this.desc)));
         }
 
         @Override
@@ -252,13 +252,13 @@ public interface Reward extends CodecProvider<Reward> {
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
-            if (level.random.nextFloat() < chance) reward.generateLoot(level, gate, summoner, list);
+            if (level.random.nextFloat() < this.chance) this.reward.generateLoot(level, gate, summoner, list);
         }
 
         @Override
         public void appendHoverText(Consumer<Component> list) {
             this.reward.appendHoverText(c -> {
-                list.accept(Component.translatable("reward.gateways.chance", fmt.format(chance), c));
+                list.accept(Component.translatable("reward.gateways.chance", fmt.format(this.chance), c));
             });
         }
 
@@ -283,13 +283,13 @@ public interface Reward extends CodecProvider<Reward> {
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
-            String realCmd = command.replace("<summoner>", summoner.getGameProfile().getName());
+            String realCmd = this.command.replace("<summoner>", summoner.getGameProfile().getName());
             level.getServer().getCommands().performPrefixedCommand(gate.createCommandSourceStack(), realCmd);
         }
 
         @Override
         public void appendHoverText(Consumer<Component> list) {
-            list.accept(Component.translatable(desc));
+            list.accept(Component.translatable(this.desc));
         }
 
         @Override

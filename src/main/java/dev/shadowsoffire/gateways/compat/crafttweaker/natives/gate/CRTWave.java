@@ -1,9 +1,14 @@
 package dev.shadowsoffire.gateways.compat.crafttweaker.natives.gate;
 
+import java.util.List;
+
+import org.openzen.zencode.java.ZenCodeType;
+
 import com.blamejared.crafttweaker.api.annotation.ZenRegister;
 import com.blamejared.crafttweaker.api.item.IItemStack;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 import com.blamejared.crafttweaker_annotations.annotations.NativeTypeRegistration;
+
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.Reward;
 import dev.shadowsoffire.gateways.gate.Wave;
@@ -12,15 +17,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
-import org.openzen.zencode.java.ZenCodeType;
-
-import java.util.List;
 
 @ZenRegister
 @Document("mods/Gateways/gate/Wave")
 @NativeTypeRegistration(value = Wave.class, zenCodeName = "mods.gateways.gate.Wave")
 public class CRTWave {
-
 
     @ZenCodeType.Getter("entities")
     public static List<WaveEntity> entities(Wave internal) {

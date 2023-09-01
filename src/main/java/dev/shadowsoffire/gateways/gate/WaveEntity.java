@@ -38,7 +38,7 @@ public interface WaveEntity extends CodecProvider<WaveEntity> {
 
     /**
      * Creates the entity to be spawned in the current wave.
-     * 
+     *
      * @param level
      * @return The entity, or null if an error occured. Null will end the gate.
      */
@@ -77,7 +77,7 @@ public interface WaveEntity extends CodecProvider<WaveEntity> {
 
         @Override
         public Component getDescription() {
-            return Component.translatable(type.getDescriptionId());
+            return Component.translatable(this.type.getDescriptionId());
         }
 
         @Override

@@ -6,6 +6,7 @@ import com.blamejared.crafttweaker.api.event.bus.ForgeEventBusWire;
 import com.blamejared.crafttweaker.api.event.bus.IEventBus;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 import com.blamejared.crafttweaker_annotations.annotations.NativeTypeRegistration;
+
 import dev.shadowsoffire.gateways.event.GateEvent;
 
 @ZenRegister
@@ -16,8 +17,7 @@ public class CRTGateCompletedEvent {
 
     @ZenEvent.Bus
     public static final IEventBus<GateEvent.Completed> BUS = IEventBus.direct(
-            GateEvent.Completed.class,
-            ForgeEventBusWire.of()
-    );
+        GateEvent.Completed.class,
+        ForgeEventBusWire.of());
 
 }

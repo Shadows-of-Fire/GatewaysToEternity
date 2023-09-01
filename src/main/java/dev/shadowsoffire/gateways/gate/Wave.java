@@ -27,7 +27,7 @@ import net.minecraftforge.event.ForgeEventFactory;
 
 /**
  * A single wave of a gateway.
- * 
+ *
  * @param entities    A list of all entities to be spawned this wave, with optional NBT for additional data.
  * @param modifiers   A list of modifiers that will be applied to all spawned entities.
  * @param rewards     All rewards that will be granted at the end of the wave.
@@ -49,7 +49,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
 
     public List<LivingEntity> spawnWave(ServerLevel level, Vec3 pos, GatewayEntity gate) {
         List<LivingEntity> spawned = new ArrayList<>();
-        for (WaveEntity toSpawn : entities) {
+        for (WaveEntity toSpawn : this.entities) {
             Vec3 spawnPos = gate.getGateway().spawnAlgo().spawn(level, pos, gate, toSpawn);
             LivingEntity entity = toSpawn.createEntity(level);
 
@@ -62,7 +62,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
             entity.moveTo(spawnPos.x(), spawnPos.y(), spawnPos.z(), level.random.nextFloat() * 360, level.random.nextFloat() * 360);
 
             entity.getPassengersAndSelf().filter(e -> e instanceof LivingEntity).map(LivingEntity.class::cast).forEach(e -> {
-                modifiers.forEach(m -> m.apply(level.random, e));
+                this.modifiers.forEach(m -> m.apply(level.random, e));
                 e.setHealth(entity.getMaxHealth());
                 e.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 5, 100, true, false));
             });
@@ -78,7 +78,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
             MinecraftForge.EVENT_BUS.post(new GateEvent.WaveEntitySpawned(gate, entity));
             level.addFreshEntityWithPassengers(entity);
             level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP.get(), SoundSource.HOSTILE, 0.5F, 1);
-            spawned.add((LivingEntity) entity);
+            spawned.add(entity);
             gate.spawnParticle(gate.getGateway().color(), entity.getX() + entity.getBbWidth() / 2, entity.getY() + entity.getBbHeight() / 2, entity.getZ() + entity.getBbWidth() / 2, 0);
 
         }

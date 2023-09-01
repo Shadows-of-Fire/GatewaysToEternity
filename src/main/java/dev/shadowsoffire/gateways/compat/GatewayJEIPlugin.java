@@ -38,7 +38,7 @@ public class GatewayJEIPlugin implements IModPlugin {
         return new ResourceLocation(Gateways.MODID, "gateways");
     }
 
-    private class GateOpenerSubtypes implements IIngredientSubtypeInterpreter<ItemStack> {
+    private static class GateOpenerSubtypes implements IIngredientSubtypeInterpreter<ItemStack> {
 
         @Override
         public String apply(ItemStack stack, UidContext context) {
@@ -50,13 +50,13 @@ public class GatewayJEIPlugin implements IModPlugin {
 
     }
 
-    private class Dummy implements CreativeModeTab.Output {
+    private static class Dummy implements CreativeModeTab.Output {
 
         NonNullList<ItemStack> list = NonNullList.create();
 
         @Override
         public void accept(ItemStack pStack, TabVisibility pTabVisibility) {
-            list.add(pStack);
+            this.list.add(pStack);
         }
 
     }

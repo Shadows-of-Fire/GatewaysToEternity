@@ -21,10 +21,12 @@ public class GatewayTickableSound extends AbstractTickableSoundInstance {
         this.pitch = 0.75F;
     }
 
+    @Override
     public boolean canStartSilent() {
         return true;
     }
 
+    @Override
     public void tick() {
         if (!this.gateway.isAlive()) {
             this.stop();

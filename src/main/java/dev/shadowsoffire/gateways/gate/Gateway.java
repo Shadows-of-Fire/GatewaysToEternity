@@ -39,7 +39,7 @@ public record Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<
     public static final PSerializer<Gateway> SERIALIZER = PSerializer.fromCodec("Gateway", CODEC);
 
     public int getNumWaves() {
-        return waves.size();
+        return this.waves.size();
     }
 
     public Wave getWave(int n) {

@@ -21,19 +21,15 @@ import net.minecraft.world.phys.Vec3;
 
 public class GatewayCommand {
 
-    public static final SuggestionProvider<CommandSourceStack> SUGGEST_TYPE = (ctx, builder) -> {
-        return SharedSuggestionProvider.suggest(GatewayRegistry.INSTANCE.getKeys().stream().map(ResourceLocation::toString), builder);
-    };
+    public static final SuggestionProvider<CommandSourceStack> SUGGEST_TYPE = (ctx, builder) -> SharedSuggestionProvider.suggest(GatewayRegistry.INSTANCE.getKeys().stream().map(ResourceLocation::toString), builder);
 
     public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
         LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("open_gateway").requires(s -> s.hasPermission(2));
 
-        builder.then(Commands.argument("pos", Vec3Argument.vec3()).then(Commands.argument("type", ResourceLocationArgument.id()).suggests(SUGGEST_TYPE).executes(c -> {
-            return openGateway(c, Vec3Argument.getVec3(c, "pos"), ResourceLocationArgument.getId(c, "type"));
-        })));
-        builder.then(Commands.argument("entity", EntityArgument.entity()).then(Commands.argument("type", ResourceLocationArgument.id()).suggests(SUGGEST_TYPE).executes(c -> {
-            return openGateway(c, EntityArgument.getEntity(c, "entity").position(), ResourceLocationArgument.getId(c, "type"));
-        })));
+        builder.then(Commands.argument("pos", Vec3Argument.vec3())
+            .then(Commands.argument("type", ResourceLocationArgument.id()).suggests(SUGGEST_TYPE).executes(c -> openGateway(c, Vec3Argument.getVec3(c, "pos"), ResourceLocationArgument.getId(c, "type")))));
+        builder.then(Commands.argument("entity", EntityArgument.entity())
+            .then(Commands.argument("type", ResourceLocationArgument.id()).suggests(SUGGEST_TYPE).executes(c -> openGateway(c, EntityArgument.getEntity(c, "entity").position(), ResourceLocationArgument.getId(c, "type")))));
         pDispatcher.register(builder);
     }
 

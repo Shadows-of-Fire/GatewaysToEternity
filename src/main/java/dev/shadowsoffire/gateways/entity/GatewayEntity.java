@@ -108,7 +108,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     }
 
     protected boolean isValidRemoval(RemovalReason reason) {
-        return reason == RemovalReason.KILLED || (this.gate.get().allowDiscarding() && reason == RemovalReason.DISCARDED);
+        return reason == RemovalReason.KILLED || this.gate.get().allowDiscarding() && reason == RemovalReason.DISCARDED;
     }
 
     @Override
@@ -120,17 +120,17 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 
         super.tick();
 
-        if (!level().isClientSide) {
-            if (!unresolvedWaveEntities.isEmpty()) {
-                for (UUID id : unresolvedWaveEntities) {
-                    Entity e = ((ServerLevel) level()).getEntity(id);
+        if (!this.level().isClientSide) {
+            if (!this.unresolvedWaveEntities.isEmpty()) {
+                for (UUID id : this.unresolvedWaveEntities) {
+                    Entity e = ((ServerLevel) this.level()).getEntity(id);
                     if (e instanceof LivingEntity) this.currentWaveEntities.add((LivingEntity) e);
                 }
-                unresolvedWaveEntities.clear();
+                this.unresolvedWaveEntities.clear();
             }
 
-            if (isWaveActive()) {
-                int maxWaveTime = getCurrentWave().maxWaveTime();
+            if (this.isWaveActive()) {
+                int maxWaveTime = this.getCurrentWave().maxWaveTime();
                 if (this.getTicksActive() > maxWaveTime) {
                     this.onFailure(this.currentWaveEntities, FailureReason.TIMER_ELAPSED);
                     return;
@@ -138,29 +138,29 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
                 this.entityData.set(TICKS_ACTIVE, this.getTicksActive() + 1);
             }
 
-            boolean active = isWaveActive();
+            boolean active = this.isWaveActive();
             // Collect all remaining enemies, which are those that are alive and not removed via a valid reason.
-            List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(e -> e.getHealth() > 0 && !isValidRemoval(e.getRemovalReason())).toList();
+            List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(e -> e.getHealth() > 0 && !this.isValidRemoval(e.getRemovalReason())).toList();
             for (LivingEntity entity : enemies) {
-                if (isOutOfRange(entity)) {
-                    this.onFailure(currentWaveEntities, FailureReason.ENTITY_TOO_FAR);
+                if (this.isOutOfRange(entity)) {
+                    this.onFailure(this.currentWaveEntities, FailureReason.ENTITY_TOO_FAR);
                     return;
                 }
                 if (entity.getRemovalReason() == RemovalReason.DISCARDED) {
-                    this.onFailure(currentWaveEntities, FailureReason.ENTITY_DISCARDED);
+                    this.onFailure(this.currentWaveEntities, FailureReason.ENTITY_DISCARDED);
                     return;
                 }
                 if (entity.tickCount % 20 == 0) this.spawnParticle(this.gate.get().color(), entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), 0);
             }
             this.entityData.set(ENEMIES, enemies.size());
             if (active && enemies.size() == 0) {
-                this.onWaveEnd(getCurrentWave());
+                this.onWaveEnd(this.getCurrentWave());
                 this.currentWaveEntities.clear();
                 this.entityData.set(WAVE_ACTIVE, false);
                 this.entityData.set(TICKS_ACTIVE, 0);
-                this.entityData.set(WAVE, Math.min(getWave() + 1, this.gate.get().getNumWaves()));
+                this.entityData.set(WAVE, Math.min(this.getWave() + 1, this.gate.get().getNumWaves()));
             }
-            else if (!active && !isLastWave()) {
+            else if (!active && !this.isLastWave()) {
                 if (this.getTicksActive() > this.getCurrentWave().setupTime()) {
                     this.spawnWave();
                     return;
@@ -168,14 +168,14 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
                 this.entityData.set(TICKS_ACTIVE, this.getTicksActive() + 1);
             }
 
-            if (this.tickCount % 4 == 0 && !undroppedItems.isEmpty()) {
+            if (this.tickCount % 4 == 0 && !this.undroppedItems.isEmpty()) {
                 for (int i = 0; i < this.getDropCount(); i++) {
-                    spawnItem(undroppedItems.remove());
-                    if (undroppedItems.isEmpty()) break;
+                    this.spawnItem(this.undroppedItems.remove());
+                    if (this.undroppedItems.isEmpty()) break;
                 }
             }
 
-            if (!active && undroppedItems.isEmpty() && isLastWave()) {
+            if (!active && this.undroppedItems.isEmpty() && this.isLastWave()) {
                 this.completePortal();
             }
         }
@@ -202,7 +202,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     }
 
     public void spawnWave() {
-        List<LivingEntity> spawned = this.getGateway().getWave(getWave()).spawnWave((ServerLevel) this.level(), this.position(), this);
+        List<LivingEntity> spawned = this.getGateway().getWave(this.getWave()).spawnWave((ServerLevel) this.level(), this.position(), this);
         this.currentWaveEntities.addAll(spawned);
 
         this.entityData.set(WAVE_ACTIVE, true);
@@ -217,7 +217,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
             completionXp -= i;
             this.level().addFreshEntity(new ExperienceOrb(this.level(), this.getX(), this.getY(), this.getZ(), i));
         }
-        Player player = summonerOrClosest();
+        Player player = this.summonerOrClosest();
         this.getGateway().rewards().forEach(r -> {
             r.generateLoot((ServerLevel) this.level(), this, player, this::spawnCompletionItem);
         });
@@ -226,7 +226,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         this.remove(RemovalReason.KILLED);
         this.playSound(GatewayObjects.GATE_END.get(), 1, 1);
 
-        this.level().getNearbyPlayers(TargetingConditions.DEFAULT, null, getBoundingBox().inflate(15)).forEach(p -> p.awardStat(GatewayObjects.GATES_DEFEATED.get()));
+        this.level().getNearbyPlayers(TargetingConditions.DEFAULT, null, this.getBoundingBox().inflate(15)).forEach(p -> p.awardStat(GatewayObjects.GATES_DEFEATED.get()));
         MinecraftForge.EVENT_BUS.post(new GateEvent.Completed(this));
     }
 
@@ -239,18 +239,18 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
      * Called when a wave is completed. Responsible for loot spawns.
      */
     protected void onWaveEnd(Wave wave) {
-        Player player = summonerOrClosest();
-        undroppedItems.addAll(wave.spawnRewards((ServerLevel) level(), this, player));
+        Player player = this.summonerOrClosest();
+        this.undroppedItems.addAll(wave.spawnRewards((ServerLevel) this.level(), this, player));
         MinecraftForge.EVENT_BUS.post(new GateEvent.WaveEnd(this));
     }
 
     public Player summonerOrClosest() {
-        Player player = this.summonerId == null ? null : level().getPlayerByUUID(summonerId);
+        Player player = this.summonerId == null ? null : this.level().getPlayerByUUID(this.summonerId);
         if (player == null) {
-            player = level().getNearestPlayer(this, 50);
+            player = this.level().getNearestPlayer(this, 50);
         }
         if (player == null) {
-            return summonerId == null ? FakePlayerFactory.getMinecraft((ServerLevel) level()) : FakePlayerFactory.get((ServerLevel) level(), new GameProfile(summonerId, ""));
+            return this.summonerId == null ? FakePlayerFactory.getMinecraft((ServerLevel) this.level()) : FakePlayerFactory.get((ServerLevel) this.level(), new GameProfile(this.summonerId, ""));
         }
         return player;
     }
@@ -261,7 +261,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     public void onFailure(Collection<LivingEntity> remaining, FailureReason reason) {
         this.failureReason = reason;
         MinecraftForge.EVENT_BUS.post(new GateEvent.Failed(this));
-        Player player = summonerOrClosest();
+        Player player = this.summonerOrClosest();
         if (player != null) player.sendSystemMessage(reason.getMsg());
         spawnLightningOn(this, false);
         if (this.getGateway().removeMobsOnFailure()) {
@@ -283,7 +283,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
 
     @Override
     protected void addAdditionalSaveData(CompoundTag tag) {
-        tag.putInt("wave", getWave());
+        tag.putInt("wave", this.getWave());
         tag.putString("gate", this.gate.getId().toString());
         long[] ids = new long[this.currentWaveEntities.size() * 2];
         int idx = 0;
@@ -293,8 +293,8 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
             ids[idx++] = id.getLeastSignificantBits();
         }
         tag.putLongArray("wave_entities", ids);
-        tag.putBoolean("active", isWaveActive());
-        tag.putInt("ticks_active", getTicksActive());
+        tag.putBoolean("active", this.isWaveActive());
+        tag.putInt("ticks_active", this.getTicksActive());
         if (this.summonerId != null) tag.putUUID("summoner", this.summonerId);
         ListTag stacks = new ListTag();
         for (ItemStack s : this.undroppedItems) {
@@ -319,7 +319,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
             this.unresolvedWaveEntities.clear();
             long[] entities = tag.getLongArray("wave_entities");
             for (int i = 0; i < entities.length; i += 2) {
-                unresolvedWaveEntities.add(new UUID(entities[i], entities[i + 1]));
+                this.unresolvedWaveEntities.add(new UUID(entities[i], entities[i + 1]));
             }
         }
 
@@ -330,10 +330,10 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
             this.undroppedItems.clear();
             ListTag stacks = tag.getList("queued_stacks", Tag.TAG_COMPOUND);
             for (Tag inbt : stacks) {
-                undroppedItems.add(ItemStack.of((CompoundTag) inbt));
+                this.undroppedItems.add(ItemStack.of((CompoundTag) inbt));
             }
         }
-        this.bossEvent = createBossEvent();
+        this.bossEvent = this.createBossEvent();
     }
 
     @Override
@@ -378,7 +378,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     }
 
     public Gateway getGateway() {
-        return gate.get();
+        return this.gate.get();
     }
 
     public boolean isValid() {
@@ -386,7 +386,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     }
 
     public ServerBossEvent getBossInfo() {
-        return bossEvent;
+        return this.bossEvent;
     }
 
     public float getClientScale() {
@@ -405,24 +405,24 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     }
 
     public void spawnParticle(TextColor color, double x, double y, double z, int type) {
-        PacketDistro.sendToTracking(Gateways.CHANNEL, new ParticleMessage(this, x, y, z, color, type), (ServerLevel) level(), new BlockPos((int) x, (int) y, (int) z));
+        PacketDistro.sendToTracking(Gateways.CHANNEL, new ParticleMessage(this, x, y, z, color, type), (ServerLevel) this.level(), new BlockPos((int) x, (int) y, (int) z));
     }
 
     public void spawnItem(ItemStack stack) {
-        ItemEntity i = new ItemEntity(level(), 0, 0, 0, stack);
-        i.setPos(this.getX() + Mth.nextDouble(random, -0.5, 0.5), this.getY() + 1.5, this.getZ() + Mth.nextDouble(random, -0.5, 0.5));
-        i.setDeltaMovement(Mth.nextDouble(random, -0.15, 0.15), 0.4, Mth.nextDouble(random, -0.15, 0.15));
-        level().addFreshEntity(i);
+        ItemEntity i = new ItemEntity(this.level(), 0, 0, 0, stack);
+        i.setPos(this.getX() + Mth.nextDouble(this.random, -0.5, 0.5), this.getY() + 1.5, this.getZ() + Mth.nextDouble(this.random, -0.5, 0.5));
+        i.setDeltaMovement(Mth.nextDouble(this.random, -0.15, 0.15), 0.4, Mth.nextDouble(this.random, -0.15, 0.15));
+        this.level().addFreshEntity(i);
         this.level().playSound(null, i.getX(), i.getY(), i.getZ(), GatewayObjects.GATE_WARP.get(), SoundSource.HOSTILE, 0.25F, 2.0F);
     }
 
     public void spawnCompletionItem(ItemStack stack) {
-        ItemEntity i = new ItemEntity(level(), 0, 0, 0, stack);
+        ItemEntity i = new ItemEntity(this.level(), 0, 0, 0, stack);
         double variance = 0.05F * this.getGateway().size().getScale();
         i.setPos(this.getX(), this.getY() + this.getBbHeight() / 2, this.getZ());
-        i.setDeltaMovement(Mth.nextDouble(random, -variance, variance), this.getBbHeight() / 20F, Mth.nextDouble(random, -variance, variance));
+        i.setDeltaMovement(Mth.nextDouble(this.random, -variance, variance), this.getBbHeight() / 20F, Mth.nextDouble(this.random, -variance, variance));
         i.setUnlimitedLifetime();
-        level().addFreshEntity(i);
+        this.level().addFreshEntity(i);
     }
 
     @Override
@@ -493,7 +493,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     /**
      * Handles the conversion of entity into outcome.<br>
      * From the context of a gateway, this means all references must be updated to track the new entity.
-     * 
+     *
      * @param entity  The old entity, which is owned by this gateway.
      * @param outcome The new entity.
      */

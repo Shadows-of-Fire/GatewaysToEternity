@@ -1,14 +1,16 @@
 package dev.shadowsoffire.gateways.compat.crafttweaker.natives.gate;
 
+import org.openzen.zencode.java.ZenCodeType;
+
 import com.blamejared.crafttweaker.api.annotation.ZenRegister;
 import com.blamejared.crafttweaker_annotations.annotations.Document;
 import com.blamejared.crafttweaker_annotations.annotations.NativeTypeRegistration;
+
 import dev.shadowsoffire.gateways.gate.WaveEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
-import org.openzen.zencode.java.ZenCodeType;
 
 @ZenRegister
 @Document("mods/Gateways/gate/WaveEntity")

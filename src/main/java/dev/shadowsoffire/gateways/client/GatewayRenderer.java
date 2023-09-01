@@ -70,7 +70,7 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
                 matrix.scale(1, Mth.lerp(time / magic, 1.33F, 1F), 1);
             }
             else {
-                float progress = ((gate.getTicksActive() + partialTicks - 20) % 80) / 80F;
+                float progress = (gate.getTicksActive() + partialTicks - 20) % 80 / 80F;
                 scale += (float) Math.sin(2 * Math.PI * progress) * baseScale / 6F;
                 gate.setClientScale(scale);
             }
@@ -81,7 +81,7 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, this.getTextureLocation(gate));
-        VertexConsumer builder = buf.getBuffer(RenderType.entityCutout(getTextureLocation(gate)));
+        VertexConsumer builder = buf.getBuffer(RenderType.entityCutout(this.getTextureLocation(gate)));
         int color = gate.getGateway().color().getValue();
         int r = color >> 16 & 255, g = color >> 8 & 255, b = color & 255;
         float frameHeight = 1 / 9F;
