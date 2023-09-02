@@ -12,9 +12,9 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import dev.shadowsoffire.gateways.Gateways;
-import dev.shadowsoffire.gateways.codec.GatewayCodecs;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.entity.GatewayEntity.FailureReason;
+import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import dev.shadowsoffire.placebo.codec.PlaceboCodecs.CodecProvider;
 import dev.shadowsoffire.placebo.json.NBTAdapter;
 import net.minecraft.nbt.CompoundTag;
@@ -39,7 +39,7 @@ public interface Failure extends CodecProvider<Failure> {
 
     public static final BiMap<ResourceLocation, Codec<? extends Failure>> CODECS = HashBiMap.create();
 
-    public static final Codec<Failure> CODEC = GatewayCodecs.mapBacked("Gateway Failure", CODECS);
+    public static final Codec<Failure> CODEC = PlaceboCodecs.mapBacked("Gateway Failure", CODECS);
 
     /**
      * Called when this failure is to be applied.

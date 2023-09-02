@@ -26,14 +26,13 @@ public class Gateways {
 
     public static final String MODID = "gateways";
     public static final Logger LOGGER = LogManager.getLogger("Gateways to Eternity");
-    // Formatter::off
+
     public static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder
         .named(new ResourceLocation(MODID, "channel"))
         .clientAcceptedVersions(s -> true)
         .serverAcceptedVersions(s -> true)
         .networkProtocolVersion(() -> "1.0.0")
         .simpleChannel();
-    // Formatter::on
 
     public Gateways() {
         FMLJavaModLoadingContext.get().getModEventBus().register(this);

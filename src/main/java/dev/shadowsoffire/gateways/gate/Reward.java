@@ -17,8 +17,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import dev.shadowsoffire.gateways.Gateways;
-import dev.shadowsoffire.gateways.codec.GatewayCodecs;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
+import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import dev.shadowsoffire.placebo.codec.PlaceboCodecs.CodecProvider;
 import dev.shadowsoffire.placebo.json.ItemAdapter;
 import dev.shadowsoffire.placebo.json.NBTAdapter;
@@ -52,7 +52,7 @@ public interface Reward extends CodecProvider<Reward> {
 
     public static final BiMap<ResourceLocation, Codec<? extends Reward>> CODECS = HashBiMap.create();
 
-    public static final Codec<Reward> CODEC = GatewayCodecs.mapBacked("Gateway Reward", CODECS);
+    public static final Codec<Reward> CODEC = PlaceboCodecs.mapBacked("Gateway Reward", CODECS);
 
     /**
      * Method ref to public net.minecraft.world.entity.LivingEntity m_7625_(Lnet/minecraft/world/damagesource/DamageSource;Z)V # dropFromLootTable
