@@ -25,6 +25,7 @@ import dev.shadowsoffire.placebo.json.NBTAdapter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
@@ -32,6 +33,7 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Entity.RemovalReason;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -77,6 +79,7 @@ public interface Reward extends CodecProvider<Reward> {
         register("loot_table", LootTableReward.CODEC);
         register("chanced", ChancedReward.CODEC);
         register("command", CommandReward.CODEC);
+        register("experience", XpReward.CODEC);
     }
 
     private static void register(String id, Codec<? extends Reward> codec) {
@@ -273,13 +276,11 @@ public interface Reward extends CodecProvider<Reward> {
      */
     public static record CommandReward(String command, String desc) implements Reward {
 
-        // Formatter::off
         public static Codec<CommandReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 Codec.STRING.fieldOf("command").forGetter(CommandReward::command),
                 Codec.STRING.fieldOf("desc").forGetter(CommandReward::desc))
             .apply(inst, CommandReward::new));
-        // Formatter::on
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
@@ -298,4 +299,34 @@ public interface Reward extends CodecProvider<Reward> {
         }
     }
 
+    /**
+     * Provides a certain amount of XP as a reward.
+     */
+    public static record XpReward(int xp, int orbSize) implements Reward {
+
+        public static Codec<XpReward> CODEC = RecordCodecBuilder.create(inst -> inst
+            .group(
+                Codec.INT.fieldOf("experience").forGetter(XpReward::xp),
+                Codec.INT.optionalFieldOf("orb_size", 5).forGetter(XpReward::orbSize))
+            .apply(inst, XpReward::new));
+
+        @Override
+        public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
+            int remaining = this.xp;
+            while (remaining > 0) {
+                remaining -= orbSize;
+                level.addFreshEntity(new ExperienceOrb(level, gate.getX(), gate.getY(), gate.getZ(), orbSize));
+            }
+        }
+
+        @Override
+        public void appendHoverText(Consumer<Component> list) {
+            list.accept(Component.translatable("tooltip.gateways.experience", this.xp).withStyle(Style.EMPTY.withColor(0xFCFF00)));
+        }
+
+        @Override
+        public Codec<? extends Reward> getCodec() {
+            return CODEC;
+        }
+    }
 }

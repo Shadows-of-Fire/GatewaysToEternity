@@ -15,9 +15,17 @@ import net.minecraft.network.chat.TextColor;
 
 /**
  * A Gateway is the definition of a Gateway Entity.
+ * 
+ * @param size      The size of the Gateway. Controls bounding box and pearl texture.
+ * @param color     The color of the Gateway. Used for the Gateway, boss bar, name, and pearl.
+ * @param waves     The {@linkplain Wave waves} of the Gateway.
+ * @param rewards   The {@linkplain Reward completion rewards} if the final wave is defeated.
+ * @param failures  The {@linkplain Failure penalties} for failing the gateway.
+ * @param spawnAlgo The {@linkplain SpawnAlgorithm spawn algorithm} used for placing wave entities.
+ * @param rules     The {@linkplain GateRules rules} of the Gateway.
  */
-public record Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Reward> rewards, List<Failure> failures, int completionXp, double spawnRange, double leashRange, SpawnAlgorithm spawnAlgo, boolean playerDamageOnly,
-    boolean allowDiscarding, boolean removeMobsOnFailure, boolean requiresNearbyPlayer) implements PSerializable<Gateway> {
+public record Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Reward> rewards, List<Failure> failures, SpawnAlgorithm spawnAlgo, GateRules rules,
+    BossEventSettings bossEventSettings) implements PSerializable<Gateway> {
 
     public static Codec<Gateway> CODEC = RecordCodecBuilder.create(inst -> inst
         .group(
@@ -26,14 +34,9 @@ public record Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<
             Wave.CODEC.listOf().fieldOf("waves").forGetter(Gateway::waves),
             Reward.CODEC.listOf().optionalFieldOf("rewards", Collections.emptyList()).forGetter(Gateway::rewards),
             Failure.CODEC.listOf().optionalFieldOf("failures", Collections.emptyList()).forGetter(Gateway::failures),
-            Codec.INT.fieldOf("completion_xp").forGetter(Gateway::completionXp),
-            Codec.DOUBLE.fieldOf("spawn_range").forGetter(Gateway::spawnRange),
-            Codec.DOUBLE.optionalFieldOf("leash_range", 24D).forGetter(Gateway::leashRange),
             SpawnAlgorithms.CODEC.optionalFieldOf("spawn_algorithm", SpawnAlgorithms.NAMED_ALGORITHMS.get(Gateways.loc("open_field"))).forGetter(Gateway::spawnAlgo),
-            Codec.BOOL.optionalFieldOf("player_damage_only", false).forGetter(Gateway::playerDamageOnly),
-            Codec.BOOL.optionalFieldOf("allow_discarding", false).forGetter(Gateway::allowDiscarding),
-            Codec.BOOL.optionalFieldOf("remove_mobs_on_failure", true).forGetter(Gateway::removeMobsOnFailure),
-            Codec.BOOL.optionalFieldOf("requires_nearby_player", true).forGetter(Gateway::requiresNearbyPlayer))
+            GateRules.CODEC.optionalFieldOf("rules", GateRules.DEFAULT).forGetter(Gateway::rules),
+            BossEventSettings.CODEC.optionalFieldOf("boss_event", BossEventSettings.DEFAULT).forGetter(Gateway::bossEventSettings))
         .apply(inst, Gateway::new));
 
     public static final PSerializer<Gateway> SERIALIZER = PSerializer.fromCodec("Gateway", CODEC);
@@ -47,7 +50,8 @@ public record Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<
     }
 
     public double getLeashRangeSq() {
-        return this.leashRange * this.leashRange;
+        double leashRange = this.rules.leashRange();
+        return leashRange * leashRange;
     }
 
     @Override

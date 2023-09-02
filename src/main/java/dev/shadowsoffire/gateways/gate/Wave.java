@@ -11,6 +11,7 @@ import dev.shadowsoffire.gateways.GatewayObjects;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.entity.GatewayEntity.FailureReason;
 import dev.shadowsoffire.gateways.event.GateEvent;
+import dev.shadowsoffire.gateways.net.ParticleMessage;
 import dev.shadowsoffire.placebo.json.RandomAttributeModifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
@@ -50,10 +51,14 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
     public List<LivingEntity> spawnWave(ServerLevel level, Vec3 pos, GatewayEntity gate) {
         List<LivingEntity> spawned = new ArrayList<>();
         for (WaveEntity toSpawn : this.entities) {
-            Vec3 spawnPos = gate.getGateway().spawnAlgo().spawn(level, pos, gate, toSpawn);
             LivingEntity entity = toSpawn.createEntity(level);
+            if (entity == null) {
+                gate.onFailure(spawned, FailureReason.SPAWN_FAILED);
+                break;
+            }
 
-            if (spawnPos == null || entity == null) {
+            Vec3 spawnPos = gate.getGateway().spawnAlgo().spawn(level, pos, gate, entity);
+            if (spawnPos == null) {
                 gate.onFailure(spawned, FailureReason.SPAWN_FAILED);
                 break;
             }
@@ -71,7 +76,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
                 if (toSpawn.shouldFinalizeSpawn()) {
                     ForgeEventFactory.onFinalizeSpawn(mob, level, level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.SPAWNER, null, null);
                 }
-                mob.setTarget(gate.level().getNearestPlayer(gate, 12));
+                mob.setTarget(gate.summonerOrClosest());
                 mob.setPersistenceRequired();
             }
 
@@ -79,7 +84,7 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
             level.addFreshEntityWithPassengers(entity);
             level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP.get(), SoundSource.HOSTILE, 0.5F, 1);
             spawned.add(entity);
-            gate.spawnParticle(gate.getGateway().color(), entity.getX() + entity.getBbWidth() / 2, entity.getY() + entity.getBbHeight() / 2, entity.getZ() + entity.getBbWidth() / 2, 0);
+            gate.spawnParticle(entity.getX(), entity.getY(), entity.getZ(), ParticleMessage.Type.SPAWNED);
 
         }
 

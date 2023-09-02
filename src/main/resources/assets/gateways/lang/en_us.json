@@ -40,11 +40,11 @@
 
 	"info.gateways.gate_pearl": "A Gate Pearl allows you to summon a Gateway by using it on a block.\n\nThere will need to be sufficient space available, and another Gateway cannot already be open.\n",
 	"info.gateways.gate_pearl.2": "An open Gateway will fail in a burst of lightning if it cannot spawn a mob, any active mob walks too far away, or the wave timer elapses.\n\nRewards will spawn from the Gateway as they are obtained.",
-	
+
 	"tooltip.gateways.scroll": " [scroll to change]",
 	"tooltip.gateways.wave": "Wave %s/%s%s",
 	"tooltip.gateways.entities": "Entities: ",
-	"tooltip.gateways.list1": "• %sx %s ",
+	"tooltip.gateways.list1": "• %sx %s",
 	"tooltip.gateways.modifiers": "Modifiers: ",
 	"tooltip.gateways.list2": "• %s",
 	"tooltip.gateways.rewards": "Rewards: ",

@@ -14,6 +14,7 @@ import net.minecraftforge.event.entity.living.LivingConversionEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.MobSpawnEvent.AllowDespawn;
 import net.minecraftforge.eventbus.api.Event.Result;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class GatewayEvents {
@@ -51,11 +52,11 @@ public class GatewayEvents {
         GatewayEntity gate = GatewayEntity.getOwner(e.getEntity());
         if (gate != null) {
             boolean isPlayerDamage = e.getSource().getEntity() instanceof Player p && !(p instanceof FakePlayer);
-            if (!isPlayerDamage && gate.getGateway().playerDamageOnly()) e.setCanceled(true);
+            if (!isPlayerDamage && gate.getGateway().rules().playerDamageOnly()) e.setCanceled(true);
         }
     }
 
-    @SubscribeEvent
+    @SubscribeEvent(priority = EventPriority.LOWEST)
     public void despawn(AllowDespawn e) {
         if (GatewayEntity.getOwner(e.getEntity()) != null) e.setResult(Result.DENY);
     }

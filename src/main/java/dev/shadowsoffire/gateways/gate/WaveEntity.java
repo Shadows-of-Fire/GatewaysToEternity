@@ -18,8 +18,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 import net.minecraftforge.registries.ForgeRegistries;
 
 public interface WaveEntity extends CodecProvider<WaveEntity> {
@@ -39,34 +39,50 @@ public interface WaveEntity extends CodecProvider<WaveEntity> {
     /**
      * Creates the entity to be spawned in the current wave.
      *
-     * @param level
+     * @param level The level.
      * @return The entity, or null if an error occured. Null will end the gate.
      */
     public LivingEntity createEntity(Level level);
 
+    /**
+     * Gets the tooltip form of this wave entity for display in the Gate Pearl's "Waves" section.
+     */
     public Component getDescription();
 
-    public AABB getAABB(double x, double y, double z);
-
+    /**
+     * If the spawned wave entity should have {@link Mob#finalizeSpawn} called.
+     */
     public boolean shouldFinalizeSpawn();
+
+    /**
+     * The number of times this wave entity should be spawned.
+     */
+    public int getCount();
 
     public static class StandardWaveEntity implements WaveEntity {
 
-        // Formatter::off
         public static Codec<StandardWaveEntity> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 ForgeRegistries.ENTITY_TYPES.getCodec().fieldOf("entity").forGetter(t -> t.type),
-                NBTAdapter.EITHER_CODEC.optionalFieldOf("nbt").forGetter(t -> Optional.ofNullable(t.tag)))
+                Codec.STRING.optionalFieldOf("desc").forGetter(t -> Optional.of(t.desc)),
+                NBTAdapter.EITHER_CODEC.optionalFieldOf("nbt").forGetter(t -> Optional.of(t.tag)),
+                Codec.BOOL.optionalFieldOf("finalize_spawn", true).forGetter(t -> t.finalizeSpawn),
+                Codec.intRange(1, 256).optionalFieldOf("count", 1).forGetter(t -> t.count))
             .apply(inst, StandardWaveEntity::new));
-        // Formatter::on
 
         protected final EntityType<?> type;
+        protected final String desc;
         protected final CompoundTag tag;
+        protected final boolean finalizeSpawn;
+        protected final int count;
 
-        public StandardWaveEntity(EntityType<?> type, Optional<CompoundTag> tag) {
+        public StandardWaveEntity(EntityType<?> type, Optional<String> desc, Optional<CompoundTag> tag, boolean finalizeSpawn, int count) {
             this.type = type;
+            this.desc = desc.orElse(type.getDescriptionId());
             this.tag = tag.orElse(new CompoundTag());
             this.tag.putString("id", EntityType.getKey(type).toString());
+            this.finalizeSpawn = finalizeSpawn;
+            this.count = count;
         }
 
         @Override
@@ -77,17 +93,17 @@ public interface WaveEntity extends CodecProvider<WaveEntity> {
 
         @Override
         public Component getDescription() {
-            return Component.translatable(this.type.getDescriptionId());
-        }
-
-        @Override
-        public AABB getAABB(double x, double y, double z) {
-            return this.type.getAABB(x, y, z);
+            return Component.translatable("tooltip.gateways.list1", getCount(), Component.translatable(this.desc));
         }
 
         @Override
         public boolean shouldFinalizeSpawn() {
-            return this.tag.size() == 1 || this.tag.getBoolean("ForceFinalizeSpawn");
+            return finalizeSpawn;
+        }
+
+        @Override
+        public int getCount() {
+            return this.count;
         }
 
         @Override

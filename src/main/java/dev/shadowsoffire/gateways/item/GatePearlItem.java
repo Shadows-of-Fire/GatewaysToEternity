@@ -21,7 +21,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class GatePearlItem extends Item implements ITabFiller {
 
@@ -38,11 +38,15 @@ public class GatePearlItem extends Item implements ITabFiller {
 
         if (!gate.isBound()) return InteractionResult.FAIL;
         if (world.isClientSide) return InteractionResult.SUCCESS;
-        if (!world.getEntitiesOfClass(GatewayEntity.class, new AABB(pos).inflate(25, 25, 25)).isEmpty()) return InteractionResult.FAIL;
 
         GatewayEntity entity = new GatewayEntity(world, ctx.getPlayer(), gate);
         BlockState state = world.getBlockState(pos);
-        entity.setPos(pos.getX() + 0.5, pos.getY() + state.getShape(world, pos).max(Axis.Y), pos.getZ() + 0.5);
+        VoxelShape shape = state.getCollisionShape(world, pos);
+        entity.setPos(pos.getX() + 0.5, pos.getY() + (shape.isEmpty() ? 0 : shape.max(Axis.Y)), pos.getZ() + 0.5);
+
+        double spacing = Math.max(0, gate.get().rules().spacing());
+        if (!world.getEntitiesOfClass(GatewayEntity.class, entity.getBoundingBox().inflate(spacing)).isEmpty()) return InteractionResult.FAIL;
+
         int y = 0;
         while (y++ < 4) {
             if (!world.noCollision(entity)) {

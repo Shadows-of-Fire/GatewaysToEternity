@@ -10,7 +10,6 @@ import dev.shadowsoffire.gateways.gate.WaveEntity;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
 
 @ZenRegister
 @Document("mods/Gateways/gate/WaveEntity")
@@ -25,11 +24,6 @@ public class CRTWaveEntity {
     @ZenCodeType.Getter("description")
     public static Component getDescription(WaveEntity internal) {
         return internal.getDescription();
-    }
-
-    @ZenCodeType.Method
-    public static AABB getAABB(WaveEntity internal, double x, double y, double z) {
-        return internal.getAABB(x, y, z);
     }
 
     @ZenCodeType.Getter("shouldFinalizeSpawn")

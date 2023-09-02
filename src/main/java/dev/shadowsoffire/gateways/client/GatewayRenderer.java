@@ -9,6 +9,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -77,7 +78,6 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
         }
 
         matrix.scale(scale, scale, 1);
-
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.setShaderTexture(0, this.getTextureLocation(gate));
@@ -90,8 +90,21 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
         builder.vertex(matrix.last().pose(), -1, 1, 0).color(r, g, b, 255).uv(1, 8F / 9 - frame * frameHeight).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(matrix.last().normal(), 0, 1, 0).endVertex();
         builder.vertex(matrix.last().pose(), 1, 1, 0).color(r, g, b, 255).uv(0, 8F / 9 - frame * frameHeight).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(matrix.last().normal(), 0, 1, 0).endVertex();
         builder.vertex(matrix.last().pose(), 1, -1, 0).color(r, g, b, 255).uv(0, 1 - frame * frameHeight).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(matrix.last().normal(), 0, 1, 0).endVertex();
-
         matrix.popPose();
+
+        if (gate.getGateway().bossEventSettings().drawAsName()) {
+            matrix.pushPose();
+
+            matrix.translate(0.0F, gate.getBbHeight() + 1, 0.0F);
+            matrix.mulPose(this.entityRenderDispatcher.cameraOrientation());
+            matrix.scale(-0.02F, -0.02F, 0.02F);
+            GuiGraphics gfx = new GuiGraphics(Minecraft.getInstance(), matrix, Minecraft.getInstance().renderBuffers().bufferSource());
+            RenderSystem.enableDepthTest();
+            GatewaysClient.renderBossBar(gate, gfx, -100, 0, true);
+            gfx.flush();
+            matrix.popPose();
+        }
+
     }
 
     public static double angleOf(Vec3 p1, Vec3 p2) {

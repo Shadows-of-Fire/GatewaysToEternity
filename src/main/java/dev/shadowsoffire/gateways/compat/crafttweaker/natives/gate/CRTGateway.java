@@ -15,6 +15,7 @@ import dev.shadowsoffire.gateways.gate.Reward;
 import dev.shadowsoffire.gateways.gate.Wave;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.Entity.RemovalReason;
 
 @ZenRegister
 @Document("mods/Gateways/gate/Gateway")
@@ -51,14 +52,9 @@ public class CRTGateway {
         return internal.failures();
     }
 
-    @ZenCodeType.Getter("completionXp")
-    public static int getCompletionXp(Gateway internal) {
-        return internal.completionXp();
-    }
-
     @ZenCodeType.Getter("spawnRange")
     public static double getSpawnRange(Gateway internal) {
-        return internal.spawnRange();
+        return internal.rules().spawnRange();
     }
 
     @ZenCodeType.Getter("leashRangeSq")
@@ -68,17 +64,17 @@ public class CRTGateway {
 
     @ZenCodeType.Getter("playerDamageOnly")
     public static boolean playerDamageOnly(Gateway internal) {
-        return internal.playerDamageOnly();
+        return internal.rules().playerDamageOnly();
     }
 
     @ZenCodeType.Getter("allowsDiscarding")
     public static boolean allowsDiscarding(Gateway internal) {
-        return internal.allowDiscarding();
+        return internal.rules().validRemovals().contains(RemovalReason.DISCARDED);
     }
 
     @ZenCodeType.Getter("removeMobsOnFailure")
     public static boolean removeMobsOnFailure(Gateway internal) {
-        return internal.removeMobsOnFailure();
+        return internal.rules().removeOnFailure();
     }
 
     @ZenCodeType.Getter("id")

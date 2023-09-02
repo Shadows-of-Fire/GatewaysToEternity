@@ -111,7 +111,7 @@ public interface Failure extends CodecProvider<Failure> {
 
         @Override
         public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
-            level.getNearbyPlayers(TargetingConditions.forNonCombat(), null, gate.getBoundingBox().inflate(gate.getGateway().leashRange())).forEach(p -> {
+            level.getNearbyPlayers(TargetingConditions.forNonCombat(), null, gate.getBoundingBox().inflate(gate.getGateway().rules().leashRange())).forEach(p -> {
                 p.addEffect(new MobEffectInstance(this.effect, this.duration, this.amplifier));
             });
         }

@@ -20,6 +20,7 @@ import dev.shadowsoffire.gateways.client.ParticleHandler;
 import dev.shadowsoffire.gateways.event.GateEvent;
 import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
+import dev.shadowsoffire.gateways.gate.SpawnAlgorithms.SpawnAlgorithm;
 import dev.shadowsoffire.gateways.gate.Wave;
 import dev.shadowsoffire.gateways.net.ParticleMessage;
 import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
@@ -33,7 +34,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
-import net.minecraft.network.chat.TextColor;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -50,16 +50,18 @@ import net.minecraft.world.BossEvent.BossBarOverlay;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.entity.IEntityAdditionalSpawnData;
 import net.minecraftforge.network.NetworkHooks;
@@ -71,16 +73,17 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     public static final EntityDataAccessor<Integer> WAVE = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> ENEMIES = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
 
-    protected DynamicHolder<Gateway> gate;
-    protected ServerBossEvent bossEvent;
-
     protected final Set<LivingEntity> currentWaveEntities = new HashSet<>();
     protected final Set<UUID> unresolvedWaveEntities = new HashSet<>();
-    protected UUID summonerId;
 
+    protected UUID summonerId;
+    protected DynamicHolder<Gateway> gate;
     protected float clientScale = 0F;
     protected Queue<ItemStack> undroppedItems = new ArrayDeque<>();
     protected FailureReason failureReason;
+
+    @Nullable
+    protected ServerBossEvent bossEvent;
 
     /**
      * Primary constructor.
@@ -107,8 +110,8 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         return this.gate.get().size().dims;
     }
 
-    protected boolean isValidRemoval(RemovalReason reason) {
-        return reason == RemovalReason.KILLED || this.gate.get().allowDiscarding() && reason == RemovalReason.DISCARDED;
+    protected boolean isValidRemoval(@Nullable RemovalReason reason) {
+        return reason != null && this.getGateway().rules().validRemovals().contains(reason);
     }
 
     @Override
@@ -141,16 +144,26 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
             boolean active = this.isWaveActive();
             // Collect all remaining enemies, which are those that are alive and not removed via a valid reason.
             List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(e -> e.getHealth() > 0 && !this.isValidRemoval(e.getRemovalReason())).toList();
-            for (LivingEntity entity : enemies) {
-                if (this.isOutOfRange(entity)) {
-                    this.onFailure(this.currentWaveEntities, FailureReason.ENTITY_TOO_FAR);
-                    return;
+            if (this.tickCount % 20 == 0) {
+                for (LivingEntity entity : enemies) {
+                    if (this.hasLeftDimension(entity)) {
+                        this.onFailure(this.currentWaveEntities, FailureReason.ENTITY_LEFT_DIMENSION);
+                        return;
+                    }
+                    if (entity.getRemovalReason() == RemovalReason.DISCARDED) {
+                        this.onFailure(this.currentWaveEntities, FailureReason.ENTITY_DISCARDED);
+                        return;
+                    }
+                    if (entity.tickCount > 50) {
+                        this.spawnParticle(entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), ParticleMessage.Type.IDLE);
+                    }
+                    if (this.isOutOfRange(entity)) {
+                        if (this.getGateway().rules().failOnOutOfBounds() || !this.respawnEntity(entity)) {
+                            this.onFailure(this.currentWaveEntities, FailureReason.ENTITY_TOO_FAR);
+                            return;
+                        }
+                    }
                 }
-                if (entity.getRemovalReason() == RemovalReason.DISCARDED) {
-                    this.onFailure(this.currentWaveEntities, FailureReason.ENTITY_DISCARDED);
-                    return;
-                }
-                if (entity.tickCount % 20 == 0) this.spawnParticle(this.gate.get().color(), entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), 0);
             }
             this.entityData.set(ENEMIES, enemies.size());
             if (active && enemies.size() == 0) {
@@ -211,18 +224,11 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     }
 
     protected void completePortal() {
-        int completionXp = this.getGateway().completionXp();
-        while (completionXp > 0) {
-            int i = 5;
-            completionXp -= i;
-            this.level().addFreshEntity(new ExperienceOrb(this.level(), this.getX(), this.getY(), this.getZ(), i));
-        }
         Player player = this.summonerOrClosest();
         this.getGateway().rewards().forEach(r -> {
             r.generateLoot((ServerLevel) this.level(), this, player, this::spawnCompletionItem);
         });
 
-        this.bossEvent.setCreateWorldFog(false);
         this.remove(RemovalReason.KILLED);
         this.playSound(GatewayObjects.GATE_END.get(), 1, 1);
 
@@ -264,21 +270,26 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         Player player = this.summonerOrClosest();
         if (player != null) player.sendSystemMessage(reason.getMsg());
         spawnLightningOn(this, false);
-        if (this.getGateway().removeMobsOnFailure()) {
-            remaining.stream().filter(Entity::isAlive).forEach(e -> {
+        remaining.stream().filter(Entity::isAlive).forEach(e -> {
+            if (this.getGateway().rules().removeOnFailure()) {
                 spawnLightningOn(e, true);
                 e.remove(RemovalReason.DISCARDED);
-            });
-        }
+            }
+            else if (e instanceof Mob mob) {
+                mob.persistenceRequired = false;
+            }
+        });
         this.getGateway().failures().forEach(f -> f.onFailure((ServerLevel) this.level(), this, player, reason));
-        this.bossEvent.setCreateWorldFog(false);
         this.remove(RemovalReason.DISCARDED);
     }
 
     protected ServerBossEvent createBossEvent() {
-        ServerBossEvent event = new ServerBossEvent(Component.literal("GATEWAY_ID" + this.getId()), BossBarColor.BLUE, BossBarOverlay.PROGRESS);
-        event.setCreateWorldFog(true);
-        return event;
+        if (this.getGateway().bossEventSettings().drawAsBar()) {
+            ServerBossEvent event = new ServerBossEvent(Component.literal("GATEWAY_ID" + this.getId()), BossBarColor.BLUE, BossBarOverlay.PROGRESS);
+            event.setCreateWorldFog(this.getGateway().bossEventSettings().fog());
+            return event;
+        }
+        return null;
     }
 
     @Override
@@ -334,6 +345,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
             }
         }
         this.bossEvent = this.createBossEvent();
+        this.refreshDimensions();
     }
 
     @Override
@@ -352,13 +364,17 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     @Override
     public void startSeenByPlayer(ServerPlayer player) {
         super.startSeenByPlayer(player);
-        this.bossEvent.addPlayer(player);
+        if (this.bossEvent != null) {
+            this.bossEvent.addPlayer(player);
+        }
     }
 
     @Override
     public void stopSeenByPlayer(ServerPlayer player) {
         super.stopSeenByPlayer(player);
-        this.bossEvent.removePlayer(player);
+        if (this.bossEvent != null) {
+            this.bossEvent.removePlayer(player);
+        }
     }
 
     public int getTicksActive() {
@@ -385,7 +401,8 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         return this.gate.isBound();
     }
 
-    public ServerBossEvent getBossInfo() {
+    @Nullable
+    public ServerBossEvent getBossEvent() {
         return this.bossEvent;
     }
 
@@ -404,8 +421,8 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         entity.level().addFreshEntity(bolt);
     }
 
-    public void spawnParticle(TextColor color, double x, double y, double z, int type) {
-        PacketDistro.sendToTracking(Gateways.CHANNEL, new ParticleMessage(this, x, y, z, color, type), (ServerLevel) this.level(), new BlockPos((int) x, (int) y, (int) z));
+    public void spawnParticle(double x, double y, double z, ParticleMessage.Type type) {
+        PacketDistro.sendToTracking(Gateways.CHANNEL, new ParticleMessage(this, x, y, z, this.getGateway().color(), type), (ServerLevel) this.level(), new BlockPos((int) x, (int) y, (int) z));
     }
 
     public void spawnItem(ItemStack stack) {
@@ -434,6 +451,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     public void readSpawnData(FriendlyByteBuf buf) {
         this.gate = GatewayRegistry.INSTANCE.holder(buf.readResourceLocation());
         if (!this.gate.isBound()) throw new RuntimeException("Invalid gateway received on client!");
+        this.refreshDimensions();
     }
 
     @Override
@@ -449,45 +467,27 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         return this.failureReason;
     }
 
+    /**
+     * Checks if the wave entity is outside the Gateway's {@linkplain Gateway#leashRange() leash range}.
+     * <p>
+     * If {@link Gateway#failOnOutOfBounds()} is enabled, being outside the leash range triggers {@link FailureReason#ENTITY_TOO_FAR}.<br>
+     * Otherwise, this causes the entity to be re-placed near the gateway using the current spawn algorithm.
+     * 
+     * @param entity The wave entity.
+     * @return If the entity is outside the leash range.
+     */
     public boolean isOutOfRange(Entity entity) {
-        return entity.distanceToSqr(this) > this.getGateway().getLeashRangeSq() || entity.getRemovalReason() == RemovalReason.CHANGED_DIMENSION;
+        return entity.distanceToSqr(this) > this.getGateway().getLeashRangeSq();
     }
 
-    public static enum GatewaySize {
-        SMALL(EntityDimensions.scalable(2F, 3F), 1F),
-        MEDIUM(EntityDimensions.scalable(4F, 6F), 2F),
-        LARGE(EntityDimensions.scalable(6F, 9F), 3F);
-
-        public static final Codec<GatewaySize> CODEC = PlaceboCodecs.enumCodec(GatewaySize.class);
-
-        private final EntityDimensions dims;
-        private final float scale;
-
-        GatewaySize(EntityDimensions dims, float scale) {
-            this.dims = dims;
-            this.scale = scale;
-        }
-
-        public float getScale() {
-            return this.scale;
-        }
-    }
-
-    public static enum FailureReason {
-        SPAWN_FAILED("error.gateways.wave_failed"),
-        ENTITY_TOO_FAR("error.gateways.too_far"),
-        TIMER_ELAPSED("error.gateways.wave_elapsed"),
-        ENTITY_DISCARDED("error.gateways.entity_discarded");
-
-        private final String langKey;
-
-        FailureReason(String langKey) {
-            this.langKey = langKey;
-        }
-
-        public Component getMsg() {
-            return Component.translatable(this.langKey).withStyle(ChatFormatting.RED, ChatFormatting.UNDERLINE);
-        }
+    /**
+     * Checks if the wave entity has left the current dimension. This triggers an automatic {@link FailureReason#ENTITY_LEFT_DIMENSION}.
+     * 
+     * @param entity The wave entity.
+     * @return True if the entity has changed dimensions.
+     */
+    public boolean hasLeftDimension(Entity entity) {
+        return entity.getRemovalReason() == RemovalReason.CHANGED_DIMENSION;
     }
 
     /**
@@ -516,6 +516,29 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         return false;
     }
 
+    /**
+     * Attempts to respawn an out-of-bounds wave entity using the current spawn algorithm.<br>
+     * If the respawn attempt fails, the gate will fail with {@link FailureReason#ENTITY_TOO_FAR}.
+     * 
+     * @param entity The out-of-bounds wave entity that needs to be respawned.
+     * @return True if the respawn succeeded.
+     */
+    public boolean respawnEntity(Entity entity) {
+        SpawnAlgorithm algo = this.getGateway().spawnAlgo();
+        Vec3 pos = algo.spawn((ServerLevel) this.level(), this.position(), this, entity);
+        if (pos == null) return false;
+
+        this.spawnParticle(entity.getX(), entity.getY(), entity.getZ(), ParticleMessage.Type.SPAWNED);
+        entity.setPos(pos);
+        this.spawnParticle(entity.getX(), entity.getY(), entity.getZ(), ParticleMessage.Type.SPAWNED);
+        entity.resetFallDistance();
+        if (entity instanceof Mob mob) {
+            Player p = summonerOrClosest();
+            if (!(p instanceof FakePlayer)) mob.setTarget(p);
+        }
+        return true;
+    }
+
     @Nullable
     public static GatewayEntity getOwner(Entity entity) {
         if (entity.getPersistentData().contains("gateways.owner")) {
@@ -525,6 +548,44 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
             }
         }
         return null;
+    }
+
+    public static enum GatewaySize {
+        SMALL(EntityDimensions.fixed(2F, 2F), 1F),
+        MEDIUM(EntityDimensions.fixed(4F, 4F), 2F),
+        LARGE(EntityDimensions.fixed(5.5F, 5.5F), 2.5F);
+
+        public static final Codec<GatewaySize> CODEC = PlaceboCodecs.enumCodec(GatewaySize.class);
+
+        private final EntityDimensions dims;
+        private final float scale;
+
+        GatewaySize(EntityDimensions dims, float scale) {
+            this.dims = dims;
+            this.scale = scale;
+        }
+
+        public float getScale() {
+            return this.scale;
+        }
+    }
+
+    public static enum FailureReason {
+        SPAWN_FAILED("error.gateways.wave_failed"),
+        ENTITY_TOO_FAR("error.gateways.too_far"),
+        TIMER_ELAPSED("error.gateways.wave_elapsed"),
+        ENTITY_DISCARDED("error.gateways.entity_discarded"),
+        ENTITY_LEFT_DIMENSION("error.gateways.left_dimension");
+
+        private final String langKey;
+
+        FailureReason(String langKey) {
+            this.langKey = langKey;
+        }
+
+        public Component getMsg() {
+            return Component.translatable(this.langKey).withStyle(ChatFormatting.RED, ChatFormatting.UNDERLINE);
+        }
     }
 
 }
