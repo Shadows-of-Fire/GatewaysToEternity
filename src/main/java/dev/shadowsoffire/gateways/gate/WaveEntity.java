@@ -14,6 +14,7 @@ import dev.shadowsoffire.placebo.codec.PlaceboCodecs.CodecProvider;
 import dev.shadowsoffire.placebo.json.NBTAdapter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -47,7 +48,7 @@ public interface WaveEntity extends CodecProvider<WaveEntity> {
     /**
      * Gets the tooltip form of this wave entity for display in the Gate Pearl's "Waves" section.
      */
-    public Component getDescription();
+    public MutableComponent getDescription();
 
     /**
      * If the spawned wave entity should have {@link Mob#finalizeSpawn} called.
@@ -92,7 +93,7 @@ public interface WaveEntity extends CodecProvider<WaveEntity> {
         }
 
         @Override
-        public Component getDescription() {
+        public MutableComponent getDescription() {
             return Component.translatable("tooltip.gateways.list1", getCount(), Component.translatable(this.desc));
         }
 

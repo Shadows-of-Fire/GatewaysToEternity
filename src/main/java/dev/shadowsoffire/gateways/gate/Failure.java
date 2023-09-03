@@ -70,14 +70,12 @@ public interface Failure extends CodecProvider<Failure> {
      */
     public static record ExplosionFailure(float strength, boolean fire, boolean blockDamage) implements Failure {
 
-        // Formatter::off
         public static Codec<ExplosionFailure> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 Codec.FLOAT.fieldOf("strength").forGetter(ExplosionFailure::strength),
                 Codec.BOOL.fieldOf("fire").forGetter(ExplosionFailure::fire),
                 Codec.BOOL.fieldOf("block_damage").forGetter(ExplosionFailure::blockDamage))
             .apply(inst, ExplosionFailure::new));
-        // Formatter::on
 
         @Override
         public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
@@ -100,14 +98,12 @@ public interface Failure extends CodecProvider<Failure> {
      */
     public static record MobEffectFailure(MobEffect effect, int duration, int amplifier) implements Failure {
 
-        // Formatter::off
         public static Codec<MobEffectFailure> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 ForgeRegistries.MOB_EFFECTS.getCodec().fieldOf("effect").forGetter(MobEffectFailure::effect),
                 Codec.INT.fieldOf("duration").forGetter(MobEffectFailure::duration),
                 Codec.INT.fieldOf("amplifier").forGetter(MobEffectFailure::amplifier))
             .apply(inst, MobEffectFailure::new));
-        // Formatter::on
 
         @Override
         public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
@@ -147,14 +143,12 @@ public interface Failure extends CodecProvider<Failure> {
      */
     public static record SummonFailure(EntityType<?> type, @Nullable CompoundTag nbt, int count) implements Failure {
 
-        // Formatter::off
         public static Codec<SummonFailure> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 ForgeRegistries.ENTITY_TYPES.getCodec().fieldOf("entity").forGetter(SummonFailure::type),
                 NBTAdapter.EITHER_CODEC.optionalFieldOf("nbt").forGetter(f -> Optional.ofNullable(f.nbt)),
                 Codec.INT.fieldOf("count").forGetter(SummonFailure::count))
             .apply(inst, (type, nbt, count) -> new SummonFailure(type, nbt.orElse(null), count)));
-        // Formatter::on
 
         @Override
         public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
@@ -182,13 +176,11 @@ public interface Failure extends CodecProvider<Failure> {
      */
     public static record ChancedFailure(Failure failure, float chance) implements Failure {
 
-        // Formatter::off
         public static Codec<ChancedFailure> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 Failure.CODEC.fieldOf("failure").forGetter(ChancedFailure::failure),
                 Codec.FLOAT.fieldOf("chance").forGetter(ChancedFailure::chance))
             .apply(inst, ChancedFailure::new));
-        // Formatter::on
 
         @Override
         public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
@@ -215,13 +207,11 @@ public interface Failure extends CodecProvider<Failure> {
      */
     public static record CommandFailure(String command, String desc) implements Failure {
 
-        // Formatter::off
         public static Codec<CommandFailure> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 Codec.STRING.fieldOf("command").forGetter(CommandFailure::command),
                 Codec.STRING.fieldOf("desc").forGetter(CommandFailure::desc))
             .apply(inst, CommandFailure::new));
-        // Formatter::on
 
         @Override
         public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {

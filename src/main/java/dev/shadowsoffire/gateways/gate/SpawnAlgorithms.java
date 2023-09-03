@@ -50,7 +50,7 @@ public class SpawnAlgorithms {
      */
     @Nullable
     public static Vec3 openField(ServerLevel level, Vec3 pos, GatewayEntity gate, Entity toSpawn) {
-        double spawnRange = gate.getGateway().rules().spawnRange();
+        double spawnRange = gate.getBbWidth() / 2 + gate.getGateway().rules().spawnRange();
 
         int tries = 0;
         double x = pos.x() + (-1 + 2 * level.random.nextDouble()) * spawnRange;
@@ -85,7 +85,7 @@ public class SpawnAlgorithms {
      */
     @Nullable
     public static Vec3 inwardSpiral(ServerLevel level, Vec3 pos, GatewayEntity gate, Entity toSpawn) {
-        double spawnRange = gate.getGateway().rules().spawnRange();
+        double spawnRange = gate.getBbWidth() / 2 + gate.getGateway().rules().spawnRange();
 
         int tries = 0;
         double x = pos.x() + (-1 + 2 * level.random.nextDouble()) * spawnRange;

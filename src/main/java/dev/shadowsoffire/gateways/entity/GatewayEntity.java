@@ -18,6 +18,7 @@ import dev.shadowsoffire.gateways.GatewayObjects;
 import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.client.ParticleHandler;
 import dev.shadowsoffire.gateways.event.GateEvent;
+import dev.shadowsoffire.gateways.gate.GateRules;
 import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
 import dev.shadowsoffire.gateways.gate.SpawnAlgorithms.SpawnAlgorithm;
@@ -110,8 +111,12 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         return this.gate.get().size().dims;
     }
 
+    /**
+     * Checks if the removal reason of the entity was a "legal" kill for this gateway.
+     */
     protected boolean isValidRemoval(@Nullable RemovalReason reason) {
-        return reason != null && this.getGateway().rules().validRemovals().contains(reason);
+        GateRules rules = this.getGateway().rules();
+        return reason == RemovalReason.KILLED || (rules.allowDiscarding() && reason == RemovalReason.DISCARDED) || (rules.allowDimChange() && reason == RemovalReason.CHANGED_DIMENSION);
     }
 
     @Override
@@ -154,7 +159,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
                         this.onFailure(this.currentWaveEntities, FailureReason.ENTITY_DISCARDED);
                         return;
                     }
-                    if (entity.tickCount > 50) {
+                    if (entity.tickCount > 30) {
                         this.spawnParticle(entity.getX(), entity.getY() + entity.getBbHeight() / 2, entity.getZ(), ParticleMessage.Type.IDLE);
                     }
                     if (this.isOutOfRange(entity)) {
@@ -172,6 +177,10 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
                 this.entityData.set(WAVE_ACTIVE, false);
                 this.entityData.set(TICKS_ACTIVE, 0);
                 this.entityData.set(WAVE, Math.min(this.getWave() + 1, this.gate.get().getNumWaves()));
+                if (this.isLastWave()) {
+                    completePortal();
+                    return;
+                }
             }
             else if (!active && !this.isLastWave()) {
                 if (this.getTicksActive() > this.getCurrentWave().setupTime()) {
@@ -186,10 +195,6 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
                     this.spawnItem(this.undroppedItems.remove());
                     if (this.undroppedItems.isEmpty()) break;
                 }
-            }
-
-            if (!active && this.undroppedItems.isEmpty() && this.isLastWave()) {
-                this.completePortal();
             }
         }
         else {
@@ -223,11 +228,11 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         this.entityData.set(ENEMIES, this.currentWaveEntities.size());
     }
 
+    /**
+     * Called when the final wave is completed and the portal should close.
+     */
     protected void completePortal() {
-        Player player = this.summonerOrClosest();
-        this.getGateway().rewards().forEach(r -> {
-            r.generateLoot((ServerLevel) this.level(), this, player, this::spawnCompletionItem);
-        });
+        this.undroppedItems.forEach(this::spawnCompletionItem);
 
         this.remove(RemovalReason.KILLED);
         this.playSound(GatewayObjects.GATE_END.get(), 1, 1);

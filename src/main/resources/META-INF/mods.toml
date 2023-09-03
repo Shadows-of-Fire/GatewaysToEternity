@@ -29,3 +29,10 @@ description='''${desc}'''
     versionRange="[${placeboVersion},)"
     ordering="NONE"
     side="BOTH"
+
+[[dependencies.${modid}]]
+    modId="attributeslib"
+    mandatory=true
+    versionRange="[${attributeslibVersion},)"
+    ordering="NONE"
+    side="BOTH"

@@ -51,41 +51,42 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
     public List<LivingEntity> spawnWave(ServerLevel level, Vec3 pos, GatewayEntity gate) {
         List<LivingEntity> spawned = new ArrayList<>();
         for (WaveEntity toSpawn : this.entities) {
-            LivingEntity entity = toSpawn.createEntity(level);
-            if (entity == null) {
-                gate.onFailure(spawned, FailureReason.SPAWN_FAILED);
-                break;
-            }
-
-            Vec3 spawnPos = gate.getGateway().spawnAlgo().spawn(level, pos, gate, entity);
-            if (spawnPos == null) {
-                gate.onFailure(spawned, FailureReason.SPAWN_FAILED);
-                break;
-            }
-
-            entity.getPersistentData().putUUID("gateways.owner", gate.getUUID());
-            entity.moveTo(spawnPos.x(), spawnPos.y(), spawnPos.z(), level.random.nextFloat() * 360, level.random.nextFloat() * 360);
-
-            entity.getPassengersAndSelf().filter(e -> e instanceof LivingEntity).map(LivingEntity.class::cast).forEach(e -> {
-                this.modifiers.forEach(m -> m.apply(level.random, e));
-                e.setHealth(entity.getMaxHealth());
-                e.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 5, 100, true, false));
-            });
-
-            if (entity instanceof Mob mob) {
-                if (toSpawn.shouldFinalizeSpawn()) {
-                    ForgeEventFactory.onFinalizeSpawn(mob, level, level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.SPAWNER, null, null);
+            for (int i = 0; i < toSpawn.getCount(); i++) {
+                LivingEntity entity = toSpawn.createEntity(level);
+                if (entity == null) {
+                    gate.onFailure(spawned, FailureReason.SPAWN_FAILED);
+                    break;
                 }
-                mob.setTarget(gate.summonerOrClosest());
-                mob.setPersistenceRequired();
+
+                Vec3 spawnPos = gate.getGateway().spawnAlgo().spawn(level, pos, gate, entity);
+                if (spawnPos == null) {
+                    gate.onFailure(spawned, FailureReason.SPAWN_FAILED);
+                    break;
+                }
+
+                entity.getPersistentData().putUUID("gateways.owner", gate.getUUID());
+                entity.moveTo(spawnPos.x(), spawnPos.y(), spawnPos.z(), level.random.nextFloat() * 360, level.random.nextFloat() * 360);
+
+                entity.getPassengersAndSelf().filter(e -> e instanceof LivingEntity).map(LivingEntity.class::cast).forEach(e -> {
+                    this.modifiers.forEach(m -> m.apply(level.random, e));
+                    e.setHealth(entity.getMaxHealth());
+                    e.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 5, 100, true, false));
+                });
+
+                if (entity instanceof Mob mob) {
+                    if (toSpawn.shouldFinalizeSpawn()) {
+                        ForgeEventFactory.onFinalizeSpawn(mob, level, level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.SPAWNER, null, null);
+                    }
+                    mob.setTarget(gate.summonerOrClosest());
+                    mob.setPersistenceRequired();
+                }
+
+                MinecraftForge.EVENT_BUS.post(new GateEvent.WaveEntitySpawned(gate, entity));
+                level.addFreshEntityWithPassengers(entity);
+                level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP.get(), SoundSource.HOSTILE, 0.5F, 1);
+                spawned.add(entity);
+                gate.spawnParticle(entity.getX(), entity.getY(), entity.getZ(), ParticleMessage.Type.SPAWNED);
             }
-
-            MinecraftForge.EVENT_BUS.post(new GateEvent.WaveEntitySpawned(gate, entity));
-            level.addFreshEntityWithPassengers(entity);
-            level.playSound(null, gate.getX(), gate.getY(), gate.getZ(), GatewayObjects.GATE_WARP.get(), SoundSource.HOSTILE, 0.5F, 1);
-            spawned.add(entity);
-            gate.spawnParticle(entity.getX(), entity.getY(), entity.getZ(), ParticleMessage.Type.SPAWNED);
-
         }
 
         return spawned;

@@ -1,7 +1,9 @@
 package dev.shadowsoffire.gateways.item;
 
 import java.util.Comparator;
+import java.util.List;
 
+import dev.shadowsoffire.gateways.client.GatewaysClient;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
@@ -14,14 +16,15 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import net.minecraftforge.fml.loading.FMLEnvironment;
 
 public class GatePearlItem extends Item implements ITabFiller {
 
@@ -80,10 +83,6 @@ public class GatePearlItem extends Item implements ITabFiller {
         return super.getName(stack);
     }
 
-    public static interface IGateSupplier {
-        GatewayEntity createGate(Level world, Player player, Gateway gate);
-    }
-
     @Override
     public void fillItemCategory(CreativeModeTab group, CreativeModeTab.Output out) {
         GatewayRegistry.INSTANCE.getValues().stream().sorted(Comparator.comparing(GatewayRegistry.INSTANCE::getKey)).forEach(gate -> {
@@ -91,6 +90,13 @@ public class GatePearlItem extends Item implements ITabFiller {
             setGate(stack, gate);
             out.accept(stack);
         });
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Level level, List<Component> tooltip, TooltipFlag flag) {
+        if (FMLEnvironment.dist.isClient()) {
+            GatewaysClient.appendPearlTooltip(stack, level, tooltip, flag);
+        }
     }
 
 }

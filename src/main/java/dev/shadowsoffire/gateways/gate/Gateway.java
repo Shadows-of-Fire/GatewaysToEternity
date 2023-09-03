@@ -24,7 +24,7 @@ import net.minecraft.network.chat.TextColor;
  * @param spawnAlgo The {@linkplain SpawnAlgorithm spawn algorithm} used for placing wave entities.
  * @param rules     The {@linkplain GateRules rules} of the Gateway.
  */
-public record Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Reward> rewards, List<Failure> failures, SpawnAlgorithm spawnAlgo, GateRules rules,
+public record Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Failure> failures, SpawnAlgorithm spawnAlgo, GateRules rules,
     BossEventSettings bossEventSettings) implements PSerializable<Gateway> {
 
     public static Codec<Gateway> CODEC = RecordCodecBuilder.create(inst -> inst
@@ -32,7 +32,6 @@ public record Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<
             GatewaySize.CODEC.fieldOf("size").forGetter(Gateway::size),
             TextColor.CODEC.fieldOf("color").forGetter(Gateway::color),
             Wave.CODEC.listOf().fieldOf("waves").forGetter(Gateway::waves),
-            Reward.CODEC.listOf().optionalFieldOf("rewards", Collections.emptyList()).forGetter(Gateway::rewards),
             Failure.CODEC.listOf().optionalFieldOf("failures", Collections.emptyList()).forGetter(Gateway::failures),
             SpawnAlgorithms.CODEC.optionalFieldOf("spawn_algorithm", SpawnAlgorithms.NAMED_ALGORITHMS.get(Gateways.loc("open_field"))).forGetter(Gateway::spawnAlgo),
             GateRules.CODEC.optionalFieldOf("rules", GateRules.DEFAULT).forGetter(Gateway::rules),

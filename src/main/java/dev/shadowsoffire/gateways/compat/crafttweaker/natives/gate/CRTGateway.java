@@ -11,11 +11,9 @@ import com.blamejared.crafttweaker_annotations.annotations.NativeTypeRegistratio
 import dev.shadowsoffire.gateways.gate.Failure;
 import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
-import dev.shadowsoffire.gateways.gate.Reward;
 import dev.shadowsoffire.gateways.gate.Wave;
 import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.Entity.RemovalReason;
 
 @ZenRegister
 @Document("mods/Gateways/gate/Gateway")
@@ -42,11 +40,6 @@ public class CRTGateway {
         return internal.getWave(n);
     }
 
-    @ZenCodeType.Getter("rewards")
-    public static List<Reward> getRewards(Gateway internal) {
-        return internal.rewards();
-    }
-
     @ZenCodeType.Getter("failures")
     public static List<Failure> getFailures(Gateway internal) {
         return internal.failures();
@@ -69,7 +62,7 @@ public class CRTGateway {
 
     @ZenCodeType.Getter("allowsDiscarding")
     public static boolean allowsDiscarding(Gateway internal) {
-        return internal.rules().validRemovals().contains(RemovalReason.DISCARDED);
+        return internal.rules().allowDiscarding();
     }
 
     @ZenCodeType.Getter("removeMobsOnFailure")
