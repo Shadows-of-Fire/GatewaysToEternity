@@ -50,9 +50,9 @@ public record GateRules(double spawnRange, double leashRange, boolean allowDisca
     /**
      * Builds a list of tooltips showing the deviations from {@link #DEFAULT}.
      */
-    public List<Component> buildDeviations() {
+    public List<MutableComponent> buildDeviations() {
         if (DEFAULT.equals(this)) return Collections.emptyList();
-        List<Component> list = new ArrayList<>();
+        List<MutableComponent> list = new ArrayList<>();
         append("spawn_range", list, this.spawnRange, DEFAULT.spawnRange);
         append("leash_range", list, this.leashRange, DEFAULT.leashRange);
         // These two are inverted as they are better expressed that way.
@@ -65,7 +65,7 @@ public record GateRules(double spawnRange, double leashRange, boolean allowDisca
         return list;
     }
 
-    private static <T> void append(String name, List<Component> list, T val, T def) {
+    private static <T> void append(String name, List<MutableComponent> list, T val, T def) {
         if (!val.equals(def)) {
             var comp = Component.translatable("rule.gateways." + name, fmt(val).withStyle(ChatFormatting.GREEN));
             comp.append(CommonComponents.SPACE);

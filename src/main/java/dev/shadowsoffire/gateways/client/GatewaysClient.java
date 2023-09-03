@@ -134,7 +134,7 @@ public class GatewaysClient {
             comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.entities").withStyle(Style.EMPTY.withColor(0x87CEEB)));
             tooltips.add(comp);
             for (WaveEntity entity : gate.getWave(wave).entities()) {
-                comp = AttributeHelper.list().append(entity.getDescription().withStyle(Style.EMPTY.withColor(0x87CEEB)));
+                comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", entity.getDescription()).withStyle(Style.EMPTY.withColor(0x87CEEB)));
                 tooltips.add(comp);
             }
 
@@ -143,7 +143,7 @@ public class GatewaysClient {
                 tooltips.add(comp);
                 for (RandomAttributeModifier inst : gate.getWave(wave).modifiers()) {
                     comp = IFormattableAttribute.toComponent(inst.getAttribute(), inst.genModifier(rand), flag);
-                    comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.list2", comp.getString()).withStyle(ChatFormatting.RED));
+                    comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", comp.getString()).withStyle(ChatFormatting.RED));
                     tooltips.add(comp);
                 }
             }
@@ -152,7 +152,7 @@ public class GatewaysClient {
             tooltips.add(comp);
             for (Reward r : gate.getWave(wave).rewards()) {
                 r.appendHoverText(c -> {
-                    tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.list2", c).withStyle(s -> s.withColor(ChatFormatting.GOLD))));
+                    tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c).withStyle(s -> s.withColor(ChatFormatting.GOLD))));
                 });
             }
         }
@@ -170,7 +170,7 @@ public class GatewaysClient {
                 tooltips.add(comp);
                 for (Failure f : failures) {
                     f.appendHoverText(c -> {
-                        tooltips.add(AttributeHelper.list().append(c).withStyle(Style.EMPTY.withColor(ChatFormatting.RED)));
+                        tooltips.add(AttributeHelper.list().append(c.withStyle(Style.EMPTY.withColor(ChatFormatting.RED))));
                     });
                 }
             }
@@ -182,13 +182,13 @@ public class GatewaysClient {
             }
         }
 
-        List<Component> deviations = gate.rules().buildDeviations();
+        List<MutableComponent> deviations = gate.rules().buildDeviations();
         if (!deviations.isEmpty()) {
             if (Screen.hasAltDown()) {
                 comp = Component.translatable("tooltip.gateways.rules", deviations.size()).withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_GREEN));
                 tooltips.add(comp);
                 deviations.forEach(c -> {
-                    tooltips.add(AttributeHelper.list().append(c).withStyle(ChatFormatting.DARK_GREEN));
+                    tooltips.add(AttributeHelper.list().append(c.withStyle(ChatFormatting.DARK_GREEN)));
                 });
             }
             else {
@@ -196,6 +196,17 @@ public class GatewaysClient {
                 comp.append(CommonComponents.SPACE);
                 comp.append(Component.translatable("tooltip.gateways.alt").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_GRAY)));
                 tooltips.add(comp);
+            }
+        }
+
+        List<Reward> rewards = gate.rewards();
+        if (!rewards.isEmpty()) {
+            comp = Component.translatable("tooltip.gateways.key_rewards").withStyle(Style.EMPTY.withColor(0x33AA20));
+            tooltips.add(comp);
+            for (Reward r : rewards) {
+                r.appendHoverText(c -> {
+                    tooltips.add(AttributeHelper.list().append(c.withStyle(Style.EMPTY.withColor(0x33AA20))));
+                });
             }
         }
     }

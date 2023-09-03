@@ -20,7 +20,7 @@ public class ParticleHandler {
             case IDLE -> {
                 GatewayParticleData data = new GatewayParticleData(color >> 16 & 255, color >> 8 & 255, color & 255);
                 RandomSource rand = src.level().random;
-                for (int i = 0; i < 15; i++) {
+                for (int i = 0; i < 6; i++) {
                     double velX = Mth.nextDouble(rand, -0.15, 0.15);
                     double velY = Mth.nextDouble(rand, -0.15, 0.15);
                     double velZ = Mth.nextDouble(rand, -0.15, 0.15);

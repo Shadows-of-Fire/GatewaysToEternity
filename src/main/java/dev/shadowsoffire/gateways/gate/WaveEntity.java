@@ -94,7 +94,7 @@ public interface WaveEntity extends CodecProvider<WaveEntity> {
 
         @Override
         public MutableComponent getDescription() {
-            return Component.translatable("tooltip.gateways.list1", getCount(), Component.translatable(this.desc));
+            return Component.translatable("tooltip.gateways.with_count", getCount(), Component.translatable(this.desc));
         }
 
         @Override

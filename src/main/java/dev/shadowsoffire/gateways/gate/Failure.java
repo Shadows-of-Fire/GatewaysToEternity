@@ -1,10 +1,7 @@
 package dev.shadowsoffire.gateways.gate;
 
 import java.text.DecimalFormat;
-import java.util.Optional;
 import java.util.function.Consumer;
-
-import javax.annotation.Nullable;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -16,8 +13,6 @@ import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.entity.GatewayEntity.FailureReason;
 import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import dev.shadowsoffire.placebo.codec.PlaceboCodecs.CodecProvider;
-import dev.shadowsoffire.placebo.json.NBTAdapter;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -26,10 +21,10 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level.ExplosionInteraction;
+import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
 
 /**
@@ -51,7 +46,7 @@ public interface Failure extends CodecProvider<Failure> {
      */
     public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason);
 
-    public void appendHoverText(Consumer<Component> list);
+    public void appendHoverText(Consumer<MutableComponent> list);
 
     public static void initSerializers() {
         register("explosion", ExplosionFailure.CODEC);
@@ -88,7 +83,7 @@ public interface Failure extends CodecProvider<Failure> {
         }
 
         @Override
-        public void appendHoverText(Consumer<Component> list) {
+        public void appendHoverText(Consumer<MutableComponent> list) {
             list.accept(Component.translatable("failure.gateways.explosion", this.strength, this.fire, this.blockDamage));
         }
     }
@@ -102,7 +97,7 @@ public interface Failure extends CodecProvider<Failure> {
             .group(
                 ForgeRegistries.MOB_EFFECTS.getCodec().fieldOf("effect").forGetter(MobEffectFailure::effect),
                 Codec.INT.fieldOf("duration").forGetter(MobEffectFailure::duration),
-                Codec.INT.fieldOf("amplifier").forGetter(MobEffectFailure::amplifier))
+                Codec.INT.optionalFieldOf("amplifier", 0).forGetter(MobEffectFailure::amplifier))
             .apply(inst, MobEffectFailure::new));
 
         @Override
@@ -118,7 +113,7 @@ public interface Failure extends CodecProvider<Failure> {
         }
 
         @Override
-        public void appendHoverText(Consumer<Component> list) {
+        public void appendHoverText(Consumer<MutableComponent> list) {
             list.accept(Component.translatable("failure.gateways.mob_effect", toComponent(new MobEffectInstance(this.effect, this.duration, this.amplifier))));
         }
 
@@ -139,35 +134,35 @@ public interface Failure extends CodecProvider<Failure> {
     }
 
     /**
-     * Summons a specific entity on failure.
+     * Summons a {@link WaveEntity} as a failure penalty.
      */
-    public static record SummonFailure(EntityType<?> type, @Nullable CompoundTag nbt, int count) implements Failure {
+    public static record SummonFailure(WaveEntity entity) implements Failure {
 
         public static Codec<SummonFailure> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
-                ForgeRegistries.ENTITY_TYPES.getCodec().fieldOf("entity").forGetter(SummonFailure::type),
-                NBTAdapter.EITHER_CODEC.optionalFieldOf("nbt").forGetter(f -> Optional.ofNullable(f.nbt)),
-                Codec.INT.fieldOf("count").forGetter(SummonFailure::count))
-            .apply(inst, (type, nbt, count) -> new SummonFailure(type, nbt.orElse(null), count)));
+                WaveEntity.CODEC.fieldOf("entity").forGetter(SummonFailure::entity))
+            .apply(inst, SummonFailure::new));
 
         @Override
         public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
-            for (int i = 0; i < this.count; i++) {
-                Entity entity = this.type.create(level);
-                if (this.nbt != null) entity.load(this.nbt);
-                entity.moveTo(gate.getX(), gate.getY(), gate.getZ(), 0, 0);
-                level.addFreshEntity(entity);
+            for (int i = 0; i < entity.getCount(); i++) {
+                Entity ent = entity.createEntity(level);
+                if (ent != null) {
+                    Vec3 pos = gate.getGateway().spawnAlgo().spawn(level, gate.position(), gate, ent);
+                    ent.setPos(pos != null ? pos : gate.position());
+                    level.addFreshEntity(ent);
+                }
             }
+        }
+
+        @Override
+        public void appendHoverText(Consumer<MutableComponent> list) {
+            list.accept(Component.translatable("failure.gateways.summon", this.entity.getDescription()));
         }
 
         @Override
         public Codec<? extends Failure> getCodec() {
             return CODEC;
-        }
-
-        @Override
-        public void appendHoverText(Consumer<Component> list) {
-            list.accept(Component.translatable("failure.gateways.summon", this.count, Component.translatable(this.type.getDescriptionId())));
         }
     }
 
@@ -195,7 +190,7 @@ public interface Failure extends CodecProvider<Failure> {
         static DecimalFormat fmt = new DecimalFormat("##.##%");
 
         @Override
-        public void appendHoverText(Consumer<Component> list) {
+        public void appendHoverText(Consumer<MutableComponent> list) {
             this.failure.appendHoverText(c -> {
                 list.accept(Component.translatable("failure.gateways.chance", fmt.format(this.chance * 100), c));
             });
@@ -225,7 +220,7 @@ public interface Failure extends CodecProvider<Failure> {
         }
 
         @Override
-        public void appendHoverText(Consumer<Component> list) {
+        public void appendHoverText(Consumer<MutableComponent> list) {
             list.accept(Component.translatable(this.desc));
         }
     }

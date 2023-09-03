@@ -37,7 +37,7 @@ public class GatewayObjects {
         })
         .build("gateway"));
 
-    public static final RegistryObject<GatePearlItem> GATE_PEARL = R.item("gate_pearl", () -> new GatePearlItem(new Item.Properties().stacksTo(1).rarity(Rarity.UNCOMMON)));
+    public static final RegistryObject<GatePearlItem> GATE_PEARL = R.item("gate_pearl", () -> new GatePearlItem(new Item.Properties().rarity(Rarity.UNCOMMON)));
 
     public static final RegistryObject<SoundEvent> GATE_AMBIENT = sound("gate_ambient");
     public static final RegistryObject<SoundEvent> GATE_WARP = sound("gate_warp");

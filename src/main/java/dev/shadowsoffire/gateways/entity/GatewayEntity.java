@@ -177,10 +177,6 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
                 this.entityData.set(WAVE_ACTIVE, false);
                 this.entityData.set(TICKS_ACTIVE, 0);
                 this.entityData.set(WAVE, Math.min(this.getWave() + 1, this.gate.get().getNumWaves()));
-                if (this.isLastWave()) {
-                    completePortal();
-                    return;
-                }
             }
             else if (!active && !this.isLastWave()) {
                 if (this.getTicksActive() > this.getCurrentWave().setupTime()) {
@@ -196,9 +192,13 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
                     if (this.undroppedItems.isEmpty()) break;
                 }
             }
+
+            if (!active && this.undroppedItems.isEmpty() && this.isLastWave()) {
+                this.completePortal();
+            }
         }
         else {
-            if (this.tickCount % 20 == 0) {
+            if (this.tickCount % 30 == 0) {
                 ParticleHandler.spawnIdleParticles(this);
             }
         }
@@ -232,10 +232,13 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
      * Called when the final wave is completed and the portal should close.
      */
     protected void completePortal() {
-        this.undroppedItems.forEach(this::spawnCompletionItem);
+        Player player = this.summonerOrClosest();
+        this.getGateway().rewards().forEach(r -> {
+            r.generateLoot((ServerLevel) this.level(), this, player, this::spawnCompletionItem);
+        });
 
         this.remove(RemovalReason.KILLED);
-        this.playSound(GatewayObjects.GATE_END.get(), 1, 1);
+        this.playSound(GatewayObjects.GATE_END.get(), 16, 1);
 
         this.level().getNearbyPlayers(TargetingConditions.DEFAULT, null, this.getBoundingBox().inflate(15)).forEach(p -> p.awardStat(GatewayObjects.GATES_DEFEATED.get()));
         MinecraftForge.EVENT_BUS.post(new GateEvent.Completed(this));

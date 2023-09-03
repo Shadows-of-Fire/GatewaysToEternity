@@ -10,7 +10,7 @@ import com.blamejared.crafttweaker_annotations.annotations.NativeTypeRegistratio
 
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.Failure;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 
@@ -26,7 +26,7 @@ public class CRTFailure {
     }
 
     @ZenCodeType.Method
-    public static void appendHoverText(Failure internal, Consumer<Component> list) {
+    public static void appendHoverText(Failure internal, Consumer<MutableComponent> list) {
         internal.appendHoverText(list);
     }
 }

@@ -1,16 +1,15 @@
 {
 	"entity.gateways.gateway" : "Gateway to Eternity",
 	"item.gateways.gate_pearl": "Gate Pearl",
-	"gateways.gate_pearl": "%s Pearl",
+	"gateways.gate_pearl": "Gate Pearl - %s",
 	"itemGroup.gateways": "Gateways to Eternity",
-
-	"gateways.blaze_gate_small": "Small Blaze Gate",
 
 	"info.gateways.gate_pearl": "A Gate Pearl allows you to summon a Gateway by using it on a block.\n\nThere will need to be sufficient space available, and another Gateway cannot already be open.\n",
 	"info.gateways.gate_pearl.2": "An open Gateway will fail in a burst of lightning if it cannot spawn a mob, any active mob walks too far away, or the wave timer elapses.\n\nRewards will spawn from the Gateway as they are obtained.",
 
-	"tooltip.gateways.list1": "• %sx %s",
-	"tooltip.gateways.list2": "• %s",
+	"tooltip.gateways.with_count": "%sx %s",
+	"tooltip.gateways.dot_with_count": "• %sx %s",
+	"tooltip.gateways.dot": "• %s",
 
 	"tooltip.gateways.scroll": "[scroll]",
 	"tooltip.gateways.shift": "[shift]",
@@ -34,6 +33,8 @@
 	"tooltip.gateways.num_rules": "%s Rule Changes",
 	"tooltip.gateways.rules": "Rule Changes",
 
+	"tooltip.gateways.key_rewards": "Key Rewards",
+
 	"tooltip.gateways.player_damage_only": "Spawned entities can only be hurt by a real player",
 	"tooltip.gateways.allows_discarding": "Spawned entities can be removed in unconventional ways",
 
@@ -46,10 +47,11 @@
 	"reward.gateways.loot_table": "%sx %s Rolls",
 	"reward.gateways.chance": "%s Chance of %s",
 	"reward.gateways.experience": "%s Experience",
+	"reward.gateways.summon": "Summons %s",
 
 	"failure.gateways.explosion": "Explosion of Radius %s",
 	"failure.gateways.mob_effect": "%s",
-	"failure.gateways.summon": "Summons %sx %s",
+	"failure.gateways.summon": "Summons %s",
 	"failure.gateways.chance": "%s Chance of %s",
 
 	"rule.gateways.default": "[was %s]",
@@ -68,5 +70,14 @@
 	"error.gateways.wave_elapsed": "Wave Timer Expired",
 	"error.gateways.entity_discarded": "The Gateway imploded because an entity was removed without being killed",
 
-	"stat.gateways.gates_defeated": "Gateways Defeated"
+	"stat.gateways.gates_defeated": "Gateways Defeated",
+
+	"gateways.blaze_gate_small": "Small Blaze Gate",
+	"gateways.emerald_grove": "Gate of the Emerald Grove",
+	"gateways.overworldian_nights": "Gate of Overworldian Nights",
+    
+    "rewards.gateways.loot_table.simple_dungeon": "Dungeon Loot",
+
+    "name.gateways.necrotic_farmer": "Necrotic Farmer",
+    "name.gateways.undead_legionnaire": "Undead Legionnaire"
 }

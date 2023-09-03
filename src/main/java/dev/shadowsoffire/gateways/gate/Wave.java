@@ -95,7 +95,15 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
     public List<ItemStack> spawnRewards(ServerLevel level, GatewayEntity gate, Player summoner) {
         List<ItemStack> stacks = new ArrayList<>();
         this.rewards.forEach(r -> r.generateLoot(level, gate, summoner, s -> {
-            if (!s.isEmpty()) stacks.add(s);
+            if (!s.isEmpty()) {
+                while (s.getCount() > 4) {
+                    ItemStack copy = s.copy();
+                    copy.setCount(4);
+                    stacks.add(copy);
+                    s.shrink(4);
+                }
+                if (!s.isEmpty()) stacks.add(s);
+            }
         }));
         return stacks;
     }
