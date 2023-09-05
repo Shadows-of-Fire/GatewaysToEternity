@@ -3,19 +3,16 @@ package dev.shadowsoffire.gateways.gate;
 import java.text.DecimalFormat;
 import java.util.function.Consumer;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.entity.GatewayEntity.FailureReason;
-import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
-import dev.shadowsoffire.placebo.codec.PlaceboCodecs.CodecProvider;
+import dev.shadowsoffire.placebo.codec.CodecMap;
+import dev.shadowsoffire.placebo.codec.CodecProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -32,9 +29,7 @@ import net.minecraftforge.registries.ForgeRegistries;
  */
 public interface Failure extends CodecProvider<Failure> {
 
-    public static final BiMap<ResourceLocation, Codec<? extends Failure>> CODECS = HashBiMap.create();
-
-    public static final Codec<Failure> CODEC = PlaceboCodecs.mapBacked("Gateway Failure", CODECS);
+    public static final CodecMap<Failure> CODEC = new CodecMap<>("Gateway Failure");
 
     /**
      * Called when this failure is to be applied.
@@ -57,7 +52,7 @@ public interface Failure extends CodecProvider<Failure> {
     }
 
     private static void register(String id, Codec<? extends Failure> codec) {
-        CODECS.put(Gateways.loc(id), codec);
+        CODEC.register(Gateways.loc(id), codec);
     }
 
     /**

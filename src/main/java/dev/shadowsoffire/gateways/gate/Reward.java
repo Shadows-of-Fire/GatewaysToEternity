@@ -11,15 +11,13 @@ import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
-import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
-import dev.shadowsoffire.placebo.codec.PlaceboCodecs.CodecProvider;
+import dev.shadowsoffire.placebo.codec.CodecMap;
+import dev.shadowsoffire.placebo.codec.CodecProvider;
 import dev.shadowsoffire.placebo.json.ItemAdapter;
 import dev.shadowsoffire.placebo.json.NBTAdapter;
 import net.minecraft.core.registries.Registries;
@@ -51,9 +49,7 @@ import net.minecraftforge.registries.ForgeRegistries;
  */
 public interface Reward extends CodecProvider<Reward> {
 
-    public static final BiMap<ResourceLocation, Codec<? extends Reward>> CODECS = HashBiMap.create();
-
-    public static final Codec<Reward> CODEC = PlaceboCodecs.mapBacked("Gateway Reward", CODECS);
+    public static final CodecMap<Reward> CODEC = new CodecMap<>("Gateway Reward");
 
     /**
      * Method ref to public net.minecraft.world.entity.LivingEntity m_7625_(Lnet/minecraft/world/damagesource/DamageSource;Z)V # dropFromLootTable
@@ -85,7 +81,7 @@ public interface Reward extends CodecProvider<Reward> {
     }
 
     private static void register(String id, Codec<? extends Reward> codec) {
-        CODECS.put(Gateways.loc(id), codec);
+        CODEC.register(Gateways.loc(id), codec);
     }
 
     private static MethodHandle lootMethodHandle() {

@@ -12,8 +12,8 @@ public class GatewayRegistry extends DynamicRegistry<Gateway> {
     }
 
     @Override
-    protected void registerBuiltinSerializers() {
-        this.registerSerializer(DEFAULT, Gateway.SERIALIZER);
+    protected void registerBuiltinCodecs() {
+        this.registerDefaultCodec(Gateways.loc("gateway"), Gateway.CODEC);
     }
 
 }

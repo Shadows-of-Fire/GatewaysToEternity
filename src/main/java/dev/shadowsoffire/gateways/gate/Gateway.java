@@ -9,8 +9,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity.GatewaySize;
 import dev.shadowsoffire.gateways.gate.SpawnAlgorithms.SpawnAlgorithm;
-import dev.shadowsoffire.placebo.json.PSerializer;
-import dev.shadowsoffire.placebo.json.PSerializer.PSerializable;
+import dev.shadowsoffire.placebo.codec.CodecProvider;
 import net.minecraft.network.chat.TextColor;
 
 /**
@@ -25,7 +24,7 @@ import net.minecraft.network.chat.TextColor;
  * @param rules     The {@linkplain GateRules rules} of the Gateway.
  */
 public record Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<Reward> rewards, List<Failure> failures, SpawnAlgorithm spawnAlgo, GateRules rules,
-    BossEventSettings bossEventSettings) implements PSerializable<Gateway> {
+    BossEventSettings bossEventSettings) implements CodecProvider<Gateway> {
 
     public static Codec<Gateway> CODEC = RecordCodecBuilder.create(inst -> inst
         .group(
@@ -38,8 +37,6 @@ public record Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<
             GateRules.CODEC.optionalFieldOf("rules", GateRules.DEFAULT).forGetter(Gateway::rules),
             BossEventSettings.CODEC.optionalFieldOf("boss_event", BossEventSettings.DEFAULT).forGetter(Gateway::bossEventSettings))
         .apply(inst, Gateway::new));
-
-    public static final PSerializer<Gateway> SERIALIZER = PSerializer.fromCodec("Gateway", CODEC);
 
     public int getNumWaves() {
         return this.waves.size();
@@ -55,8 +52,8 @@ public record Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<
     }
 
     @Override
-    public PSerializer<? extends Gateway> getSerializer() {
-        return SERIALIZER;
+    public Codec<Gateway> getCodec() {
+        return CODEC;
     }
 
 }

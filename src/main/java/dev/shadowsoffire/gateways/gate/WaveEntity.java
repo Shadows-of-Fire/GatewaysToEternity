@@ -3,19 +3,16 @@ package dev.shadowsoffire.gateways.gate;
 import java.util.Optional;
 import java.util.function.Function;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import dev.shadowsoffire.gateways.Gateways;
-import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
-import dev.shadowsoffire.placebo.codec.PlaceboCodecs.CodecProvider;
+import dev.shadowsoffire.placebo.codec.CodecMap;
+import dev.shadowsoffire.placebo.codec.CodecProvider;
 import dev.shadowsoffire.placebo.json.NBTAdapter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -25,16 +22,15 @@ import net.minecraftforge.registries.ForgeRegistries;
 
 public interface WaveEntity extends CodecProvider<WaveEntity> {
 
-    public static final BiMap<ResourceLocation, Codec<? extends WaveEntity>> CODECS = HashBiMap.create();
-
-    public static final Codec<WaveEntity> CODEC = PlaceboCodecs.mapBackedDefaulted("Wave Entity", CODECS, StandardWaveEntity.CODEC);
+    public static final CodecMap<WaveEntity> CODEC = new CodecMap<>("Wave Entity");
 
     public static void initSerializers() {
-        register("default", StandardWaveEntity.CODEC);
+        register("standard", StandardWaveEntity.CODEC);
+        CODEC.setDefaultCodec(StandardWaveEntity.CODEC);
     }
 
     private static void register(String id, Codec<? extends WaveEntity> codec) {
-        CODECS.put(Gateways.loc(id), codec);
+        CODEC.register(Gateways.loc(id), codec);
     }
 
     /**
