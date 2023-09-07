@@ -11,6 +11,7 @@ import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.entity.GatewayEntity.FailureReason;
 import dev.shadowsoffire.placebo.codec.CodecMap;
 import dev.shadowsoffire.placebo.codec.CodecProvider;
+import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
@@ -92,7 +93,7 @@ public interface Failure extends CodecProvider<Failure> {
             .group(
                 ForgeRegistries.MOB_EFFECTS.getCodec().fieldOf("effect").forGetter(MobEffectFailure::effect),
                 Codec.INT.fieldOf("duration").forGetter(MobEffectFailure::duration),
-                Codec.INT.optionalFieldOf("amplifier", 0).forGetter(MobEffectFailure::amplifier))
+                PlaceboCodecs.nullableField(Codec.INT, "amplifier", 0).forGetter(MobEffectFailure::amplifier))
             .apply(inst, MobEffectFailure::new));
 
         @Override

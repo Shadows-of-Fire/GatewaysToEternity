@@ -12,6 +12,7 @@ import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.entity.GatewayEntity.FailureReason;
 import dev.shadowsoffire.gateways.event.GateEvent;
 import dev.shadowsoffire.gateways.net.ParticleMessage;
+import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import dev.shadowsoffire.placebo.json.RandomAttributeModifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
@@ -41,8 +42,8 @@ public record Wave(List<WaveEntity> entities, List<RandomAttributeModifier> modi
     public static Codec<Wave> CODEC = RecordCodecBuilder.create(inst -> inst
         .group(
             WaveEntity.CODEC.listOf().fieldOf("entities").forGetter(Wave::entities),
-            RandomAttributeModifier.CODEC.listOf().optionalFieldOf("modifiers", Collections.emptyList()).forGetter(Wave::modifiers),
-            Reward.CODEC.listOf().optionalFieldOf("rewards", Collections.emptyList()).forGetter(Wave::rewards),
+            PlaceboCodecs.nullableField(RandomAttributeModifier.CODEC.listOf(), "modifiers", Collections.emptyList()).forGetter(Wave::modifiers),
+            PlaceboCodecs.nullableField(Reward.CODEC.listOf(), "rewards", Collections.emptyList()).forGetter(Wave::rewards),
             Codec.INT.fieldOf("max_wave_time").forGetter(Wave::maxWaveTime),
             Codec.INT.fieldOf("setup_time").forGetter(Wave::setupTime))
         .apply(inst, Wave::new));

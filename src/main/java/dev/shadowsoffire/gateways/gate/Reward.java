@@ -18,6 +18,7 @@ import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.placebo.codec.CodecMap;
 import dev.shadowsoffire.placebo.codec.CodecProvider;
+import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import dev.shadowsoffire.placebo.json.ItemAdapter;
 import dev.shadowsoffire.placebo.json.NBTAdapter;
 import net.minecraft.core.registries.Registries;
@@ -161,7 +162,7 @@ public interface Reward extends CodecProvider<Reward> {
         public static Codec<EntityLootReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 ForgeRegistries.ENTITY_TYPES.getCodec().fieldOf("entity").forGetter(EntityLootReward::type),
-                NBTAdapter.EITHER_CODEC.optionalFieldOf("nbt").forGetter(r -> Optional.ofNullable(r.nbt)),
+                PlaceboCodecs.nullableField(NBTAdapter.EITHER_CODEC, "nbt").forGetter(r -> Optional.ofNullable(r.nbt)),
                 Codec.INT.fieldOf("rolls").forGetter(EntityLootReward::rolls))
             .apply(inst, (type, nbt, rolls) -> new EntityLootReward(type, nbt.orElse(null), rolls)));
         // Formatter::on
@@ -305,7 +306,7 @@ public interface Reward extends CodecProvider<Reward> {
         public static Codec<XpReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 Codec.INT.fieldOf("experience").forGetter(XpReward::xp),
-                Codec.INT.optionalFieldOf("orb_size", 5).forGetter(XpReward::orbSize))
+                PlaceboCodecs.nullableField(Codec.INT, "orb_size", 5).forGetter(XpReward::orbSize))
             .apply(inst, XpReward::new));
 
         @Override

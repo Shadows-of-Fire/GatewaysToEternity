@@ -142,8 +142,8 @@ public class GatewaysClient {
                 comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.modifiers").withStyle(ChatFormatting.RED));
                 tooltips.add(comp);
                 for (RandomAttributeModifier inst : gate.getWave(wave).modifiers()) {
-                    comp = IFormattableAttribute.toComponent(inst.getAttribute(), inst.genModifier(rand), flag);
-                    comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", comp.getString()).withStyle(ChatFormatting.RED));
+                    comp = IFormattableAttribute.toComponent(inst.getAttribute(), inst.genModifier(rand), flag).withStyle(ChatFormatting.RED);
+                    comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", comp).withStyle(ChatFormatting.RED));
                     tooltips.add(comp);
                 }
             }

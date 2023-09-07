@@ -72,9 +72,9 @@
 
 	"stat.gateways.gates_defeated": "Gateways Defeated",
 
-	"gateways.blaze_gate_small": "Small Blaze Gate",
-	"gateways.emerald_grove": "Gate of the Emerald Grove",
-	"gateways.overworldian_nights": "Gate of Overworldian Nights",
+	"gateways.simple/blaze": "Blaze Gateway",
+	"gateways.emerald_grove": "Gateway of the Emerald Grove",
+	"gateways.overworldian_nights": "Gateway of Overworldian Nights",
     
     "rewards.gateways.loot_table.simple_dungeon": "Dungeon Loot",
 

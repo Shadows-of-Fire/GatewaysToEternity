@@ -10,6 +10,7 @@ import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity.GatewaySize;
 import dev.shadowsoffire.gateways.gate.SpawnAlgorithms.SpawnAlgorithm;
 import dev.shadowsoffire.placebo.codec.CodecProvider;
+import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import net.minecraft.network.chat.TextColor;
 
 /**
@@ -31,11 +32,11 @@ public record Gateway(GatewaySize size, TextColor color, List<Wave> waves, List<
             GatewaySize.CODEC.fieldOf("size").forGetter(Gateway::size),
             TextColor.CODEC.fieldOf("color").forGetter(Gateway::color),
             Wave.CODEC.listOf().fieldOf("waves").forGetter(Gateway::waves),
-            Reward.CODEC.listOf().optionalFieldOf("rewards", Collections.emptyList()).forGetter(Gateway::rewards),
-            Failure.CODEC.listOf().optionalFieldOf("failures", Collections.emptyList()).forGetter(Gateway::failures),
-            SpawnAlgorithms.CODEC.optionalFieldOf("spawn_algorithm", SpawnAlgorithms.NAMED_ALGORITHMS.get(Gateways.loc("open_field"))).forGetter(Gateway::spawnAlgo),
-            GateRules.CODEC.optionalFieldOf("rules", GateRules.DEFAULT).forGetter(Gateway::rules),
-            BossEventSettings.CODEC.optionalFieldOf("boss_event", BossEventSettings.DEFAULT).forGetter(Gateway::bossEventSettings))
+            PlaceboCodecs.nullableField(Reward.CODEC.listOf(), "rewards", Collections.emptyList()).forGetter(Gateway::rewards),
+            PlaceboCodecs.nullableField(Failure.CODEC.listOf(), "failures", Collections.emptyList()).forGetter(Gateway::failures),
+            PlaceboCodecs.nullableField(SpawnAlgorithms.CODEC, "spawn_algorithm", SpawnAlgorithms.NAMED_ALGORITHMS.get(Gateways.loc("open_field"))).forGetter(Gateway::spawnAlgo),
+            PlaceboCodecs.nullableField(GateRules.CODEC, "rules", GateRules.DEFAULT).forGetter(Gateway::rules),
+            PlaceboCodecs.nullableField(BossEventSettings.CODEC, "boss_event", BossEventSettings.DEFAULT).forGetter(Gateway::bossEventSettings))
         .apply(inst, Gateway::new));
 
     public int getNumWaves() {

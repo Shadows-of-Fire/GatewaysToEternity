@@ -12,6 +12,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.network.chat.CommonComponents;
@@ -36,14 +37,14 @@ public record GateRules(double spawnRange, double leashRange, boolean allowDisca
     public static final DecimalFormat FORMAT = Util.make(new DecimalFormat("#.#"), fmt -> fmt.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.ROOT)));
     public static final Codec<GateRules> CODEC = RecordCodecBuilder.create(inst -> inst
         .group(
-            Codec.DOUBLE.optionalFieldOf("spawn_range", 5D).forGetter(GateRules::spawnRange),
-            Codec.DOUBLE.optionalFieldOf("leash_range", 24D).forGetter(GateRules::leashRange),
-            Codec.BOOL.optionalFieldOf("allow_discarding", true).forGetter(GateRules::allowDiscarding),
-            Codec.BOOL.optionalFieldOf("allow_dim_change", false).forGetter(GateRules::allowDimChange),
-            Codec.BOOL.optionalFieldOf("player_damage_only", false).forGetter(GateRules::playerDamageOnly),
-            Codec.BOOL.optionalFieldOf("remove_mobs_on_failure", true).forGetter(GateRules::removeOnFailure),
-            Codec.BOOL.optionalFieldOf("fail_on_out_of_bounds", false).forGetter(GateRules::failOnOutOfBounds),
-            Codec.DOUBLE.optionalFieldOf("spacing", 0D).forGetter(GateRules::spacing))
+            PlaceboCodecs.nullableField(Codec.DOUBLE, "spawn_range", 8D).forGetter(GateRules::spawnRange),
+            PlaceboCodecs.nullableField(Codec.DOUBLE, "leash_range", 32D).forGetter(GateRules::leashRange),
+            PlaceboCodecs.nullableField(Codec.BOOL, "allow_discarding", true).forGetter(GateRules::allowDiscarding),
+            PlaceboCodecs.nullableField(Codec.BOOL, "allow_dim_change", false).forGetter(GateRules::allowDimChange),
+            PlaceboCodecs.nullableField(Codec.BOOL, "player_damage_only", false).forGetter(GateRules::playerDamageOnly),
+            PlaceboCodecs.nullableField(Codec.BOOL, "remove_mobs_on_failure", true).forGetter(GateRules::removeOnFailure),
+            PlaceboCodecs.nullableField(Codec.BOOL, "fail_on_out_of_bounds", false).forGetter(GateRules::failOnOutOfBounds),
+            PlaceboCodecs.nullableField(Codec.DOUBLE, "spacing", 0D).forGetter(GateRules::spacing))
         .apply(inst, GateRules::new));
     public static final GateRules DEFAULT = CODEC.decode(JsonOps.INSTANCE, new JsonObject()).get().left().get().getFirst();
 
