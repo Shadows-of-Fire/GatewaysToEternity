@@ -53,7 +53,7 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
         matrix.mulPose(new Quaternionf().rotationAxis(Mth.DEG_TO_RAD * (180F - (float) angleOf(portal, playerV)), 0, 1, 0));
         matrix.scale(2, 1, 1);
 
-        if (!gate.isWaveActive() && !gate.isLastWave()) {
+        if (!gate.isWaveActive() && gate.isCompleted()) {
             float time = gate.getTicksActive() + partialTicks;
             float maxTime = gate.getCurrentWave().setupTime();
             if (time <= maxTime) scale = Mth.lerp(time / maxTime, gate.getClientScale(), baseScale);
@@ -92,7 +92,7 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
         builder.vertex(matrix.last().pose(), 1, -1, 0).color(r, g, b, 255).uv(0, 1 - frame * frameHeight).overlayCoords(OverlayTexture.NO_OVERLAY).uv2(packedLight).normal(matrix.last().normal(), 0, 1, 0).endVertex();
         matrix.popPose();
 
-        if (gate.getGateway().bossEventSettings().drawAsName()) {
+        if (gate.getGateway().bossSettings().drawAsName()) {
             matrix.pushPose();
 
             matrix.translate(0.0F, gate.getBbHeight() + 1, 0.0F);
@@ -100,7 +100,7 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
             matrix.scale(-0.02F, -0.02F, 0.02F);
             GuiGraphics gfx = new GuiGraphics(Minecraft.getInstance(), matrix, Minecraft.getInstance().renderBuffers().bufferSource());
             RenderSystem.enableDepthTest();
-            GatewaysClient.renderBossBar(gate, gfx, -100, 0, true);
+            gate.getGateway().renderBossBar(gate, gfx, -100, 0, true);
             gfx.flush();
             matrix.popPose();
         }

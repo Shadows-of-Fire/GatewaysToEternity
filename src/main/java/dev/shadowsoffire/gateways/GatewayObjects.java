@@ -4,7 +4,8 @@ import com.mojang.serialization.Codec;
 
 import dev.shadowsoffire.gateways.client.GatewayParticleData;
 import dev.shadowsoffire.gateways.client.GatewayTickableSound;
-import dev.shadowsoffire.gateways.entity.GatewayEntity;
+import dev.shadowsoffire.gateways.entity.EndlessGatewayEntity;
+import dev.shadowsoffire.gateways.entity.NormalGatewayEntity;
 import dev.shadowsoffire.gateways.item.GatePearlItem;
 import dev.shadowsoffire.gateways.recipe.GatewayRecipeSerializer;
 import dev.shadowsoffire.placebo.registry.DeferredHelper;
@@ -25,13 +26,25 @@ public class GatewayObjects {
 
     private static final DeferredHelper R = DeferredHelper.create(Gateways.MODID);
 
-    public static final RegistryObject<EntityType<GatewayEntity>> GATEWAY = R.entity("gateway", () -> EntityType.Builder
-        .<GatewayEntity>of(GatewayEntity::new, MobCategory.MISC)
+    public static final RegistryObject<EntityType<NormalGatewayEntity>> NORMAL_GATEWAY = R.entity("normal_gateway", () -> EntityType.Builder
+        .<NormalGatewayEntity>of(NormalGatewayEntity::new, MobCategory.MISC)
         .setTrackingRange(5)
         .setUpdateInterval(20)
         .sized(2F, 3F)
-        .setCustomClientFactory((se, w) -> {
-            GatewayEntity ent = new GatewayEntity(GatewayObjects.GATEWAY.get(), w);
+        .setCustomClientFactory((packet, level) -> {
+            NormalGatewayEntity ent = GatewayObjects.NORMAL_GATEWAY.get().create(level);
+            GatewayTickableSound.startGatewaySound(ent);
+            return ent;
+        })
+        .build("gateway"));
+
+    public static final RegistryObject<EntityType<EndlessGatewayEntity>> ENDLESS_GATEWAY = R.entity("endless_gateway", () -> EntityType.Builder
+        .<EndlessGatewayEntity>of(EndlessGatewayEntity::new, MobCategory.MISC)
+        .setTrackingRange(5)
+        .setUpdateInterval(20)
+        .sized(2F, 3F)
+        .setCustomClientFactory((packet, level) -> {
+            EndlessGatewayEntity ent = GatewayObjects.ENDLESS_GATEWAY.get().create(level);
             GatewayTickableSound.startGatewaySound(ent);
             return ent;
         })

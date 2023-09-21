@@ -100,12 +100,10 @@ public interface Reward extends CodecProvider<Reward> {
      */
     public static record StackReward(ItemStack stack) implements Reward {
 
-        // Formatter::off
         public static Codec<StackReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 ItemAdapter.CODEC.fieldOf("stack").forGetter(StackReward::stack))
             .apply(inst, StackReward::new));
-        // Formatter::on
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
@@ -128,12 +126,10 @@ public interface Reward extends CodecProvider<Reward> {
      */
     public static record StackListReward(List<ItemStack> stacks) implements Reward {
 
-        // Formatter::off
         public static Codec<StackListReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 ItemAdapter.CODEC.listOf().fieldOf("stacks").forGetter(StackListReward::stacks))
             .apply(inst, StackListReward::new));
-        // Formatter::on
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
@@ -158,14 +154,12 @@ public interface Reward extends CodecProvider<Reward> {
      */
     public static record EntityLootReward(EntityType<?> type, @Nullable CompoundTag nbt, int rolls) implements Reward {
 
-        // Formatter::off
         public static Codec<EntityLootReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 ForgeRegistries.ENTITY_TYPES.getCodec().fieldOf("entity").forGetter(EntityLootReward::type),
                 PlaceboCodecs.nullableField(NBTAdapter.EITHER_CODEC, "nbt").forGetter(r -> Optional.ofNullable(r.nbt)),
                 Codec.INT.fieldOf("rolls").forGetter(EntityLootReward::rolls))
             .apply(inst, (type, nbt, rolls) -> new EntityLootReward(type, nbt.orElse(null), rolls)));
-        // Formatter::on
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
@@ -207,14 +201,12 @@ public interface Reward extends CodecProvider<Reward> {
      */
     public static record LootTableReward(ResourceLocation table, int rolls, String desc) implements Reward {
 
-        // Formatter::off
         public static Codec<LootTableReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 ResourceLocation.CODEC.fieldOf("loot_table").forGetter(LootTableReward::table),
                 Codec.INT.fieldOf("rolls").forGetter(LootTableReward::rolls),
                 Codec.STRING.fieldOf("desc").forGetter(LootTableReward::desc))
             .apply(inst, LootTableReward::new));
-        // Formatter::on
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
@@ -242,13 +234,11 @@ public interface Reward extends CodecProvider<Reward> {
      */
     public static record ChancedReward(Reward reward, float chance) implements Reward {
 
-        // Formatter::off
         public static Codec<ChancedReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 Reward.CODEC.fieldOf("reward").forGetter(ChancedReward::reward),
                 Codec.FLOAT.fieldOf("chance").forGetter(ChancedReward::chance))
             .apply(inst, ChancedReward::new));
-        // Formatter::on
 
         protected static final DecimalFormat fmt = new DecimalFormat("##.##%");
 

@@ -6,7 +6,9 @@ import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
+import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
+import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -37,10 +39,15 @@ public class GatewayCommand {
         try {
             Entity nullableSummoner = c.getSource().getEntity();
             Player summoner = nullableSummoner instanceof Player ? (Player) nullableSummoner : c.getSource().getLevel().getNearestPlayer(pos.x(), pos.y(), pos.z(), 64, false);
-            GatewayEntity gate = new GatewayEntity(c.getSource().getLevel(), summoner, GatewayRegistry.INSTANCE.holder(type));
-            gate.moveTo(pos);
-            c.getSource().getLevel().addFreshEntity(gate);
-            gate.onGateCreated();
+            DynamicHolder<Gateway> gate = GatewayRegistry.INSTANCE.holder(type);
+            if (!gate.isBound()) {
+                c.getSource().sendFailure(Component.literal("Unknown Gateway"));
+                return -1;
+            }
+            GatewayEntity entity = gate.get().createEntity(c.getSource().getLevel(), summoner);
+            entity.moveTo(pos);
+            c.getSource().getLevel().addFreshEntity(entity);
+            entity.onGateCreated();
         }
         catch (Exception ex) {
             c.getSource().sendFailure(Component.literal("Exception thrown - see log"));

@@ -19,18 +19,13 @@ import net.minecraft.world.entity.player.Player;
 public class CRTGatewayEntity {
 
     @ZenCodeType.Getter("isLastWave")
-    public static boolean isLastWave(GatewayEntity internal) {
-        return internal.isLastWave();
+    public static boolean isCompleted(GatewayEntity internal) {
+        return internal.isCompleted();
     }
 
     @ZenCodeType.Getter("currentWave")
     public static Wave getCurrentWave(GatewayEntity internal) {
         return internal.getCurrentWave();
-    }
-
-    @ZenCodeType.Method
-    public static void spawnWave(GatewayEntity internal) {
-        internal.spawnWave();
     }
 
     @ZenCodeType.Method

@@ -12,7 +12,6 @@ import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
 import com.mojang.authlib.GameProfile;
-import com.mojang.serialization.Codec;
 
 import dev.shadowsoffire.gateways.GatewayObjects;
 import dev.shadowsoffire.gateways.Gateways;
@@ -23,8 +22,8 @@ import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
 import dev.shadowsoffire.gateways.gate.SpawnAlgorithms.SpawnAlgorithm;
 import dev.shadowsoffire.gateways.gate.Wave;
+import dev.shadowsoffire.gateways.gate.normal.NormalGateway;
 import dev.shadowsoffire.gateways.net.ParticleMessage;
-import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import dev.shadowsoffire.placebo.network.PacketDistro;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import net.minecraft.ChatFormatting;
@@ -67,7 +66,7 @@ import net.minecraftforge.common.util.FakePlayerFactory;
 import net.minecraftforge.entity.IEntityAdditionalSpawnData;
 import net.minecraftforge.network.NetworkHooks;
 
-public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData {
+public abstract class GatewayEntity extends Entity implements IEntityAdditionalSpawnData {
 
     public static final EntityDataAccessor<Boolean> WAVE_ACTIVE = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.BOOLEAN);
     public static final EntityDataAccessor<Integer> TICKS_ACTIVE = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
@@ -78,7 +77,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     protected final Set<UUID> unresolvedWaveEntities = new HashSet<>();
 
     protected UUID summonerId;
-    protected DynamicHolder<Gateway> gate;
+    protected DynamicHolder<? extends Gateway> gate;
     protected float clientScale = 0F;
     protected Queue<ItemStack> undroppedItems = new ArrayDeque<>();
     protected FailureReason failureReason;
@@ -86,11 +85,8 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     @Nullable
     protected ServerBossEvent bossEvent;
 
-    /**
-     * Primary constructor.
-     */
-    public GatewayEntity(Level level, Player placer, DynamicHolder<Gateway> gate) {
-        super(GatewayObjects.GATEWAY.get(), level);
+    public GatewayEntity(EntityType<? extends GatewayEntity> type, Level level, Player placer, DynamicHolder<? extends Gateway> gate) {
+        super(type, level);
         this.summonerId = placer.getUUID();
         this.gate = gate;
         Preconditions.checkArgument(gate.isBound(), "A gateway may not be constructed for an unbound holder.");
@@ -99,25 +95,23 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         this.refreshDimensions();
     }
 
-    /**
-     * Client/Load constructor.
-     */
     public GatewayEntity(EntityType<?> type, Level level) {
         super(type, level);
     }
 
-    @Override
-    public EntityDimensions getDimensions(Pose pPose) {
-        return this.gate.get().size().dims;
-    }
+    /**
+     * Returns the current wave, or the final wave, if the wave index is past the last wave.
+     */
+    public abstract Wave getCurrentWave();
+
+    protected abstract boolean canStartNextWave();
+
+    public abstract boolean isCompleted();
 
     /**
-     * Checks if the removal reason of the entity was a "legal" kill for this gateway.
+     * Called when a wave is completed. Responsible for loot spawns.
      */
-    protected boolean isValidRemoval(@Nullable RemovalReason reason) {
-        GateRules rules = this.getGateway().rules();
-        return reason == RemovalReason.KILLED || (rules.allowDiscarding() && reason == RemovalReason.DISCARDED) || (rules.allowDimChange() && reason == RemovalReason.CHANGED_DIMENSION);
-    }
+    protected abstract void completeWave();
 
     @Override
     public void tick() {
@@ -143,15 +137,15 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
                     this.onFailure(this.currentWaveEntities, FailureReason.TIMER_ELAPSED);
                     return;
                 }
-                this.entityData.set(TICKS_ACTIVE, this.getTicksActive() + 1);
             }
 
-            boolean active = this.isWaveActive();
+            this.entityData.set(TICKS_ACTIVE, this.getTicksActive() + 1);
+
             // Collect all remaining enemies, which are those that are alive and not removed via a valid reason.
             List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(e -> e.getHealth() > 0 && !this.isValidRemoval(e.getRemovalReason())).toList();
             if (this.tickCount % 20 == 0) {
                 for (LivingEntity entity : enemies) {
-                    if (this.hasLeftDimension(entity)) {
+                    if (hasLeftDimension(entity)) {
                         this.onFailure(this.currentWaveEntities, FailureReason.ENTITY_LEFT_DIMENSION);
                         return;
                     }
@@ -169,21 +163,7 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
                         }
                     }
                 }
-            }
-            this.entityData.set(ENEMIES, enemies.size());
-            if (active && enemies.size() == 0) {
-                this.onWaveEnd(this.getCurrentWave());
-                this.currentWaveEntities.clear();
-                this.entityData.set(WAVE_ACTIVE, false);
-                this.entityData.set(TICKS_ACTIVE, 0);
-                this.entityData.set(WAVE, Math.min(this.getWave() + 1, this.gate.get().getNumWaves()));
-            }
-            else if (!active && !this.isLastWave()) {
-                if (this.getTicksActive() > this.getCurrentWave().setupTime()) {
-                    this.spawnWave();
-                    return;
-                }
-                this.entityData.set(TICKS_ACTIVE, this.getTicksActive() + 1);
+                this.entityData.set(ENEMIES, enemies.size());
             }
 
             if (this.tickCount % 4 == 0 && !this.undroppedItems.isEmpty()) {
@@ -193,8 +173,28 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
                 }
             }
 
-            if (!active && this.undroppedItems.isEmpty() && this.isLastWave()) {
-                this.completePortal();
+            if (this.isWaveActive()) {
+                if (enemies.isEmpty()) {
+                    this.completeWave();
+                    MinecraftForge.EVENT_BUS.post(new GateEvent.WaveEnd(this));
+                    this.currentWaveEntities.clear();
+                    this.entityData.set(WAVE_ACTIVE, false);
+                    this.entityData.set(TICKS_ACTIVE, 0);
+                    this.entityData.set(WAVE, this.getWave() + 1);
+                }
+            }
+            else {
+                if (this.canStartNextWave()) {
+                    this.startNextWave();
+                    this.entityData.set(WAVE_ACTIVE, true);
+                    this.entityData.set(TICKS_ACTIVE, 0);
+                    this.entityData.set(ENEMIES, this.currentWaveEntities.size());
+                    MinecraftForge.EVENT_BUS.post(new GateEvent.WaveStarted(this));
+                    return;
+                }
+                else if (this.isCompleted()) {
+                    completeGateway();
+                }
             }
         }
         else {
@@ -204,39 +204,32 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         }
     }
 
+    @Override
+    public EntityDimensions getDimensions(Pose pPose) {
+        return this.gate.get().size().getDims();
+    }
+
+    /**
+     * Checks if the removal reason of the entity was a "legal" kill for this gateway.
+     */
+    protected boolean isValidRemoval(@Nullable RemovalReason reason) {
+        GateRules rules = this.getGateway().rules();
+        return reason == RemovalReason.KILLED || (rules.allowDiscarding() && reason == RemovalReason.DISCARDED) || (rules.allowDimChange() && reason == RemovalReason.CHANGED_DIMENSION);
+    }
+
     protected int getDropCount() {
         return 3 + this.undroppedItems.size() / 100;
     }
 
-    public boolean isLastWave() {
-        return this.getWave() == this.getGateway().getNumWaves();
-    }
-
-    /**
-     * Returns the current wave, or returns the last wave, if the last wave has been completed.
-     */
-    public Wave getCurrentWave() {
-        return this.getGateway().getWave(Math.min(this.getGateway().getNumWaves() - 1, this.getWave()));
-    }
-
-    public void spawnWave() {
-        List<LivingEntity> spawned = this.getGateway().getWave(this.getWave()).spawnWave((ServerLevel) this.level(), this.position(), this);
+    protected void startNextWave() {
+        List<LivingEntity> spawned = this.getCurrentWave().spawnWave((ServerLevel) this.level(), this.position(), this);
         this.currentWaveEntities.addAll(spawned);
-
-        this.entityData.set(WAVE_ACTIVE, true);
-        this.entityData.set(TICKS_ACTIVE, 0);
-        this.entityData.set(ENEMIES, this.currentWaveEntities.size());
     }
 
     /**
      * Called when the final wave is completed and the portal should close.
      */
-    protected void completePortal() {
-        Player player = this.summonerOrClosest();
-        this.getGateway().rewards().forEach(r -> {
-            r.generateLoot((ServerLevel) this.level(), this, player, this::spawnCompletionItem);
-        });
-
+    protected void completeGateway() {
         this.remove(RemovalReason.KILLED);
         this.playSound(GatewayObjects.GATE_END.get(), 16, 1);
 
@@ -247,15 +240,6 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     public void onGateCreated() {
         this.playSound(GatewayObjects.GATE_START.get(), 1, 1);
         MinecraftForge.EVENT_BUS.post(new GateEvent.Opened(this));
-    }
-
-    /**
-     * Called when a wave is completed. Responsible for loot spawns.
-     */
-    protected void onWaveEnd(Wave wave) {
-        Player player = this.summonerOrClosest();
-        this.undroppedItems.addAll(wave.spawnRewards((ServerLevel) this.level(), this, player));
-        MinecraftForge.EVENT_BUS.post(new GateEvent.WaveEnd(this));
     }
 
     public Player summonerOrClosest() {
@@ -292,9 +276,9 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     }
 
     protected ServerBossEvent createBossEvent() {
-        if (this.getGateway().bossEventSettings().drawAsBar()) {
+        if (this.getGateway().bossSettings().drawAsBar()) {
             ServerBossEvent event = new ServerBossEvent(Component.literal("GATEWAY_ID" + this.getId()), BossBarColor.BLUE, BossBarOverlay.PROGRESS);
-            event.setCreateWorldFog(this.getGateway().bossEventSettings().fog());
+            event.setCreateWorldFog(this.getGateway().bossSettings().fog());
             return event;
         }
         return null;
@@ -422,13 +406,6 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         this.clientScale = clientScale;
     }
 
-    public static void spawnLightningOn(Entity entity, boolean effectOnly) {
-        LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(entity.level());
-        bolt.setPos(entity.getX(), entity.getY(), entity.getZ());
-        bolt.setVisualOnly(effectOnly);
-        entity.level().addFreshEntity(bolt);
-    }
-
     public void spawnParticle(double x, double y, double z, ParticleMessage.Type type) {
         PacketDistro.sendToTracking(Gateways.CHANNEL, new ParticleMessage(this, x, y, z, this.getGateway().color(), type), (ServerLevel) this.level(), new BlockPos((int) x, (int) y, (int) z));
     }
@@ -476,9 +453,9 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
     }
 
     /**
-     * Checks if the wave entity is outside the Gateway's {@linkplain Gateway#leashRange() leash range}.
+     * Checks if the wave entity is outside the Gateway's {@linkplain NormalGateway#leashRange() leash range}.
      * <p>
-     * If {@link Gateway#failOnOutOfBounds()} is enabled, being outside the leash range triggers {@link FailureReason#ENTITY_TOO_FAR}.<br>
+     * If {@link NormalGateway#failOnOutOfBounds()} is enabled, being outside the leash range triggers {@link FailureReason#ENTITY_TOO_FAR}.<br>
      * Otherwise, this causes the entity to be re-placed near the gateway using the current spawn algorithm.
      * 
      * @param entity The wave entity.
@@ -486,16 +463,6 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
      */
     public boolean isOutOfRange(Entity entity) {
         return entity.distanceToSqr(this) > this.getGateway().getLeashRangeSq();
-    }
-
-    /**
-     * Checks if the wave entity has left the current dimension. This triggers an automatic {@link FailureReason#ENTITY_LEFT_DIMENSION}.
-     * 
-     * @param entity The wave entity.
-     * @return True if the entity has changed dimensions.
-     */
-    public boolean hasLeftDimension(Entity entity) {
-        return entity.getRemovalReason() == RemovalReason.CHANGED_DIMENSION;
     }
 
     /**
@@ -535,16 +502,32 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
         SpawnAlgorithm algo = this.getGateway().spawnAlgo();
         Vec3 pos = algo.spawn((ServerLevel) this.level(), this.position(), this, entity);
         if (pos == null) return false;
-
+        entity.resetFallDistance();
         this.spawnParticle(entity.getX(), entity.getY(), entity.getZ(), ParticleMessage.Type.SPAWNED);
         entity.setPos(pos);
         this.spawnParticle(entity.getX(), entity.getY(), entity.getZ(), ParticleMessage.Type.SPAWNED);
-        entity.resetFallDistance();
         if (entity instanceof Mob mob) {
             Player p = summonerOrClosest();
             if (!(p instanceof FakePlayer)) mob.setTarget(p);
         }
         return true;
+    }
+
+    public static void spawnLightningOn(Entity entity, boolean effectOnly) {
+        LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(entity.level());
+        bolt.setPos(entity.getX(), entity.getY(), entity.getZ());
+        bolt.setVisualOnly(effectOnly);
+        entity.level().addFreshEntity(bolt);
+    }
+
+    /**
+     * Checks if the wave entity has left the current dimension. This triggers an automatic {@link FailureReason#ENTITY_LEFT_DIMENSION}.
+     * 
+     * @param entity The wave entity.
+     * @return True if the entity has changed dimensions.
+     */
+    public static boolean hasLeftDimension(Entity entity) {
+        return entity.getRemovalReason() == RemovalReason.CHANGED_DIMENSION;
     }
 
     @Nullable
@@ -556,26 +539,6 @@ public class GatewayEntity extends Entity implements IEntityAdditionalSpawnData 
             }
         }
         return null;
-    }
-
-    public static enum GatewaySize {
-        SMALL(EntityDimensions.fixed(2F, 2F), 1F),
-        MEDIUM(EntityDimensions.fixed(4F, 4F), 2F),
-        LARGE(EntityDimensions.fixed(5.5F, 5.5F), 2.5F);
-
-        public static final Codec<GatewaySize> CODEC = PlaceboCodecs.enumCodec(GatewaySize.class);
-
-        private final EntityDimensions dims;
-        private final float scale;
-
-        GatewaySize(EntityDimensions dims, float scale) {
-            this.dims = dims;
-            this.scale = scale;
-        }
-
-        public float getScale() {
-            return this.scale;
-        }
     }
 
     public static enum FailureReason {

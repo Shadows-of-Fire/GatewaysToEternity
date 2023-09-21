@@ -7,8 +7,8 @@
 	"info.gateways.gate_pearl": "A Gate Pearl allows you to summon a Gateway by using it on a block.\n\nThere will need to be sufficient space available, and another Gateway cannot already be open.\n",
 	"info.gateways.gate_pearl.2": "An open Gateway will fail in a burst of lightning if it cannot spawn a mob, any active mob walks too far away, or the wave timer elapses.\n\nRewards will spawn from the Gateway as they are obtained.",
 
-	"tooltip.gateways.with_count": "%sx %s",
-	"tooltip.gateways.dot_with_count": "• %sx %s",
+	"tooltip.gateways.with_count": "%s %s",
+	"tooltip.gateways.dot_with_count": "• %s %s",
 	"tooltip.gateways.dot": "• %s",
 
 	"tooltip.gateways.scroll": "[scroll]",
@@ -42,9 +42,9 @@
 	"boss.gateways.done": "Gate Completed!",
 	"boss.gateways.starting": "Wave %d starting in %s",
 
-	"reward.gateways.stack": "%sx %s",
-	"reward.gateways.entity": "%sx %s Loot Rolls",
-	"reward.gateways.loot_table": "%sx %s Rolls",
+	"reward.gateways.stack": "%s %s",
+	"reward.gateways.entity": "%s %s Loot Rolls",
+	"reward.gateways.loot_table": "%s %s Rolls",
 	"reward.gateways.chance": "%s Chance of %s",
 	"reward.gateways.experience": "%s Experience",
 	"reward.gateways.summon": "Summons %s",
@@ -71,6 +71,8 @@
 	"error.gateways.entity_discarded": "The Gateway imploded because an entity was removed without being killed",
 
 	"stat.gateways.gates_defeated": "Gateways Defeated",
+
+    "modifier.gateways.gear_set": "Equipped With %s",
 
 	"gateways.simple/blaze": "Blaze Gateway",
 	"gateways.emerald_grove": "Gateway of the Emerald Grove",

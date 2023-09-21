@@ -156,35 +156,16 @@
                     "nbt": {
                         "CustomNameVisible": 1,
                         "CustomName": "{\"translate\":\"name.gateways.necrotic_farmer\",\"color\":\"red\"}",
-                        "HandItems": [
-                            {
-                                "id": "minecraft:iron_sword",
-                                "Count": 1
-                            },
-                            {}
-                        ],
-                        "ArmorItems": [
-                            {
-                                "id": "minecraft:iron_boots",
-                                "Count": 1
-                            },
-                            {
-                                "id": "minecraft:iron_leggings",
-                                "Count": 1
-                            },
-                            {
-                                "id": "minecraft:iron_chestplate",
-                                "Count": 1
-                            },
-                            {
-                                "id": "minecraft:iron_helmet",
-                                "Count": 1
-                            }
-                        ],
                         "VillagerData": {
                             "profession": "minecraft:farmer"
                         }
                     },
+                    "modifiers": [
+                        {
+                            "type": "gateways:gear_set",
+                            "gear_set": "gateways:iron"
+                        }
+                    ],
                     "finalize_spawn": false
                 },
                 {

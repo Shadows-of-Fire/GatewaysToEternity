@@ -9,6 +9,7 @@ import snownee.jade.api.WailaPlugin;
 public class GatewayJadePlugin implements IWailaPlugin {
     @Override
     public void registerClient(IWailaClientRegistration reg) {
-        reg.hideTarget(GatewayObjects.GATEWAY.get());
+        reg.hideTarget(GatewayObjects.NORMAL_GATEWAY.get());
+        reg.hideTarget(GatewayObjects.ENDLESS_GATEWAY.get());
     }
 }

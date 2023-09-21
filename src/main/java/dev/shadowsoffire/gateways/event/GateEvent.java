@@ -38,6 +38,17 @@ public abstract class GateEvent extends EntityEvent {
     }
 
     /**
+     * GateEvent$WaveStart is fired when a wave is started.
+     */
+    public static class WaveStarted extends GateEvent {
+
+        public WaveStarted(GatewayEntity entity) {
+            super(entity);
+        }
+
+    }
+
+    /**
      * GateEvent$WaveEnd is fired when a wave is completed, but before the current wave counter is incremented.
      */
     public static class WaveEnd extends GateEvent {

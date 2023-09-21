@@ -3,7 +3,6 @@ package dev.shadowsoffire.gateways.item;
 import java.util.Comparator;
 import java.util.List;
 
-import dev.shadowsoffire.gateways.client.GatewaysClient;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
@@ -42,7 +41,7 @@ public class GatePearlItem extends Item implements ITabFiller {
         if (!gate.isBound()) return InteractionResult.FAIL;
         if (world.isClientSide) return InteractionResult.SUCCESS;
 
-        GatewayEntity entity = new GatewayEntity(world, ctx.getPlayer(), gate);
+        GatewayEntity entity = gate.get().createEntity(world, ctx.getPlayer());
         BlockState state = world.getBlockState(pos);
         VoxelShape shape = state.getCollisionShape(world, pos);
         entity.setPos(pos.getX() + 0.5, pos.getY() + (shape.isEmpty() ? 0 : shape.max(Axis.Y)), pos.getZ() + 0.5);
@@ -94,8 +93,12 @@ public class GatePearlItem extends Item implements ITabFiller {
 
     @Override
     public void appendHoverText(ItemStack stack, Level level, List<Component> tooltip, TooltipFlag flag) {
-        if (FMLEnvironment.dist.isClient()) {
-            GatewaysClient.appendPearlTooltip(stack, level, tooltip, flag);
+        DynamicHolder<Gateway> holder = GatePearlItem.getGate(stack);
+        if (!holder.isBound()) {
+            tooltip.add(Component.literal("Errored Gate Pearl, file a bug report detailing how you obtained this."));
+        }
+        else if (FMLEnvironment.dist.isClient()) {
+            holder.get().appendPearlTooltip(level, tooltip, flag);
         }
     }
 

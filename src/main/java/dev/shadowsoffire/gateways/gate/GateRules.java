@@ -56,7 +56,6 @@ public record GateRules(double spawnRange, double leashRange, boolean allowDisca
         List<MutableComponent> list = new ArrayList<>();
         append("spawn_range", list, this.spawnRange, DEFAULT.spawnRange);
         append("leash_range", list, this.leashRange, DEFAULT.leashRange);
-        // These two are inverted as they are better expressed that way.
         append("allow_discarding", list, this.allowDiscarding, DEFAULT.allowDiscarding);
         append("allow_dim_change", list, this.allowDimChange, DEFAULT.allowDimChange);
         append("player_damage_only", list, this.playerDamageOnly, DEFAULT.playerDamageOnly);
