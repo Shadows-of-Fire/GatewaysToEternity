@@ -7,6 +7,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import dev.shadowsoffire.gateways.Gateways;
+import dev.shadowsoffire.gateways.client.EndlessGateClient;
 import dev.shadowsoffire.gateways.entity.EndlessGatewayEntity;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.BossEventSettings;
@@ -46,12 +47,12 @@ public record EndlessGateway(Size size, TextColor color, Wave baseWave, List<End
 
     @Override
     public void appendPearlTooltip(Level level, List<Component> tooltips, TooltipFlag flag) {
-
+        EndlessGateClient.appendPearlTooltip(this, level, tooltips, flag);
     }
 
     @Override
     public void renderBossBar(GatewayEntity gate, Object gfx, int x, int y, boolean isInWorld) {
-
+        EndlessGateClient.renderBossBar(gate, gfx, x, y, isInWorld);
     }
 
     @Override

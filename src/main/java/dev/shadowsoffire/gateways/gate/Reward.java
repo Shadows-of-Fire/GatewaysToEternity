@@ -158,7 +158,7 @@ public interface Reward extends CodecProvider<Reward> {
             .group(
                 ForgeRegistries.ENTITY_TYPES.getCodec().fieldOf("entity").forGetter(EntityLootReward::type),
                 PlaceboCodecs.nullableField(NBTAdapter.EITHER_CODEC, "nbt").forGetter(r -> Optional.ofNullable(r.nbt)),
-                Codec.INT.fieldOf("rolls").forGetter(EntityLootReward::rolls))
+                PlaceboCodecs.nullableField(Codec.intRange(1, Integer.MAX_VALUE), "rolls", 1).forGetter(EntityLootReward::rolls))
             .apply(inst, (type, nbt, rolls) -> new EntityLootReward(type, nbt.orElse(null), rolls)));
 
         @Override
@@ -204,7 +204,7 @@ public interface Reward extends CodecProvider<Reward> {
         public static Codec<LootTableReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 ResourceLocation.CODEC.fieldOf("loot_table").forGetter(LootTableReward::table),
-                Codec.INT.fieldOf("rolls").forGetter(LootTableReward::rolls),
+                PlaceboCodecs.nullableField(Codec.intRange(1, Integer.MAX_VALUE), "rolls", 1).forGetter(LootTableReward::rolls),
                 Codec.STRING.fieldOf("desc").forGetter(LootTableReward::desc))
             .apply(inst, LootTableReward::new));
 

@@ -163,8 +163,8 @@ public abstract class GatewayEntity extends Entity implements IEntityAdditionalS
                         }
                     }
                 }
-                this.entityData.set(ENEMIES, enemies.size());
             }
+            this.entityData.set(ENEMIES, enemies.size());
 
             if (this.tickCount % 4 == 0 && !this.undroppedItems.isEmpty()) {
                 for (int i = 0; i < this.getDropCount(); i++) {

@@ -6,6 +6,8 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.placebo.codec.CodecMap;
 import dev.shadowsoffire.placebo.codec.CodecProvider;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 
 public interface ApplicationMode extends CodecProvider<ApplicationMode> {
 
@@ -20,6 +22,11 @@ public interface ApplicationMode extends CodecProvider<ApplicationMode> {
      * @return The number of times the associated modifier will be applied.
      */
     int getApplicationCount(int wave);
+
+    /**
+     * Gets a one-line description that states how often the application mode fires.
+     */
+    MutableComponent getDescription();
 
     public static void initSerializers() {
         register("after_wave", AfterWave.CODEC);
@@ -48,6 +55,11 @@ public interface ApplicationMode extends CodecProvider<ApplicationMode> {
         }
 
         @Override
+        public MutableComponent getDescription() {
+            return Component.translatable("appmode.gateways.after_wave", this.wave);
+        }
+
+        @Override
         public Codec<? extends ApplicationMode> getCodec() {
             return CODEC;
         }
@@ -68,6 +80,11 @@ public interface ApplicationMode extends CodecProvider<ApplicationMode> {
         public int getApplicationCount(int wave) {
             // Integer division here will cause this to return +1 for every N waves.
             return wave / waves;
+        }
+
+        @Override
+        public MutableComponent getDescription() {
+            return Component.translatable("appmode.gateways.after_every_n_waves", this.waves);
         }
 
         @Override
@@ -93,6 +110,11 @@ public interface ApplicationMode extends CodecProvider<ApplicationMode> {
         }
 
         @Override
+        public MutableComponent getDescription() {
+            return Component.translatable("appmode.gateways.only_on_wave", this.wave);
+        }
+
+        @Override
         public Codec<? extends ApplicationMode> getCodec() {
             return CODEC;
         }
@@ -112,6 +134,11 @@ public interface ApplicationMode extends CodecProvider<ApplicationMode> {
         @Override
         public int getApplicationCount(int wave) {
             return wave % waves == 0 ? 1 : 0;
+        }
+
+        @Override
+        public MutableComponent getDescription() {
+            return Component.translatable("appmode.gateways.only_on_every_n_waves", this.waves);
         }
 
         @Override

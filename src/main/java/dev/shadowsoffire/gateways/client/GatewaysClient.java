@@ -72,20 +72,20 @@ public class GatewaysClient {
         e.registerSprite(GatewayObjects.GLOW.get(), GatewayParticle::new);
     }
 
-    static int waveIdx = 0;
+    static int scrollIdx = 0;
     private static ItemStack currentTooltipItem = ItemStack.EMPTY;
     private static long tooltipTick = 0;
 
     public static void scroll(ScreenEvent.MouseScrolled.Pre e) {
         if (currentTooltipItem.getItem() == GatewayObjects.GATE_PEARL.get() && tooltipTick == PlaceboClient.ticks && Screen.hasShiftDown()) {
-            waveIdx += e.getScrollDelta() < 0 ? 1 : -1;
+            scrollIdx += e.getScrollDelta() < 0 ? 1 : -1;
             e.setCanceled(true);
         }
     }
 
     public static void scroll2(InputEvent.MouseScrollingEvent e) {
         if (currentTooltipItem.getItem() == GatewayObjects.GATE_PEARL.get() && tooltipTick == PlaceboClient.ticks && Screen.hasShiftDown()) {
-            waveIdx += e.getScrollDelta() < 0 ? 1 : -1;
+            scrollIdx += e.getScrollDelta() < 0 ? 1 : -1;
             e.setCanceled(true);
         }
     }

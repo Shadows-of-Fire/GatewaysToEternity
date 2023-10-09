@@ -39,7 +39,7 @@ public record GateRules(double spawnRange, double leashRange, boolean allowDisca
         .group(
             PlaceboCodecs.nullableField(Codec.DOUBLE, "spawn_range", 8D).forGetter(GateRules::spawnRange),
             PlaceboCodecs.nullableField(Codec.DOUBLE, "leash_range", 32D).forGetter(GateRules::leashRange),
-            PlaceboCodecs.nullableField(Codec.BOOL, "allow_discarding", true).forGetter(GateRules::allowDiscarding),
+            PlaceboCodecs.nullableField(Codec.BOOL, "allow_discarding", false).forGetter(GateRules::allowDiscarding),
             PlaceboCodecs.nullableField(Codec.BOOL, "allow_dim_change", false).forGetter(GateRules::allowDimChange),
             PlaceboCodecs.nullableField(Codec.BOOL, "player_damage_only", false).forGetter(GateRules::playerDamageOnly),
             PlaceboCodecs.nullableField(Codec.BOOL, "remove_mobs_on_failure", true).forGetter(GateRules::removeOnFailure),

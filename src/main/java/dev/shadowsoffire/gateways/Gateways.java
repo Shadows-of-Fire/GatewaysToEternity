@@ -8,6 +8,7 @@ import dev.shadowsoffire.gateways.gate.GatewayRegistry;
 import dev.shadowsoffire.gateways.gate.Reward;
 import dev.shadowsoffire.gateways.gate.WaveEntity;
 import dev.shadowsoffire.gateways.gate.WaveModifier;
+import dev.shadowsoffire.gateways.gate.endless.ApplicationMode;
 import dev.shadowsoffire.gateways.net.ParticleMessage;
 import dev.shadowsoffire.placebo.network.MessageHelper;
 import dev.shadowsoffire.placebo.tabs.TabFillingRegistry;
@@ -50,6 +51,7 @@ public class Gateways {
             Reward.initSerializers();
             WaveEntity.initSerializers();
             Failure.initSerializers();
+            ApplicationMode.initSerializers();
             TabFillingRegistry.register(GatewayObjects.TAB_KEY, GatewayObjects.GATE_PEARL);
             Stats.CUSTOM.get(GatewayObjects.GATES_DEFEATED.get(), StatFormatter.DEFAULT);
         });

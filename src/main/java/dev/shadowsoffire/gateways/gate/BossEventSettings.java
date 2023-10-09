@@ -11,8 +11,8 @@ public record BossEventSettings(Mode mode, boolean fog) {
 
     public static Codec<BossEventSettings> CODEC = RecordCodecBuilder.create(inst -> inst
         .group(
-            Mode.CODEC.fieldOf("mode").forGetter(BossEventSettings::mode),
-            Codec.BOOL.fieldOf("fog").forGetter(BossEventSettings::fog))
+            PlaceboCodecs.nullableField(Mode.CODEC, "mode", Mode.BOSS_BAR).forGetter(BossEventSettings::mode),
+            PlaceboCodecs.nullableField(Codec.BOOL, "fog", true).forGetter(BossEventSettings::fog))
         .apply(inst, BossEventSettings::new));
 
     public boolean drawAsName() {

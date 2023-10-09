@@ -24,7 +24,7 @@
 	"tooltip.gateways.entities": "Entities: ",
 	"tooltip.gateways.modifiers": "Modifiers: ",
 	"tooltip.gateways.rewards": "Rewards: ",
-    
+
 	"tooltip.gateways.num_failures": "%s Penalties",
 	"tooltip.gateways.num_failure": "%s Penalty",
 	"tooltip.gateways.failures": "Failure Penalties",
@@ -35,12 +35,17 @@
 
 	"tooltip.gateways.key_rewards": "Key Rewards",
 
-	"tooltip.gateways.player_damage_only": "Spawned entities can only be hurt by a real player",
-	"tooltip.gateways.allows_discarding": "Spawned entities can be removed in unconventional ways",
+    "tooltip.gateways.endless.base_wave": "Base Wave",
+	"tooltip.gateways.endless.num_modif": "%s Endless Modifier",
+	"tooltip.gateways.endless.num_modifs": "%s Endless Modifiers",
+    "tooltip.gateways.endless.modifier": "Endless Modifier %s/%s",
 
 	"boss.gateways.wave": "Wave: %d/%d | Time: %s | Enemies: %d",
 	"boss.gateways.done": "Gate Completed!",
 	"boss.gateways.starting": "Wave %d starting in %s",
+	"boss.gateways.endless.top": "Wave: %d/%d | Time Remaining: %d",
+    "boss.gateways.endless.bot": "Enemies: %d/%d | Modifiers Active: %d",
+	"boss.gateways.endless.incoming": "Enemies Incoming: %d",
 
 	"reward.gateways.stack": "%s %s",
 	"reward.gateways.entity": "%s %s Loot Rolls",
@@ -70,6 +75,11 @@
 	"error.gateways.wave_elapsed": "Wave Timer Expired",
 	"error.gateways.entity_discarded": "The Gateway imploded because an entity was removed without being killed",
 
+    "appmode.gateways.after_wave": "Applied on wave %s",
+    "appmode.gateways.after_every_n_waves": "Applies every %s waves",
+    "appmode.gateways.only_on_wave": "Applied only on wave %s",
+    "appmode.gateways.only_on_every_n_waves": "Applied only on every %s waves",
+
 	"stat.gateways.gates_defeated": "Gateways Defeated",
 
     "modifier.gateways.gear_set": "Equipped With %s",
@@ -77,9 +87,10 @@
 	"gateways.simple/blaze": "Blaze Gateway",
 	"gateways.emerald_grove": "Gateway of the Emerald Grove",
 	"gateways.overworldian_nights": "Gateway of Overworldian Nights",
+    "gateways.endless/blaze": "Endless Blaze Gateway",
     
     "rewards.gateways.loot_table.simple_dungeon": "Dungeon Loot",
 
     "name.gateways.necrotic_farmer": "Necrotic Farmer",
     "name.gateways.undead_legionnaire": "Undead Legionnaire"
-}
+} 

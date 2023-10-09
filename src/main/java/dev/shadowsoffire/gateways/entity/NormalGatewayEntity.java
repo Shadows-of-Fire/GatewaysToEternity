@@ -45,7 +45,7 @@ public class NormalGatewayEntity extends GatewayEntity {
 
     @Override
     public boolean isCompleted() {
-        return this.isLastWave();
+        return this.undroppedItems.isEmpty() && this.isLastWave();
     }
 
     @Override
