@@ -40,7 +40,7 @@ public interface ApplicationMode extends CodecProvider<ApplicationMode> {
     }
 
     /**
-     * Applies the modifier(s) on the specified wave and all subsequent waves.
+     * Adds the modifier(s) on the specified wave, remaining for all subsequent waves.
      */
     public static record AfterWave(int wave) implements ApplicationMode {
 
@@ -67,24 +67,25 @@ public interface ApplicationMode extends CodecProvider<ApplicationMode> {
     }
 
     /**
-     * Applies the modifier(s) once every N waves, stacking with prior applications.
+     * Applies the modifier(s) once every N waves, stacking with prior applications, up to M total applications.
      */
-    public static record AfterEveryNWaves(int waves) implements ApplicationMode {
+    public static record AfterEveryNWaves(int waves, int max) implements ApplicationMode {
 
         public static Codec<AfterEveryNWaves> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
-                Codec.intRange(1, 1024).fieldOf("waves").forGetter(AfterEveryNWaves::waves))
+                Codec.intRange(1, 1024).fieldOf("waves").forGetter(AfterEveryNWaves::waves),
+                Codec.intRange(1, 1024).fieldOf("max").forGetter(AfterEveryNWaves::max))
             .apply(inst, AfterEveryNWaves::new));
 
         @Override
         public int getApplicationCount(int wave) {
             // Integer division here will cause this to return +1 for every N waves.
-            return wave / waves;
+            return Math.min(wave / this.waves, this.max);
         }
 
         @Override
         public MutableComponent getDescription() {
-            return Component.translatable("appmode.gateways.after_every_n_waves", this.waves);
+            return Component.translatable("appmode.gateways.after_every_n_waves", this.waves, this.max);
         }
 
         @Override

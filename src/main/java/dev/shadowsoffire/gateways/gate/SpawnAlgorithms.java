@@ -11,7 +11,6 @@ import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.phys.AABB;
@@ -34,14 +33,17 @@ public class SpawnAlgorithms {
         Vec3 spawn(ServerLevel level, Vec3 pos, GatewayEntity gate, Entity toSpawn);
     }
 
-    public static final BiMap<ResourceLocation, SpawnAlgorithm> NAMED_ALGORITHMS = HashBiMap.create();
+    public static final SpawnAlgorithm OPEN_FIELD = SpawnAlgorithms::openField;
+    public static final SpawnAlgorithm INWARD_SPIRAL = SpawnAlgorithms::inwardSpiral;
+
+    private static final BiMap<ResourceLocation, SpawnAlgorithm> NAMED_ALGORITHMS = HashBiMap.create();
 
     static {
-        NAMED_ALGORITHMS.put(Gateways.loc("open_field"), SpawnAlgorithms::openField);
-        NAMED_ALGORITHMS.put(Gateways.loc("inward_spiral"), SpawnAlgorithms::inwardSpiral);
+        register(Gateways.loc("open_field"), OPEN_FIELD);
+        register(Gateways.loc("inward_spiral"), INWARD_SPIRAL);
     }
 
-    public static final Codec<SpawnAlgorithm> CODEC = ExtraCodecs.stringResolverCodec(sa -> NAMED_ALGORITHMS.inverse().get(sa).toString(), key -> NAMED_ALGORITHMS.get(new ResourceLocation(key)));
+    public static final Codec<SpawnAlgorithm> CODEC = ResourceLocation.CODEC.xmap(NAMED_ALGORITHMS::get, NAMED_ALGORITHMS.inverse()::get);
     public static final int MAX_SPAWN_TRIES = 15;
 
     /**
@@ -49,7 +51,7 @@ public class SpawnAlgorithms {
      * This algorithm will likely fail if the working area is not mostly empty.<br>
      */
     @Nullable
-    public static Vec3 openField(ServerLevel level, Vec3 pos, GatewayEntity gate, Entity toSpawn) {
+    private static Vec3 openField(ServerLevel level, Vec3 pos, GatewayEntity gate, Entity toSpawn) {
         double spawnRange = gate.getBbWidth() / 2 + gate.getGateway().rules().spawnRange();
 
         int tries = 0;
@@ -84,7 +86,7 @@ public class SpawnAlgorithms {
      * This algorithm will work in most scenarios, but may enable non-ideal cheese mechanisms such as dropping all wave entities into a mob grinder.
      */
     @Nullable
-    public static Vec3 inwardSpiral(ServerLevel level, Vec3 pos, GatewayEntity gate, Entity toSpawn) {
+    private static Vec3 inwardSpiral(ServerLevel level, Vec3 pos, GatewayEntity gate, Entity toSpawn) {
         double spawnRange = gate.getBbWidth() / 2 + gate.getGateway().rules().spawnRange();
 
         int tries = 0;
@@ -115,6 +117,12 @@ public class SpawnAlgorithms {
 
     public static AABB getAABB(Entity e, double x, double y, double z) {
         return e.getDimensions(Pose.STANDING).makeBoundingBox(x, y, z);
+    }
+
+    public static void register(ResourceLocation key, SpawnAlgorithm algo) {
+        if (NAMED_ALGORITHMS.containsKey(key)) throw new UnsupportedOperationException("Attempted to register a spawn algorithm with duplicate key: " + key);
+        if (NAMED_ALGORITHMS.containsValue(algo)) throw new UnsupportedOperationException("Attempted to register the spawn algorithm " + key + " twice.");
+        NAMED_ALGORITHMS.put(key, algo);
     }
 
 }

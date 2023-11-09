@@ -1,13 +1,12 @@
-## 4.2.0 - WIP
+## 4.2.0
 * This update brings a substantial refactor to the Gateway json format - you will need to update your files accordingly!
   * Many new controls have been added, and some old controls have been adjusted. The default values of things have also changed.
-  * The Schema document has been updated to reflect these changes.
+  * The new schema files are located [here](./schema/).
 * Gateways now depends on Apothic Attributes.
 * Removed all default Gateways and replaced them with new ones.
   * Added the Gate of the Emerald Grove.
   * Added the Gate of Overworldian Nights.
 * Jared: Added native CraftTweaker support, including bindings for the gateway entity and all of the gateway events.
-* Updated to Placebo 8.5.2 and made `Gateway` a record class.
 * Added an event handler to prevent Wave entities from despawning while the gate is alive.
   * Wave Entities always have `Mob#setPersistenceRequired` called, but mobs could bypass this via event.
 * Removed the 25 block exclusion radius for Gateways.
@@ -19,9 +18,10 @@
 * Wave entities may now specify a `desc` key to change what is shown in the tooltip.
 * Top-level `rewards` will now be displayed as `Key Rewards` and are always shown on the pearl.
   * Most rewards should be in the wave, but noteworthy completion rewards should be placed in this section.
-* Rewards and Failures now enforce usage of the namespace in their type tags. The namespace for all the defaults is `gateways`.
+* Rewards and Failures now enforce usage of the namespace in their type keys. The namespace for all the defaults is `gateways`.
 * Redid Gate Pearl tooltips.
 * Gate Pearls can now stack to 64.
+* Oh, and as a side effect, it is now possible for addons to be created which register custom gateway types.
 
 ## 4.1.1
 * Removed forge dependency line from the mods.toml and marked as Forge and NeoForge for CF.

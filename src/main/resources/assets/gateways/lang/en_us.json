@@ -75,10 +75,10 @@
 	"error.gateways.wave_elapsed": "Wave Timer Expired",
 	"error.gateways.entity_discarded": "The Gateway imploded because an entity was removed without being killed",
 
-    "appmode.gateways.after_wave": "Applied on wave %s",
-    "appmode.gateways.after_every_n_waves": "Applies every %s waves",
-    "appmode.gateways.only_on_wave": "Applied only on wave %s",
-    "appmode.gateways.only_on_every_n_waves": "Applied only on every %s waves",
+    "appmode.gateways.after_wave": "Applied on wave %s.",
+    "appmode.gateways.after_every_n_waves": "Applies every %s waves. Max %s applications.",
+    "appmode.gateways.only_on_wave": "Applied only on wave %s.",
+    "appmode.gateways.only_on_every_n_waves": "Applied only on every %s waves.",
 
 	"stat.gateways.gates_defeated": "Gateways Defeated",
 

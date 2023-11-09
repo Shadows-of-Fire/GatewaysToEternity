@@ -6,7 +6,6 @@ import java.util.List;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.client.EndlessGateClient;
 import dev.shadowsoffire.gateways.entity.EndlessGatewayEntity;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
@@ -35,7 +34,7 @@ public record EndlessGateway(Size size, TextColor color, Wave baseWave, List<End
             Wave.CODEC.fieldOf("base_wave").forGetter(EndlessGateway::baseWave),
             EndlessModifier.CODEC.listOf().fieldOf("modifiers").forGetter(EndlessGateway::modifiers),
             PlaceboCodecs.nullableField(Failure.CODEC.listOf(), "failures", Collections.emptyList()).forGetter(EndlessGateway::failures),
-            PlaceboCodecs.nullableField(SpawnAlgorithms.CODEC, "spawn_algorithm", SpawnAlgorithms.NAMED_ALGORITHMS.get(Gateways.loc("open_field"))).forGetter(EndlessGateway::spawnAlgo),
+            PlaceboCodecs.nullableField(SpawnAlgorithms.CODEC, "spawn_algorithm", SpawnAlgorithms.OPEN_FIELD).forGetter(EndlessGateway::spawnAlgo),
             PlaceboCodecs.nullableField(GateRules.CODEC, "rules", GateRules.DEFAULT).forGetter(EndlessGateway::rules),
             PlaceboCodecs.nullableField(BossEventSettings.CODEC, "boss_event", BossEventSettings.DEFAULT).forGetter(EndlessGateway::bossSettings))
         .apply(inst, EndlessGateway::new));

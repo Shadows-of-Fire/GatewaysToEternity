@@ -6,7 +6,6 @@ import java.util.List;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.client.NormalGateClient;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.entity.NormalGatewayEntity;
@@ -47,7 +46,7 @@ public record NormalGateway(Size size, TextColor color, List<Wave> waves, List<R
             Wave.CODEC.listOf().fieldOf("waves").forGetter(NormalGateway::waves),
             PlaceboCodecs.nullableField(Reward.CODEC.listOf(), "rewards", Collections.emptyList()).forGetter(NormalGateway::rewards),
             PlaceboCodecs.nullableField(Failure.CODEC.listOf(), "failures", Collections.emptyList()).forGetter(NormalGateway::failures),
-            PlaceboCodecs.nullableField(SpawnAlgorithms.CODEC, "spawn_algorithm", SpawnAlgorithms.NAMED_ALGORITHMS.get(Gateways.loc("open_field"))).forGetter(NormalGateway::spawnAlgo),
+            PlaceboCodecs.nullableField(SpawnAlgorithms.CODEC, "spawn_algorithm", SpawnAlgorithms.OPEN_FIELD).forGetter(NormalGateway::spawnAlgo),
             PlaceboCodecs.nullableField(GateRules.CODEC, "rules", GateRules.DEFAULT).forGetter(NormalGateway::rules),
             PlaceboCodecs.nullableField(BossEventSettings.CODEC, "boss_event", BossEventSettings.DEFAULT).forGetter(NormalGateway::bossSettings))
         .apply(inst, NormalGateway::new));

@@ -3,12 +3,12 @@ A Reward is something provided by a Gateway when an objective is completed.
 
 # Dependencies
 This object references the following objects:
-1. [CompoundTag](../../../../Placebo/blob/-/schema/CompoundTag.md)
-2. [ItemStack](../../../../Placebo/blob/-/schema/ItemStack.md)
+1. [CompoundTag](../../../../../Placebo/blob/-/schema/CompoundTag.md)
+2. [ItemStack](../../../../../Placebo/blob/-/schema/ItemStack.md)
 3. [WaveEntity](./WaveEntity.md)
 
 # Subtypes
-Reward objects are subtyped, meaning each subtype declares a `"type"` key and its own parameters.
+Rewards are subtyped, meaning each subtype declares a `"type"` key and its own parameters.
 
 ## Stack Reward
 Rewards a single ItemStack.
@@ -16,7 +16,7 @@ Rewards a single ItemStack.
 ### Schema
 ```js
 {
-    "type": "stack",
+    "type": "gateways:stack",
     "stack": ItemStack      // [Mandatory] || The ItemStack this reward will provide.
 }
 ```
@@ -27,7 +27,7 @@ Rewards one or more ItemStacks.
 ### Schema
 ```js
 {
-    "type": "stack_list",
+    "type": "gateways:stack_list",
     "stacks": [             // [Mandatory] || List of all stacks this reward will provide.
         ItemStack
     ]
@@ -40,7 +40,7 @@ Rewards the loot of a specific entity, as if the summoner had killed it.
 ### Schema
 ```js
 {
-    "type": "entity_loot",
+    "type": "gateways:entity_loot",
     "entity": "string",     // [Mandatory] || Registry name of the entity to use.
     "nbt": CompoundTag,     // [Optional]  || NBT data that will be loaded onto the entity before evaluating the loot table.
     "rolls": integer        // [Optional]  || The number of times the loot table will be rolled. Default value = 1.
@@ -54,7 +54,7 @@ Do not use this for entity loot tables, only use it for chests/block drops or si
 ### Schema
 ```js
 {
-    "type": "loot_table",
+    "type": "gateways:loot_table",
     "loot_table": "string", // [Mandatory] || Registry name of the target loot table.
     "rolls": integer,       // [Optional]  || The number of times the loot table will be rolled. Default value = 1.
     "desc": "string"        // [Mandatory] || Lang key (or english text) which will be used to display the reward in the tooltip.
@@ -70,7 +70,7 @@ The command will be executed as the gateway entity with a permission level of 2.
 ### Schema
 ```js
 {
-    "type": "command",
+    "type": "gateways:command",
     "command": "string",    // [Mandatory] || The command string, without a leading slash.
     "desc": "string"        // [Mandatory] || Lang Key (or english text) which will be used to display the reward in the tooltip.
 }
@@ -82,7 +82,7 @@ Rewards a certain amount of experience.
 ### Schema
 ```js
 {
-    "type": "experience",
+    "type": "gateways:experience",
     "experience": integer,  // [Mandatory] || The amount of experience that will be granted.
     "orb_size": integer     // [Optional]  || The size of the experience orbs that will be generated. A larger value will cause fewer individual orbs to generate. Default value = 5.
 }
@@ -94,7 +94,7 @@ Summons a wave entity when rewards would be generated.
 ### Schema
 ```js
 {
-    "type": "summon",
+    "type": "gateways:summon",
     "entity": WaveEntity    // [Mandatory] || The wave entity being spawned.
 }
 ```
@@ -105,7 +105,7 @@ Provides a chance to receive any other reward.
 ### Schema
 ```js
 {
-    "type": "chanced",
+    "type": "gateways:chanced",
     "chance": float,        // [Mandatory] || The chance the reward is granted, in the range [0, 1].  0.5 is 50%
     "reward": Reward        // [Mandatory] || The underlying reward.
 }
