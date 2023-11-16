@@ -84,9 +84,9 @@
 
     "modifier.gateways.gear_set": "Equipped With %s",
 
-	"gateways.simple/blaze": "Blaze Gateway",
-	"gateways.simple/slime": "Slime Gateway",
-	"gateways.simple/enderman": "Enderman Gateway",
+	"gateways.basic/blaze": "Blaze Gateway",
+	"gateways.basic/slime": "Slime Gateway",
+	"gateways.basic/enderman": "Enderman Gateway",
     
 	"gateways.emerald_grove": "Gateway of the Emerald Grove",
 	"gateways.overworldian_nights": "Gateway of Overworldian Nights",

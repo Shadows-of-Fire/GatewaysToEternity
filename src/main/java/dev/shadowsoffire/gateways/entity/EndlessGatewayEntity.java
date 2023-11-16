@@ -6,6 +6,7 @@ import java.util.function.Consumer;
 import dev.shadowsoffire.gateways.GatewayObjects;
 import dev.shadowsoffire.gateways.gate.Wave;
 import dev.shadowsoffire.gateways.gate.WaveEntity;
+import dev.shadowsoffire.gateways.gate.WaveModifier;
 import dev.shadowsoffire.gateways.gate.endless.EndlessGateway;
 import dev.shadowsoffire.gateways.gate.endless.EndlessModifier;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
@@ -65,7 +66,14 @@ public class EndlessGatewayEntity extends GatewayEntity {
                 else this.currentWaveEntities.add(entity);
             }
         }));
-        int applied = executeModifiers(m -> m.modifiers().forEach(modif -> this.currentWaveEntities.forEach(modif::apply)));
+        int applied = executeModifiers(m -> {
+            for (LivingEntity entity : this.currentWaveEntities) {
+                for (WaveModifier waveModif : m.modifiers()) {
+                    waveModif.apply(entity);
+                }
+                entity.setHealth(entity.getMaxHealth());
+            }
+        });
         this.entityData.set(MODIFIERS, applied);
         this.entityData.set(MAX_ENEMIES, this.currentWaveEntities.size());
     }

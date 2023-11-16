@@ -1,0 +1,34 @@
+{
+  "type": "gateways:gate_recipe",
+  "group": "gateways",
+  "pattern": [
+    "RRR",
+    "MAB",
+    "WWW"
+  ],
+  "key": {
+    "R": {
+      "tag": "forge:dusts/redstone"
+    },
+	"M": {
+      "item": "minecraft:red_mushroom"
+    },
+	"A": {
+      "item": "minecraft:ender_pearl"
+    },
+	"B": {
+      "item": "minecraft:brown_mushroom"
+    },
+	"W": {
+      "type": "forge:partial_nbt",
+      "item": "minecraft:potion",
+      "nbt": {
+          "Potion": "minecraft:water"
+      }
+    }
+  },
+  "result": {
+    "item": "gateways:gate_pearl"
+  },
+  "gateway": "gateways:basic/slime"
+}

@@ -95,7 +95,7 @@ public class EndlessGateClient {
             if (!modif.modifiers().isEmpty()) {
                 comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.modifiers").withStyle(ChatFormatting.RED));
                 tooltips.add(comp);
-                for (WaveModifier waveModif : wave.modifiers()) {
+                for (WaveModifier waveModif : modif.modifiers()) {
                     waveModif.appendHoverText(c -> {
                         tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c.withStyle(ChatFormatting.RED)).withStyle(s -> s.withColor(ChatFormatting.RED))));
                     });

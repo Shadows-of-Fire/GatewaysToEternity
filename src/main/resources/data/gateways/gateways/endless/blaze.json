@@ -1,6 +1,6 @@
 {
     "type": "gateways:endless",
-	"size": "small",
+	"size": "medium",
 	"color": "#FFFF84",
 	"base_wave": {
         "entities": [{
@@ -30,6 +30,18 @@
                 "type": "gateways:entity_loot",
                 "entity": "minecraft:blaze",
                 "rolls": 10
+            }]
+        },
+        {
+            "application_mode": {
+                "type": "gateways:after_every_n_waves",
+                "waves": 5,
+                "max": 3
+            },
+            "modifiers": [{
+                "attribute": "generic.max_health",
+                "operation": "multiply_total",
+                "value": 0.15
             }]
         }
     ],

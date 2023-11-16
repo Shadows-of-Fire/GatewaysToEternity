@@ -1,0 +1,31 @@
+{
+  "type": "gateways:gate_recipe",
+  "group": "gateways",
+  "pattern": [
+    "NNN",
+    "#A#",
+    "BBB"
+  ],
+  "key": {
+    "#": {
+      "item": "minecraft:blaze_rod"
+    },
+	"A": {
+      "type": "forge:partial_nbt",
+      "item": "gateways:gate_pearl",
+      "nbt": {
+          "gateway": "gateways:basic/blaze"
+      }
+    },
+	"B": {
+      "item": "minecraft:magma_cream"
+    },
+	"N": {
+      "tag": "forge:gems/emerald"
+    }
+  },
+  "result": {
+    "item": "gateways:gate_pearl"
+  },
+  "gateway": "gateways:endless/blaze"
+}
