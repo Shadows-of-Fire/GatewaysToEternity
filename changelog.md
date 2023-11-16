@@ -3,9 +3,14 @@
   * Many new controls have been added, and some old controls have been adjusted. The default values of things have also changed.
   * The new schema files are located [here](./schema/).
 * Gateways now depends on Apothic Attributes.
-* Removed all default Gateways and replaced them with new ones.
-  * Added the Gate of the Emerald Grove.
-  * Added the Gate of Overworldian Nights.
+* Removed all of the original single-mob Gateways.
+* Added the following Gateways:
+  * Gate of the Emerald Grove.
+  * Gate of Overworldian Nights.
+  * Gate of the Hellish Fortress.
+  * Single-mob Gateways for Blazes, Endermen, and Slimes.
+  * Endless Blaze Gateway.
+  * More to come in future updates.
 * Jared: Added native CraftTweaker support, including bindings for the gateway entity and all of the gateway events.
 * Added an event handler to prevent Wave entities from despawning while the gate is alive.
   * Wave Entities always have `Mob#setPersistenceRequired` called, but mobs could bypass this via event.
@@ -22,6 +27,7 @@
 * Redid Gate Pearl tooltips.
 * Gate Pearls can now stack to 64.
 * Oh, and as a side effect, it is now possible for addons to be created which register custom gateway types.
+* The CurseForge Page has been updated to reflect these changes.
 
 ## 4.1.1
 * Removed forge dependency line from the mods.toml and marked as Forge and NeoForge for CF.
