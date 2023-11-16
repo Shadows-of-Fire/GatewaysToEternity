@@ -4,7 +4,7 @@
 	"mainhands": [{
 			"weight": 1,
 			"stack": {
-				"item": "minecraft:iron_sword"
+				"item": "minecraft:golden_axe"
 			},
             "drop_chance": 0
 		}
@@ -13,28 +13,28 @@
 	"boots": [{
 		"weight": 1,
 		"stack": {
-			"item": "minecraft:iron_boots"
+			"item": "minecraft:golden_boots"
 		},
         "drop_chance": 0
 	}],
 	"leggings": [{
 		"weight": 1,
 		"stack": {
-			"item": "minecraft:iron_leggings"
+			"item": "minecraft:golden_leggings"
 		},
         "drop_chance": 0
 	}],
 	"chestplates": [{
 		"weight": 1,
 		"stack": {
-			"item": "minecraft:iron_chestplate"
+			"item": "minecraft:golden_chestplate"
 		},
         "drop_chance": 0
 	}],
 	"helmets": [{
 		"weight": 1,
 		"stack": {
-			"item": "minecraft:iron_helmet"
+			"item": "minecraft:golden_helmet"
 		},
         "drop_chance": 0
 	}],

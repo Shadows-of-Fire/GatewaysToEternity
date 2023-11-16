@@ -1,23 +1,30 @@
 {
 	"size": "small",
-	"color": "#FFFF84",
+	"color": "#662266",
 	"waves": [{
 			"entities": [{
-				"entity": "minecraft:blaze",
+				"entity": "minecraft:enderman",
 				"count": 3
 			}],
+            "modifiers": [
+				{
+					"attribute": "generic.movement_speed",
+					"operation": "MULTIPLY_TOTAL",
+					"value": -0.20
+				}
+			],
 			"rewards": [{
 				"type": "gateways:entity_loot",
-				"entity": "minecraft:blaze",
-				"rolls": 10
+				"entity": "minecraft:enderman",
+				"rolls": 15
 			}],
 			"max_wave_time": 800,
 			"setup_time": 100
 		},
 		{
 			"entities": [{
-				"entity": "minecraft:blaze",
-				"count": 4
+				"entity": "minecraft:enderman",
+				"count": 3
 			}],
 			"modifiers": [{
 					"attribute": "generic.max_health",
@@ -42,21 +49,21 @@
 				{
 					"attribute": "generic.movement_speed",
 					"operation": "MULTIPLY_TOTAL",
-					"value": 0.05
+					"value": -0.20
 				}
 			],
 			"rewards": [{
 				"type": "gateways:entity_loot",
-				"entity": "minecraft:blaze",
-				"rolls": 15
+				"entity": "minecraft:enderman",
+				"rolls": 25
 			}],
-			"max_wave_time": 800,
+			"max_wave_time": 1200,
 			"setup_time": 150
 		},
 		{
 			"entities": [{
-					"entity": "minecraft:blaze",
-                    "count": 5
+					"entity": "minecraft:enderman",
+                    "count": 4
 				}
 			],
 			"modifiers": [{
@@ -82,21 +89,21 @@
 				{
 					"attribute": "generic.movement_speed",
 					"operation": "MULTIPLY_TOTAL",
-					"value": 0.10
+					"value": -0.20
 				}
 			],
 			"rewards": [{
 				"type": "gateways:entity_loot",
-				"entity": "minecraft:blaze",
-				"rolls": 20
+				"entity": "minecraft:enderman",
+				"rolls": 35
 			}],
-			"max_wave_time": 800,
+			"max_wave_time": 1400,
 			"setup_time": 200
 		},
 		{
 			"entities": [{
-					"entity": "minecraft:blaze",
-                    "count": 6
+					"entity": "minecraft:enderman",
+                    "count": 4
 				}
 			],
 			"modifiers": [{
@@ -122,21 +129,51 @@
 				{
 					"attribute": "generic.movement_speed",
 					"operation": "MULTIPLY_TOTAL",
-					"value": 0.15
+					"value": -0.20
 				}
 			],
 			"rewards": [{
 				"type": "gateways:entity_loot",
-				"entity": "minecraft:blaze",
-				"rolls": 25
+				"entity": "minecraft:enderman",
+				"rolls": 45
 			}],
-			"max_wave_time": 1000,
+			"max_wave_time": 1600,
 			"setup_time": 280
 		},
 		{
-			"entities": [{
-					"entity": "minecraft:blaze",
-                    "count": 7
+			"entities": [
+                {
+					"entity": "minecraft:enderman",
+                    "desc": "name.gateways.flaming_enderman",
+                    "nbt": {
+                        "CustomNameVisible": 1,
+                        "CustomName": "{\"translate\":\"name.gateways.flaming_enderman\",\"color\":\"red\"}",
+                        "Fire": 32767
+                    },
+                    "modifiers": [
+                        {
+                            "type": "gateways:mob_effect",
+                            "effect": {
+                                "effect": "minecraft:fire_resistance"
+                            }
+                        },
+                        {
+                            "attribute": "attributeslib:fire_damage",
+                            "operation": "addition",
+                            "value": 4
+                        },
+                        {
+                            "attribute": "generic.max_health",
+                            "operation": "addition",
+                            "value": 8
+                        }
+                    ],
+                    "count": 1,
+                    "finalize_spawn": false
+				},
+                {
+					"entity": "minecraft:enderman",
+                    "count": 3
 				}
 			],
 			"modifiers": [{
@@ -162,7 +199,7 @@
 				{
 					"attribute": "generic.movement_speed",
 					"operation": "MULTIPLY_TOTAL",
-					"value": 0.15
+					"value": -0.20
 				}
 			],
 			"rewards": [
@@ -172,14 +209,14 @@
                     "orb_size": 25
 				}
 			],
-			"max_wave_time": 1200,
+			"max_wave_time": 2000,
 			"setup_time": 340
 		}
 	],
     "rewards": [{
             "type": "gateways:entity_loot",
-            "entity": "minecraft:blaze",
-            "rolls": 75
+            "entity": "minecraft:enderman",
+            "rolls": 100
         }
     ],
     "failures": [

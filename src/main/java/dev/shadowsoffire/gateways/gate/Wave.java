@@ -20,6 +20,10 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
@@ -104,12 +108,35 @@ public record Wave(List<WaveEntity> entities, List<WaveModifier> modifiers, List
             e.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 5, 100, true, false));
         });
 
+        GateRules rules = gate.getGateway().rules();
+
         if (entity instanceof Mob mob) {
             if (waveEntity.shouldFinalizeSpawn()) {
                 ForgeEventFactory.onFinalizeSpawn(mob, level, level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.SPAWNER, null, null);
             }
             mob.setTarget(gate.summonerOrClosest());
             mob.setPersistenceRequired();
+
+            // Override the drop chances to the rules-specified default if they are unchanged from the default of 0.085F
+            if (rules.defaultDropChance() >= 0) {
+                for (int i = 0; i < 2; i++) {
+                    if (mob.handDropChances[i] == 0.085F) {
+                        mob.handDropChances[i] = rules.defaultDropChance();
+                    }
+                }
+                for (int i = 0; i < 4; i++) {
+                    if (mob.armorDropChances[i] == 0.085F) {
+                        mob.armorDropChances[i] = rules.defaultDropChance();
+                    }
+                }
+            }
+        }
+
+        if (rules.followRangeBoost() > 0) {
+            AttributeInstance attr = entity.getAttribute(Attributes.FOLLOW_RANGE);
+            if (attr != null) {
+                attr.addPermanentModifier(new AttributeModifier("Gateway Follow Range Boost", rules.followRangeBoost(), Operation.ADDITION));
+            }
         }
 
         MinecraftForge.EVENT_BUS.post(new GateEvent.WaveEntitySpawned(gate, entity));

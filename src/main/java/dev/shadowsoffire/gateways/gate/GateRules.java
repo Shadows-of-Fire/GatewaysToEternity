@@ -31,8 +31,12 @@ import net.minecraft.network.chat.MutableComponent;
  * @param failOnOutOfBounds If true, when out-of-bounds rules are triggered, the Gateway will fail. If false, the entity will be re-placed using the spawn
  *                          algorithm.
  * @param spacing           The distance that this gateway must be from another Gateway.
+ * @param followRangeBoost  Bonus value added to the follow range of all wave entities. Invisible to users.
+ * @param defaultDropChance Default drop chance set for all slots on all wave entities. Invisible to users.
  */
-public record GateRules(double spawnRange, double leashRange, boolean allowDiscarding, boolean allowDimChange, boolean playerDamageOnly, boolean removeOnFailure, boolean failOnOutOfBounds, double spacing) {
+public record GateRules(double spawnRange, double leashRange, boolean allowDiscarding,
+    boolean allowDimChange, boolean playerDamageOnly, boolean removeOnFailure,
+    boolean failOnOutOfBounds, double spacing, double followRangeBoost, float defaultDropChance) {
 
     public static final DecimalFormat FORMAT = Util.make(new DecimalFormat("#.#"), fmt -> fmt.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.ROOT)));
     public static final Codec<GateRules> CODEC = RecordCodecBuilder.create(inst -> inst
@@ -44,7 +48,9 @@ public record GateRules(double spawnRange, double leashRange, boolean allowDisca
             PlaceboCodecs.nullableField(Codec.BOOL, "player_damage_only", false).forGetter(GateRules::playerDamageOnly),
             PlaceboCodecs.nullableField(Codec.BOOL, "remove_mobs_on_failure", true).forGetter(GateRules::removeOnFailure),
             PlaceboCodecs.nullableField(Codec.BOOL, "fail_on_out_of_bounds", false).forGetter(GateRules::failOnOutOfBounds),
-            PlaceboCodecs.nullableField(Codec.DOUBLE, "spacing", 0D).forGetter(GateRules::spacing))
+            PlaceboCodecs.nullableField(Codec.DOUBLE, "spacing", 0D).forGetter(GateRules::spacing),
+            PlaceboCodecs.nullableField(Codec.DOUBLE, "follow_range_boost", 32D).forGetter(GateRules::followRangeBoost),
+            PlaceboCodecs.nullableField(Codec.FLOAT, "default_drop_chance", 0F).forGetter(GateRules::defaultDropChance))
         .apply(inst, GateRules::new));
     public static final GateRules DEFAULT = CODEC.decode(JsonOps.INSTANCE, new JsonObject()).get().left().get().getFirst();
 

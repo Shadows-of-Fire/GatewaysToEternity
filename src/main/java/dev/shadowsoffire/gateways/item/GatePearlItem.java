@@ -84,7 +84,7 @@ public class GatePearlItem extends Item implements ITabFiller {
 
     @Override
     public void fillItemCategory(CreativeModeTab group, CreativeModeTab.Output out) {
-        GatewayRegistry.INSTANCE.getValues().stream().sorted(Comparator.comparing(GatewayRegistry.INSTANCE::getKey)).forEach(gate -> {
+        GatewayRegistry.INSTANCE.getValues().stream().sorted(Comparator.comparing(Gateway::size).thenComparing(GatewayRegistry.INSTANCE::getKey)).forEach(gate -> {
             ItemStack stack = new ItemStack(this);
             setGate(stack, gate);
             out.accept(stack);

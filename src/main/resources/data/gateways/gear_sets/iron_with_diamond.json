@@ -5,39 +5,45 @@
 			"weight": 1,
 			"stack": {
 				"item": "minecraft:diamond_sword"
-			}
+			},
+            "drop_chance": 0
 		}
 	],
 	"offhands": [{
 			"weight": 1,
 			"stack": {
 				"item": "minecraft:shield"
-			}
+			},
+            "drop_chance": 0
 		}
     ],
 	"boots": [{
 		"weight": 1,
 		"stack": {
 			"item": "minecraft:iron_boots"
-		}
+		},
+        "drop_chance": 0
 	}],
 	"leggings": [{
 		"weight": 1,
 		"stack": {
 			"item": "minecraft:iron_leggings"
-		}
+		},
+        "drop_chance": 0
 	}],
 	"chestplates": [{
 		"weight": 1,
 		"stack": {
 			"item": "minecraft:iron_chestplate"
-		}
+		},
+        "drop_chance": 0
 	}],
 	"helmets": [{
 		"weight": 1,
 		"stack": {
 			"item": "minecraft:iron_helmet"
-		}
+		},
+        "drop_chance": 0
 	}],
 	"tags": [
 	]
