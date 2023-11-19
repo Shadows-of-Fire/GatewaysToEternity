@@ -20,7 +20,9 @@ This object references the following objects:
     ],
     "modifiers": [                        // [Optional]  || A list of wave modifiers that will be applied to all entities each time the modifier is applied.
         WaveModifier
-    ]
+    ],
+    "max_wave_time": integer,             // [Optional]  || The time (in ticks) that this modifier will add/remove to/from the max wave time.
+    "setup_time": integer                 // [Optional]  || The time (in ticks) that this modifier will add/remove to/from the setup time.
 }
 ```
 

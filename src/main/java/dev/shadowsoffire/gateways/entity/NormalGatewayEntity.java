@@ -40,7 +40,7 @@ public class NormalGatewayEntity extends GatewayEntity {
 
     @Override
     protected boolean canStartNextWave() {
-        return this.getTicksActive() > this.getCurrentWave().setupTime() && !this.isLastWave();
+        return super.canStartNextWave() && !this.isLastWave();
     }
 
     @Override

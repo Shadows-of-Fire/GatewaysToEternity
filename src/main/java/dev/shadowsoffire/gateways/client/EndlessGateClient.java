@@ -58,16 +58,16 @@ public class EndlessGateClient {
             tooltips.add(comp);
             for (WaveModifier modif : wave.modifiers()) {
                 modif.appendHoverText(c -> {
-                    tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c.withStyle(ChatFormatting.RED)).withStyle(s -> s.withColor(ChatFormatting.RED))));
+                    tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c.withStyle(ChatFormatting.RED)).withStyle(ChatFormatting.RED)));
                 });
             }
         }
 
-        comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.rewards").withStyle(s -> s.withColor(ChatFormatting.GOLD)));
+        comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.rewards").withStyle(ChatFormatting.GOLD));
         tooltips.add(comp);
         for (Reward r : wave.rewards()) {
             r.appendHoverText(c -> {
-                tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c).withStyle(s -> s.withColor(ChatFormatting.GOLD))));
+                tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c).withStyle(ChatFormatting.GOLD)));
             });
         }
 
@@ -83,6 +83,18 @@ public class EndlessGateClient {
             comp = AttributeHelper.list().append(modif.appMode().getDescription().withStyle(ChatFormatting.LIGHT_PURPLE));
             tooltips.add(comp);
 
+            if (modif.waveTime() != 0) {
+                String value = modif.waveTime() > 0 ? "+" + modif.waveTime() : String.valueOf(modif.waveTime());
+                comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.endless.wave_time", value).withStyle(ChatFormatting.LIGHT_PURPLE));
+                tooltips.add(comp);
+            }
+
+            if (modif.setupTime() != 0) {
+                String value = modif.setupTime() > 0 ? "+" + modif.setupTime() : String.valueOf(modif.setupTime());
+                comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.endless.setup_time", value).withStyle(ChatFormatting.LIGHT_PURPLE));
+                tooltips.add(comp);
+            }
+
             if (!modif.entities().isEmpty()) {
                 comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.entities").withStyle(Style.EMPTY.withColor(0x87CEEB)));
                 tooltips.add(comp);
@@ -97,17 +109,17 @@ public class EndlessGateClient {
                 tooltips.add(comp);
                 for (WaveModifier waveModif : modif.modifiers()) {
                     waveModif.appendHoverText(c -> {
-                        tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c.withStyle(ChatFormatting.RED)).withStyle(s -> s.withColor(ChatFormatting.RED))));
+                        tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c.withStyle(ChatFormatting.RED)).withStyle(ChatFormatting.RED)));
                     });
                 }
             }
 
             if (!modif.rewards().isEmpty()) {
-                comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.rewards").withStyle(s -> s.withColor(ChatFormatting.GOLD)));
+                comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.rewards").withStyle(ChatFormatting.GOLD));
                 tooltips.add(comp);
                 for (Reward r : modif.rewards()) {
                     r.appendHoverText(c -> {
-                        tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c).withStyle(s -> s.withColor(ChatFormatting.GOLD))));
+                        tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c).withStyle(ChatFormatting.GOLD)));
                     });
                 }
             }
@@ -182,7 +194,7 @@ public class EndlessGateClient {
 
         int barWidth = 183;
 
-        float maxTime = gate.getCurrentWave().maxWaveTime();
+        float maxTime = gate.getMaxWaveTime();
         if (gate.isWaveActive()) {
             barWidth = (int) (183.0F * enemies / maxEnemies);
             if (barWidth > 0) {
@@ -195,7 +207,7 @@ public class EndlessGateClient {
             }
         }
         else {
-            maxTime = gate.getCurrentWave().setupTime();
+            maxTime = gate.getSetupTime();
             barWidth = (int) (gate.getTicksActive() / maxTime * 183.0F);
             if (barWidth > 0) {
                 gfx.blit(BARS, x, yBar1, 0, 6 * 5 * 2 + 5, barWidth, 5, 256, 256);

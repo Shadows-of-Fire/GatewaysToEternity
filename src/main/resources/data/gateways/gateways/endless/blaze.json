@@ -30,7 +30,9 @@
                 "type": "gateways:entity_loot",
                 "entity": "minecraft:blaze",
                 "rolls": 10
-            }]
+            }],
+            "max_wave_time": -40,
+            "setup_time": -10
         },
         {
             "application_mode": {

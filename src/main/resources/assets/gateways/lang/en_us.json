@@ -39,6 +39,8 @@
 	"tooltip.gateways.endless.num_modif": "%s Endless Modifier",
 	"tooltip.gateways.endless.num_modifs": "%s Endless Modifiers",
     "tooltip.gateways.endless.modifier": "Endless Modifier %s/%s",
+    "tooltip.gateways.endless.wave_time": "%s Max Wave Time",
+    "tooltip.gateways.endless.setup_time": "%s Setup Time",
 
 	"boss.gateways.wave": "Wave: %d/%d | Time: %s | Enemies: %d",
 	"boss.gateways.done": "Gate Completed!",

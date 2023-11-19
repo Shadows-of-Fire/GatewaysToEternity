@@ -24,7 +24,8 @@ public class EndlessGatewayEntity extends GatewayEntity {
 
     public static final EntityDataAccessor<Integer> MAX_ENEMIES = SynchedEntityData.defineId(EndlessGatewayEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> MODIFIERS = SynchedEntityData.defineId(EndlessGatewayEntity.class, EntityDataSerializers.INT);
-    public static final EntityDataAccessor<Integer> INCOMING_ENEMIES = SynchedEntityData.defineId(EndlessGatewayEntity.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> MAX_WAVE_TIME = SynchedEntityData.defineId(EndlessGatewayEntity.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Integer> SETUP_TIME = SynchedEntityData.defineId(EndlessGatewayEntity.class, EntityDataSerializers.INT);
 
     public EndlessGatewayEntity(Level level, Player placer, DynamicHolder<EndlessGateway> gate) {
         super(GatewayObjects.ENDLESS_GATEWAY.get(), level, placer, gate);
@@ -40,11 +41,6 @@ public class EndlessGatewayEntity extends GatewayEntity {
     }
 
     @Override
-    protected boolean canStartNextWave() {
-        return this.getTicksActive() > this.getCurrentWave().setupTime();
-    }
-
-    @Override
     public void tick() {
         super.tick();
         if (this.isRemoved()) return;
@@ -56,6 +52,10 @@ public class EndlessGatewayEntity extends GatewayEntity {
     @Override
     protected void startNextWave() {
         super.startNextWave();
+        this.entityData.set(MAX_WAVE_TIME, this.getCurrentWave().maxWaveTime());
+        this.entityData.set(SETUP_TIME, this.getCurrentWave().setupTime());
+
+        // First pass, spawn additional wave entities.
         executeModifiers(m -> m.entities().forEach(waveEntity -> {
             for (int i = 0; i < waveEntity.getCount(); i++) {
                 LivingEntity entity = Wave.spawnWaveEntity((ServerLevel) this.level(), this.position(), this, getCurrentWave(), waveEntity);
@@ -66,6 +66,8 @@ public class EndlessGatewayEntity extends GatewayEntity {
                 else this.currentWaveEntities.add(entity);
             }
         }));
+
+        // Second pass, apply wave modifiers to all entities.
         int applied = executeModifiers(m -> {
             for (LivingEntity entity : this.currentWaveEntities) {
                 for (WaveModifier waveModif : m.modifiers()) {
@@ -73,9 +75,30 @@ public class EndlessGatewayEntity extends GatewayEntity {
                 }
                 entity.setHealth(entity.getMaxHealth());
             }
+
+            if (m.waveTime() != 0) {
+                this.entityData.set(MAX_WAVE_TIME, this.getMaxWaveTime() + m.waveTime());
+            }
+
+            if (m.setupTime() != 0) {
+                this.entityData.set(SETUP_TIME, this.getSetupTime() + m.setupTime());
+            }
         });
+
         this.entityData.set(MODIFIERS, applied);
         this.entityData.set(MAX_ENEMIES, this.currentWaveEntities.size());
+    }
+
+    @Override
+    public int getMaxWaveTime() {
+        return this.entityData.get(MAX_WAVE_TIME);
+    }
+
+    @Override
+    public int getSetupTime() {
+        int time = this.entityData.get(SETUP_TIME);
+        // Ignore the parameter if this is the first wave, as the time won't be computed (and modifiers can't execute yet anyway).
+        return time == -1 ? super.getSetupTime() : time;
     }
 
     @Override
@@ -140,6 +163,8 @@ public class EndlessGatewayEntity extends GatewayEntity {
         super.defineSynchedData();
         this.entityData.define(MAX_ENEMIES, -1);
         this.entityData.define(MODIFIERS, -1);
+        this.entityData.define(MAX_WAVE_TIME, -1);
+        this.entityData.define(SETUP_TIME, -1);
     }
 
     @Override

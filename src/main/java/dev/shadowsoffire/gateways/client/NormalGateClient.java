@@ -155,13 +155,13 @@ public class NormalGateClient {
         int i = (int) (progress * 183.0F);
         if (i > 0) gfx.blit(BARS, x, y, 0, 6 * 5 * 2 + 5, i, 5, 256, 256);
 
-        float maxTime = gate.getCurrentWave().maxWaveTime();
+        float maxTime = gate.getMaxWaveTime();
         if (gate.isWaveActive()) {
             i = (int) ((maxTime - gate.getTicksActive()) / maxTime * 183.0F);
             if (i > 0) gfx.blit(BARS, x, y2, 0, 6 * 5 * 2 + 5, i, 5, 256, 256);
         }
         else {
-            maxTime = gate.getCurrentWave().setupTime();
+            maxTime = gate.getSetupTime();
             i = (int) (gate.getTicksActive() / maxTime * 183.0F);
             if (i > 0) gfx.blit(BARS, x, y2, 0, 6 * 5 * 2 + 5, i, 5, 256, 256);
         }

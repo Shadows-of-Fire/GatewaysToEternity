@@ -55,7 +55,7 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity> {
 
         if (!gate.isWaveActive() && gate.isCompleted()) {
             float time = gate.getTicksActive() + partialTicks;
-            float maxTime = gate.getCurrentWave().setupTime();
+            float maxTime = gate.getSetupTime();
             if (time <= maxTime) scale = Mth.lerp(time / maxTime, gate.getClientScale(), baseScale);
         }
         else {

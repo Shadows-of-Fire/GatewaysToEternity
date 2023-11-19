@@ -104,7 +104,12 @@ public abstract class GatewayEntity extends Entity implements IEntityAdditionalS
      */
     public abstract Wave getCurrentWave();
 
-    protected abstract boolean canStartNextWave();
+    /**
+     * Returns true if the next wave can begin execution.
+     */
+    protected boolean canStartNextWave() {
+        return this.getTicksActive() > this.getSetupTime();
+    }
 
     public abstract boolean isCompleted();
 
@@ -112,6 +117,20 @@ public abstract class GatewayEntity extends Entity implements IEntityAdditionalS
      * Called when a wave is completed. Responsible for loot spawns.
      */
     protected abstract void completeWave();
+
+    /**
+     * Returns the setup time of the current wave.
+     */
+    public int getSetupTime() {
+        return getCurrentWave().setupTime();
+    }
+
+    /**
+     * Returns the max wave time of the current wave.
+     */
+    public int getMaxWaveTime() {
+        return getCurrentWave().maxWaveTime();
+    }
 
     @Override
     public void tick() {
@@ -132,7 +151,7 @@ public abstract class GatewayEntity extends Entity implements IEntityAdditionalS
             }
 
             if (this.isWaveActive()) {
-                int maxWaveTime = this.getCurrentWave().maxWaveTime();
+                int maxWaveTime = this.getMaxWaveTime();
                 if (this.getTicksActive() > maxWaveTime) {
                     this.onFailure(this.currentWaveEntities, FailureReason.TIMER_ELAPSED);
                     return;
@@ -221,6 +240,9 @@ public abstract class GatewayEntity extends Entity implements IEntityAdditionalS
         return 3 + this.undroppedItems.size() / 100;
     }
 
+    /**
+     * Spawns the next wave of entities. The current wave counter has already been incremented, so {@link #getCurrentWave()} is the wave being spawned.
+     */
     protected void startNextWave() {
         List<LivingEntity> spawned = this.getCurrentWave().spawnWave((ServerLevel) this.level(), this.position(), this);
         this.currentWaveEntities.addAll(spawned);
