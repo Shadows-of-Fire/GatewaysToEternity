@@ -1,3 +1,6 @@
+## 4.2.1
+* Added the ability for Endless Modifiers to adjust the wave time and setup time.
+
 ## 4.2.0
 * This update brings a substantial refactor to the Gateway json format - you will need to update your files accordingly!
   * Many new controls have been added, and some old controls have been adjusted. The default values of things have also changed.
