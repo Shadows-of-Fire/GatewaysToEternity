@@ -28,6 +28,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.common.util.FakePlayer;
 import net.minecraftforge.event.ForgeEventFactory;
 
 /**
@@ -114,7 +115,10 @@ public record Wave(List<WaveEntity> entities, List<WaveModifier> modifiers, List
             if (waveEntity.shouldFinalizeSpawn()) {
                 ForgeEventFactory.onFinalizeSpawn(mob, level, level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.SPAWNER, null, null);
             }
-            mob.setTarget(gate.summonerOrClosest());
+            Player summoner = gate.summonerOrClosest();
+            if (!(summoner instanceof FakePlayer)) {
+                mob.setTarget(summoner);
+            }
             mob.setPersistenceRequired();
 
             // Override the drop chances to the rules-specified default if they are unchanged from the default of 0.085F
