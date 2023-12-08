@@ -1,3 +1,8 @@
+## 4.2.2
+* Fixed a bug where attack targets could be set to a fake player, causing mobs to lock onto nothing.
+* Fixed the Gateway of Overworldian Nights not allowing discards.
+  * This flag should typically be raised for any gate that spawns a mob that can delete itself.
+
 ## 4.2.1
 * Added the ability for Endless Modifiers to adjust the wave time and setup time.
 
