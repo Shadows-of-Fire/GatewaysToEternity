@@ -307,5 +307,8 @@
                 "count": 2
             }
         }
-    ]
+    ],
+    "rules": {
+        "allow_discarding": true
+    }
 }
