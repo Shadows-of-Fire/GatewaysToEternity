@@ -16,6 +16,7 @@ import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 public class GatewayEvents {
 
+    @SubscribeEvent
     public void commands(RegisterCommandsEvent e) {
         GatewayCommand.register(e.getDispatcher());
     }
