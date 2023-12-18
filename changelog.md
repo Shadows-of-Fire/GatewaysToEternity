@@ -1,3 +1,6 @@
+## 4.2.3
+* Fixed the `/open_gateway` command not being registered.
+
 ## 4.2.2
 * Fixed a bug where attack targets could be set to a fake player, causing mobs to lock onto nothing.
 * Fixed the Gateway of Overworldian Nights not allowing discards.
