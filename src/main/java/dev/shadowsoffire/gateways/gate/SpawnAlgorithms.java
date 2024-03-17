@@ -13,8 +13,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class SpawnAlgorithms {
 
@@ -54,27 +56,27 @@ public class SpawnAlgorithms {
     private static Vec3 openField(ServerLevel level, Vec3 pos, GatewayEntity gate, Entity toSpawn) {
         double spawnRange = gate.getBbWidth() / 2 + gate.getGateway().rules().spawnRange();
 
-        int tries = 0;
-        double x = pos.x() + (-1 + 2 * level.random.nextDouble()) * spawnRange;
-        double y = pos.y() + level.random.nextInt(3) - 1;
-        double z = pos.z() + (-1 + 2 * level.random.nextDouble()) * spawnRange;
-        while (!level.noCollision(getAABB(toSpawn, x, y, z)) && tries++ < MAX_SPAWN_TRIES) {
-            x = pos.x() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
-            y = pos.y() + level.random.nextInt(3 * (int) gate.getGateway().size().getScale()) + 1;
-            z = pos.z() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
+        for (int i = 0; i < MAX_SPAWN_TRIES; i++) {
+            // Select a position
+            double x = pos.x() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
+            double y = pos.y() + level.random.nextInt(3 * (int) gate.getGateway().size().getScale()) + 1;
+            double z = pos.z() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
+
+            // Find the floor
+            while (level.getBlockState(BlockPos.containing(x, y - 1, z)).isAir() && y > level.getMinBuildHeight()) {
+                y--;
+            }
+
+            // Move up until we actually fit, to account for uneven floors with open space above them.
+            while (!noBlockCollision(level, getAABB(toSpawn, x, y, z))) {
+                y++;
+            }
+
+            // Skip spots that are outside the range
+            if (gate.distanceToSqr(x, y, z) > gate.getGateway().getLeashRangeSq()) continue;
+
+            if (noBlockCollision(level, getAABB(toSpawn, x, y, z))) return new Vec3(x, y, z);
         }
-
-        while (level.getBlockState(BlockPos.containing(x, y - 1, z)).isAir() && y > level.getMinBuildHeight()) {
-            y--;
-        }
-
-        while (!level.noCollision(getAABB(toSpawn, x, y, z))) {
-            y++;
-        }
-
-        if (gate.distanceToSqr(x, y, z) > gate.getGateway().getLeashRangeSq()) return null;
-
-        if (level.noCollision(getAABB(toSpawn, x, y, z))) return new Vec3(x, y, z);
 
         return null;
     }
@@ -89,28 +91,28 @@ public class SpawnAlgorithms {
     private static Vec3 inwardSpiral(ServerLevel level, Vec3 pos, GatewayEntity gate, Entity toSpawn) {
         double spawnRange = gate.getBbWidth() / 2 + gate.getGateway().rules().spawnRange();
 
-        int tries = 0;
-        double x = pos.x() + (-1 + 2 * level.random.nextDouble()) * spawnRange;
-        double y = pos.y() + level.random.nextInt(3) - 1;
-        double z = pos.z() + (-1 + 2 * level.random.nextDouble()) * spawnRange;
-        while (!level.noCollision(getAABB(toSpawn, x, y, z)) && tries++ < MAX_SPAWN_TRIES) {
-            float scaleFactor = (MAX_SPAWN_TRIES - 1 - tries) / (float) MAX_SPAWN_TRIES;
-            x = pos.x() + scaleFactor * (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
-            y = pos.y() + scaleFactor * level.random.nextInt(3 * (int) gate.getGateway().size().getScale()) + 1;
-            z = pos.z() + scaleFactor * (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
+        for (int i = 0; i < MAX_SPAWN_TRIES; i++) {
+            // Select a position, getting closer to the center of the gateway as failure count increases.
+            float scaleFactor = (MAX_SPAWN_TRIES - 1 - i) / (float) MAX_SPAWN_TRIES;
+            double x = pos.x() + scaleFactor * (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
+            double y = pos.y() + scaleFactor * level.random.nextInt(3 * (int) gate.getGateway().size().getScale()) + 1;
+            double z = pos.z() + scaleFactor * (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
+
+            // Find the floor
+            while (level.getBlockState(BlockPos.containing(x, y - 1, z)).isAir() && y > level.getMinBuildHeight()) {
+                y--;
+            }
+
+            // Move up until we actually fit, to account for uneven floors with open space above them.
+            while (!noBlockCollision(level, getAABB(toSpawn, x, y, z))) {
+                y++;
+            }
+
+            // Skip spots that are outside the range
+            if (gate.distanceToSqr(x, y, z) > gate.getGateway().getLeashRangeSq()) continue;
+
+            if (noBlockCollision(level, getAABB(toSpawn, x, y, z))) return new Vec3(x, y, z);
         }
-
-        while (level.getBlockState(BlockPos.containing(x, y - 1, z)).isAir() && y > level.getMinBuildHeight()) {
-            y--;
-        }
-
-        while (!level.noCollision(getAABB(toSpawn, x, y, z))) {
-            y++;
-        }
-
-        if (gate.distanceToSqr(x, y, z) > gate.getGateway().getLeashRangeSq()) return null;
-
-        if (level.noCollision(getAABB(toSpawn, x, y, z))) return new Vec3(x, y, z);
 
         return null;
     }
@@ -123,6 +125,16 @@ public class SpawnAlgorithms {
         if (NAMED_ALGORITHMS.containsKey(key)) throw new UnsupportedOperationException("Attempted to register a spawn algorithm with duplicate key: " + key);
         if (NAMED_ALGORITHMS.containsValue(algo)) throw new UnsupportedOperationException("Attempted to register the spawn algorithm " + key + " twice.");
         NAMED_ALGORITHMS.put(key, algo);
+    }
+
+    public static boolean noBlockCollision(Level level, AABB pCollisionBox) {
+        for (VoxelShape voxelshape : level.getBlockCollisions(null, pCollisionBox)) {
+            if (!voxelshape.isEmpty()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 }
