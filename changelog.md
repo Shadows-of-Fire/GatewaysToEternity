@@ -1,3 +1,6 @@
+## 4.2.4
+* Fixed the way that spawn algorithms operate when in a void world.
+
 ## 4.2.3
 * Fixed the `/open_gateway` command not being registered.
 
