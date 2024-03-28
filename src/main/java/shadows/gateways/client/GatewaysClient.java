@@ -153,7 +153,7 @@ public class GatewaysClient {
 					comp = Component.translatable("tooltip.gateways.modifiers").withStyle(ChatFormatting.RED);
 					tooltips.add(comp);
 					for (RandomAttributeModifier inst : gate.getWave(wave).modifiers()) {
-						comp = AttributeHelper.toComponent(inst.getAttribute(), inst.genModifier(rand));
+						comp = AttributeHelper.toComponent(inst.getAttribute(), inst.createDeterministic());
 						comp = Component.translatable("tooltip.gateways.list2", comp.getString()).withStyle(ChatFormatting.RED);
 						tooltips.add(comp);
 					}
