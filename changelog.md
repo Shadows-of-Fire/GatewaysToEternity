@@ -1,3 +1,6 @@
+## 3.2.3
+* Fixed a compat issue with Placebo 7.4.0
+
 ## 3.2.2
 * Added the `remove_mobs_on_failure` flag to allow keeping the mobs around if the gate is failed.
 
