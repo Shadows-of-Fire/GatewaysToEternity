@@ -1,3 +1,6 @@
+## 5.0.2
+* Added the active gateway entity as context to `WaveEntity#createEntity`.
+
 ## 5.0.1
 * Updated to NeoForge 21.1.61 and Apothic Attributes 2.4.0.
 
