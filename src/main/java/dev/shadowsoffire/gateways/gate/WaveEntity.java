@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -43,6 +45,7 @@ public interface WaveEntity extends CodecProvider<WaveEntity> {
      * @param level The level.
      * @return The entity, or null if an error occured. Null will end the gate.
      */
+    @Nullable
     default LivingEntity createEntity(ServerLevel level, GatewayEntity gate) {
         return createEntity(level);
     }

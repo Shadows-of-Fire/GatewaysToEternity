@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
@@ -93,6 +95,7 @@ public record Wave(List<WaveEntity> entities, List<WaveModifier> modifiers, List
      * @param waveEntity The wave entity being spawned.
      * @return The freshly spawned entity, or null if the spawn failed.
      */
+    @Nullable
     public static LivingEntity spawnWaveEntity(ServerLevel level, Vec3 pos, GatewayEntity gate, Wave wave, WaveEntity waveEntity) {
         LivingEntity entity = waveEntity.createEntity(level, gate);
         if (entity == null) return null;
