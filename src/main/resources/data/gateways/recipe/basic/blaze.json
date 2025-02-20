@@ -8,7 +8,7 @@
   ],
   "key": {
     "#": {
-      "item": "minecraft:blaze_rod"
+      "tag": "c:rods/blaze"
     },
 	"A": {
       "tag": "c:ender_pearls"
