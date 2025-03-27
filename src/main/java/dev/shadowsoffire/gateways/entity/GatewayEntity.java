@@ -252,7 +252,7 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         this.remove(RemovalReason.KILLED);
         this.playSound(GatewayObjects.GATE_END.value(), 16, 1);
 
-        this.level().getNearbyPlayers(TargetingConditions.DEFAULT, null, this.getBoundingBox().inflate(15)).forEach(p -> p.awardStat(GatewayObjects.GATES_DEFEATED.value()));
+        this.level().getNearbyPlayers(TargetingConditions.DEFAULT, null, this.getBoundingBox().inflate(15)).forEach(p -> p.awardStat(GatewayObjects.GATES_DEFEATED));
         NeoForge.EVENT_BUS.post(new GateEvent.Completed(this));
     }
 

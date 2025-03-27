@@ -44,7 +44,7 @@ public class Gateways {
             Failure.initSerializers();
             ApplicationMode.initSerializers();
             TabFillingRegistry.register(GatewayObjects.TAB.getKey(), GatewayObjects.GATE_PEARL);
-            Stats.CUSTOM.get(GatewayObjects.GATES_DEFEATED.value(), StatFormatter.DEFAULT);
+            Stats.CUSTOM.get(GatewayObjects.GATES_DEFEATED, StatFormatter.DEFAULT);
         });
     }
 

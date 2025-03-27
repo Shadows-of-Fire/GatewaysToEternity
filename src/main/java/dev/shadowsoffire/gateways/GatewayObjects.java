@@ -72,7 +72,7 @@ public class GatewayObjects {
 
     public static final Holder<CreativeModeTab> TAB = R.creativeTab("tab", b -> b.title(Component.translatable("itemGroup.gateways")).icon(() -> GATE_PEARL.value().getDefaultInstance()));
 
-    public static final Holder<ResourceLocation> GATES_DEFEATED = R.custom("gates_defeated", Registries.CUSTOM_STAT, () -> Gateways.loc("gates_defeated"));
+    public static final ResourceLocation GATES_DEFEATED = R.custom("gates_defeated", Registries.CUSTOM_STAT, Gateways.loc("gates_defeated"));
 
     public static final DataComponentType<DynamicHolder<Gateway>> GATEWAY_COMPONENT = R.component("gateway", b -> b.persistent(GatewayRegistry.INSTANCE.holderCodec()).networkSynchronized(GatewayRegistry.INSTANCE.holderStreamCodec()));
 
