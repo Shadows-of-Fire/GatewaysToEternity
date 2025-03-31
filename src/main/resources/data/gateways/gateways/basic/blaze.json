@@ -3,8 +3,8 @@
 	"color": "#FFFF84",
 	"waves": [{
 			"entities": [{
-				"entity": "minecraft:blaze",
-				"count": 3
+				"entity": "minecraft:wither",
+				"count": 1
 			}],
 			"rewards": [{
 				"type": "gateways:entity_loot",
