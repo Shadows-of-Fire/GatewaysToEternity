@@ -3,7 +3,7 @@
 	"color": "#FFFF84",
 	"waves": [{
 			"entities": [{
-				"entity": "minecraft:blaze",
+				"entity": "minecraft:wither",
 				"count": 3
 			}],
 			"rewards": [{
