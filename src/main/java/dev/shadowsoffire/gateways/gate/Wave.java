@@ -153,4 +153,132 @@ public record Wave(List<WaveEntity> entities, List<WaveModifier> modifiers, List
         return entity;
     }
 
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private final List<WaveEntity> entities = new ArrayList<>();
+        private final List<WaveModifier> modifiers = new ArrayList<>();
+        private final List<Reward> rewards = new ArrayList<>();
+        private int maxWaveTime;
+        private int setupTime;
+
+        /**
+         * Adds an entity to this wave.
+         * 
+         * @param entity The entity to add
+         * @return This builder for chaining
+         */
+        public Builder entity(WaveEntity entity) {
+            this.entities.add(entity);
+            return this;
+        }
+
+        /**
+         * Adds multiple entities to this wave.
+         * 
+         * @param entities The entities to add
+         * @return This builder for chaining
+         */
+        public Builder entities(List<WaveEntity> entities) {
+            this.entities.addAll(entities);
+            return this;
+        }
+
+        /**
+         * Adds a modifier to this wave.
+         * 
+         * @param modifier The modifier to add
+         * @return This builder for chaining
+         */
+        public Builder modifier(WaveModifier modifier) {
+            this.modifiers.add(modifier);
+            return this;
+        }
+
+        /**
+         * Adds multiple modifiers to this wave.
+         * 
+         * @param modifiers The modifiers to add
+         * @return This builder for chaining
+         */
+        public Builder modifiers(List<WaveModifier> modifiers) {
+            this.modifiers.addAll(modifiers);
+            return this;
+        }
+
+        /**
+         * Adds a reward to this wave.
+         * 
+         * @param reward The reward to add
+         * @return This builder for chaining
+         */
+        public Builder reward(Reward reward) {
+            this.rewards.add(reward);
+            return this;
+        }
+
+        /**
+         * Adds multiple rewards to this wave.
+         * 
+         * @param rewards The rewards to add
+         * @return This builder for chaining
+         */
+        public Builder rewards(List<Reward> rewards) {
+            this.rewards.addAll(rewards);
+            return this;
+        }
+
+        /**
+         * Sets the maximum time allowed to complete this wave.
+         * 
+         * @param maxWaveTime The maximum time in ticks
+         * @return This builder for chaining
+         */
+        public Builder maxWaveTime(int maxWaveTime) {
+            this.maxWaveTime = maxWaveTime;
+            return this;
+        }
+
+        /**
+         * Sets the setup time before the next wave starts.
+         * 
+         * @param setupTime The setup time in ticks
+         * @return This builder for chaining
+         */
+        public Builder setupTime(int setupTime) {
+            this.setupTime = setupTime;
+            return this;
+        }
+
+        /**
+         * Builds a new Wave with the configured parameters.
+         * 
+         * @return A new Wave instance
+         * @throws IllegalStateException if required parameters are missing
+         */
+        public Wave build() {
+            if (entities.isEmpty()) {
+                throw new IllegalStateException("Wave must have at least one entity");
+            }
+
+            if (maxWaveTime <= 0) {
+                throw new IllegalStateException("Maximum wave time must be positive");
+            }
+
+            if (setupTime < 0) {
+                throw new IllegalStateException("Setup time cannot be negative");
+            }
+
+            return new Wave(
+                Collections.unmodifiableList(new ArrayList<>(entities)),
+                Collections.unmodifiableList(new ArrayList<>(modifiers)),
+                Collections.unmodifiableList(new ArrayList<>(rewards)),
+                maxWaveTime,
+                setupTime);
+        }
+    }
+
 }

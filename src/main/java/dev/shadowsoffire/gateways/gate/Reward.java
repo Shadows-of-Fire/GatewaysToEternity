@@ -70,14 +70,14 @@ public interface Reward extends CodecProvider<Reward> {
 
     public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list);
 
-    public static void initSerializers() {
+    public static void initCodecs() {
         register("stack", StackReward.CODEC);
         register("stack_list", StackListReward.CODEC);
         register("entity_loot", EntityLootReward.CODEC);
         register("loot_table", LootTableReward.CODEC);
         register("chanced", ChancedReward.CODEC);
         register("command", CommandReward.CODEC);
-        register("experience", XpReward.CODEC);
+        register("experience", ExperienceReward.CODEC);
         register("summon", SummonReward.CODEC);
     }
 
@@ -291,13 +291,13 @@ public interface Reward extends CodecProvider<Reward> {
     /**
      * Provides a certain amount of XP as a reward.
      */
-    public static record XpReward(int xp, int orbSize) implements Reward {
+    public static record ExperienceReward(int xp, int orbSize) implements Reward {
 
-        public static Codec<XpReward> CODEC = RecordCodecBuilder.create(inst -> inst
+        public static Codec<ExperienceReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
-                Codec.INT.fieldOf("experience").forGetter(XpReward::xp),
-                Codec.INT.optionalFieldOf("orb_size", 5).forGetter(XpReward::orbSize))
-            .apply(inst, XpReward::new));
+                Codec.INT.fieldOf("experience").forGetter(ExperienceReward::xp),
+                Codec.INT.optionalFieldOf("orb_size", 5).forGetter(ExperienceReward::orbSize))
+            .apply(inst, ExperienceReward::new));
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {

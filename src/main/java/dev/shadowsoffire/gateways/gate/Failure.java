@@ -45,7 +45,7 @@ public interface Failure extends CodecProvider<Failure> {
 
     public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list);
 
-    public static void initSerializers() {
+    public static void initCodecs() {
         register("explosion", ExplosionFailure.CODEC);
         register("mob_effect", MobEffectFailure.CODEC);
         register("summon", SummonFailure.CODEC);

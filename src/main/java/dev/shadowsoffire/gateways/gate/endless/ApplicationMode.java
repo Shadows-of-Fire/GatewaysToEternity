@@ -28,7 +28,7 @@ public interface ApplicationMode extends CodecProvider<ApplicationMode> {
      */
     MutableComponent getDescription();
 
-    public static void initSerializers() {
+    public static void initCodecs() {
         register("after_wave", AfterWave.CODEC);
         register("after_every_n_waves", AfterEveryNWaves.CODEC);
         register("only_on_wave", OnlyOnWave.CODEC);

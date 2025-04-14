@@ -17,10 +17,14 @@ import dev.shadowsoffire.placebo.json.RandomAttributeModifier;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import dev.shadowsoffire.placebo.systems.gear.GearSet;
 import dev.shadowsoffire.placebo.systems.gear.GearSetRegistry;
+import dev.shadowsoffire.placebo.util.StepFunction;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.alchemy.PotionContents;
@@ -41,7 +45,7 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
      */
     public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list);
 
-    public static void initSerializers() {
+    public static void initCodecs() {
         register("mob_effect", EffectModifier.CODEC);
         register("attribute", AttributeModifier.CODEC);
         register("gear_set", GearSetModifier.CODEC);
@@ -109,6 +113,10 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
         @Override
         public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {
             list.accept(modifier.attribute().value().toComponent(modifier.createDeterministic(Gateways.loc("gateway_random_modifier")), ApothicAttributes.getTooltipFlag()));
+        }
+
+        public static AttributeModifier create(Holder<Attribute> attribute, Operation op, float value) {
+            return new AttributeModifier(new RandomAttributeModifier(attribute, op, StepFunction.constant(value)));
         }
 
     }

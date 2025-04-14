@@ -3,6 +3,7 @@ package dev.shadowsoffire.gateways;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import dev.shadowsoffire.gateways.data.GatewayProvider;
 import dev.shadowsoffire.gateways.gate.Failure;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
 import dev.shadowsoffire.gateways.gate.Reward;
@@ -10,8 +11,10 @@ import dev.shadowsoffire.gateways.gate.WaveEntity;
 import dev.shadowsoffire.gateways.gate.WaveModifier;
 import dev.shadowsoffire.gateways.gate.endless.ApplicationMode;
 import dev.shadowsoffire.gateways.payloads.ParticlePayload;
+import dev.shadowsoffire.placebo.datagen.DataGenBuilder;
 import dev.shadowsoffire.placebo.network.PayloadHelper;
 import dev.shadowsoffire.placebo.tabs.TabFillingRegistry;
+import net.minecraft.data.DataProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
@@ -22,6 +25,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 
 @Mod(Gateways.MODID)
 public class Gateways {
@@ -34,20 +38,28 @@ public class Gateways {
         PayloadHelper.registerPayload(new ParticlePayload.Provider());
         NeoForge.EVENT_BUS.register(new GatewayEvents());
         GatewayObjects.bootstrap(bus);
+        WaveModifier.initCodecs();
+        Reward.initCodecs();
+        WaveEntity.initCodecs();
+        Failure.initCodecs();
+        ApplicationMode.initCodecs();
     }
 
     @SubscribeEvent
     public void setup(FMLCommonSetupEvent e) {
         GatewayRegistry.INSTANCE.registerToBus();
         e.enqueueWork(() -> {
-            WaveModifier.initSerializers();
-            Reward.initSerializers();
-            WaveEntity.initSerializers();
-            Failure.initSerializers();
-            ApplicationMode.initSerializers();
             TabFillingRegistry.register(GatewayObjects.TAB.getKey(), GatewayObjects.GATE_PEARL);
             Stats.CUSTOM.get(GatewayObjects.GATES_DEFEATED, StatFormatter.DEFAULT);
         });
+    }
+
+    @SubscribeEvent
+    public void data(GatherDataEvent e) {
+        DataProvider.INDENT_WIDTH.set(4);
+        DataGenBuilder.create(MODID)
+            .provider(GatewayProvider::new)
+            .build(e);
     }
 
     public static ResourceLocation loc(String path) {
