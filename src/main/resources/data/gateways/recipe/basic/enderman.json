@@ -8,7 +8,7 @@
   ],
   "key": {
     "A": {
-      "item": "minecraft:amethyst_shard"
+      "tag": "c:gems/amethyst"
     },
 	"P": {
       "tag": "c:ender_pearls"

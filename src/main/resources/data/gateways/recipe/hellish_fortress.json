@@ -20,7 +20,7 @@
       "item": "minecraft:ender_eye"
     },
 	"B": {
-      "item": "minecraft:blaze_rod"
+      "tag": "c:rods/blaze"
     }
   },
   "result": {
