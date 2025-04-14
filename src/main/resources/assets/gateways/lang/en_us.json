@@ -111,5 +111,7 @@
     "subtitle.gateways.gate_warp": "Gateway spawns an object",
     "subtitle.gateways.gate_ambient": "Gateway ambient sound",
     "subtitle.gateways.gate_start": "Gateway opens",
-    "subtitle.gateways.gate_end": "Gateway ends"
+    "subtitle.gateways.gate_end": "Gateway ends",
+
+    "text.gateways.errored_gate_pearl": "Unknown Gateway: %s"
 }

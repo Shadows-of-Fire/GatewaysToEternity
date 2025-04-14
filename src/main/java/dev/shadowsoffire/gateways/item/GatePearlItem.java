@@ -7,6 +7,7 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.Nullable;
 
 import dev.shadowsoffire.gateways.GatewayObjects;
+import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
@@ -103,7 +104,7 @@ public class GatePearlItem extends Item implements ITabFiller {
     public void appendHoverText(ItemStack stack, TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
         DynamicHolder<Gateway> holder = GatePearlItem.getGate(stack);
         if (!holder.isBound()) {
-            tooltip.add(Component.literal("Errored Gate Pearl, file a bug report detailing how you obtained this."));
+            tooltip.add(Gateways.lang("text", "errored_gate_pearl", holder.getId()));
         }
         else if (FMLEnvironment.dist.isClient()) {
             holder.get().appendPearlTooltip(ctx, tooltip, flag);
