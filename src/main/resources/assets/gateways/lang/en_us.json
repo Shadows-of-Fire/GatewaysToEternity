@@ -106,5 +106,10 @@
     "name.gateways.huge_slime": "Huge Slime",
     "name.gateways.magicbane_slime": "Magicbane Slime",
     "name.gateways.acidic_slime": "Acidic Slime",
-    "name.gateways.flaming_enderman": "Flaming Enderman"
-} 
+    "name.gateways.flaming_enderman": "Flaming Enderman",
+
+    "subtitle.gateways.gate_warp": "Gateway spawns an object",
+    "subtitle.gateways.gate_ambient": "Gateway ambient sound",
+    "subtitle.gateways.gate_start": "Gateway opens",
+    "subtitle.gateways.gate_end": "Gateway ends"
+}
