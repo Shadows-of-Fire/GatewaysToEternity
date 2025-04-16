@@ -1,3 +1,11 @@
+## 5.0.3
+* Toblerone0508: Updated recipes to use more tags.
+* nageih: Updated Chinese Translation.
+* Fixed subtitles being untranslated.
+* Updated errored gate pearl text to simply state the broken gateway name.
+  * The previous text mostly resulted in incorrect bug reports, so it wasn't serving the intended purpose.
+* Started working on Datagen for Gateways. Only implemented the basic blaze gateway for now, but this should ideally make it easier to make new gateways in the future.
+
 ## 5.0.2
 * Added the active gateway entity as context to `WaveEntity#createEntity`.
 

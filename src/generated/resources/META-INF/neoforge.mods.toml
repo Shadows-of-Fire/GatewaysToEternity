@@ -8,7 +8,7 @@ license="MIT License"
 
 modId="gateways"
 
-version="5.0.2"
+version="5.0.3"
 
 displayName="Gateways To Eternity"
 
@@ -36,7 +36,7 @@ config="gateways.mixins.json"
 [[dependencies.gateways]]
     modId="placebo"
     type="required"
-    versionRange="[9.8.0-beta8,)"
+    versionRange="[9.8.0,)"
     ordering="NONE"
     side="BOTH"
 
