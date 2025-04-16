@@ -13,6 +13,7 @@ import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import dev.shadowsoffire.placebo.tabs.ITabFiller;
+import dev.shadowsoffire.placebo.util.SpecialTooltipItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
@@ -31,7 +32,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
-public class GatePearlItem extends Item implements ITabFiller {
+public class GatePearlItem extends Item implements ITabFiller, SpecialTooltipItem {
 
     public GatePearlItem(Properties props) {
         super(props);

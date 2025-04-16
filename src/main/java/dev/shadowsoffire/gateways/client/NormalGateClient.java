@@ -14,6 +14,7 @@ import dev.shadowsoffire.gateways.gate.Wave;
 import dev.shadowsoffire.gateways.gate.WaveEntity;
 import dev.shadowsoffire.gateways.gate.WaveModifier;
 import dev.shadowsoffire.gateways.gate.normal.NormalGateway;
+import dev.shadowsoffire.placebo.PlaceboClient;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -36,7 +37,7 @@ public class NormalGateClient {
     public static void appendPearlTooltip(NormalGateway gate, TooltipContext ctx, List<Component> tooltips, TooltipFlag flag) {
         MutableComponent comp;
 
-        int waveIdx = Math.floorMod(GatewaysClient.scrollIdx, gate.getNumWaves());
+        int waveIdx = PlaceboClient.getTooltipScrollIndex(gate.getNumWaves());
         Wave wave = gate.getWave(waveIdx);
 
         if (Screen.hasShiftDown()) {
@@ -160,7 +161,7 @@ public class NormalGateClient {
         else {
             maxTime = gate.getSetupTime();
             i = (int) (gate.getTicksActive() / maxTime * 183.0F);
-            if (i > 0) gfx.blitSprite(GatewaysClient.WHITE_PROGRESS,  182, 5, 0, 0,x, y2, i, 5);
+            if (i > 0) gfx.blitSprite(GatewaysClient.WHITE_PROGRESS, 182, 5, 0, 0, x, y2, i, 5);
         }
 
         RenderSystem.setShaderColor(1, 1, 1, 1);
