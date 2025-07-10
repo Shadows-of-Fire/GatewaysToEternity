@@ -29,14 +29,14 @@ config="gateways.mixins.json"
 [[dependencies.gateways]]
     modId="neoforge"
     type="required"
-    versionRange="[21.1.144,)"
+    versionRange="[21.1.187,)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.gateways]]
     modId="placebo"
     type="required"
-    versionRange="[9.8.0,)"
+    versionRange="[9.9.0,)"
     ordering="NONE"
     side="BOTH"
 
