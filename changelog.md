@@ -1,3 +1,6 @@
+## 5.0.4
+* Updated to Placebo 9.9.0.
+
 ## 5.0.3
 * Toblerone0508: Updated recipes to use more tags.
 * nageih: Updated Chinese Translation.
