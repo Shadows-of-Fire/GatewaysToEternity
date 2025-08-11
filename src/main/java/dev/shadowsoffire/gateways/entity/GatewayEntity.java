@@ -69,6 +69,8 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
     public static final EntityDataAccessor<Integer> TICKS_ACTIVE = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> WAVE = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> ENEMIES = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Boolean> HAS_NEARBY_PLAYER = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Integer> LIVES_REMAINING = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
 
     protected final Set<LivingEntity> currentWaveEntities = new HashSet<>();
     protected final Set<UUID> unresolvedWaveEntities = new HashSet<>();
@@ -78,6 +80,13 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
     protected float clientScale = 0F;
     protected Queue<ItemStack> undroppedItems = new ArrayDeque<>();
     protected FailureReason failureReason;
+
+    /**
+     * Remaining ticks before the gateway will fail due to a lack of nearby players.
+     * <p>
+     * This counter ticks down if {@link #HAS_NEARBY_PLAYER} is false, and resets to 200 if a player returns.
+     */
+    protected int nearbyPlayerTimer = 200;
 
     @Nullable
     protected ServerBossEvent bossEvent;
@@ -157,6 +166,18 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
 
             this.entityData.set(TICKS_ACTIVE, this.getTicksActive() + 1);
 
+            // If we don't have a nearby player, tick down the counter, and if it reaches zero, fail the gateway.
+            if (!this.entityData.get(HAS_NEARBY_PLAYER)) {
+                this.nearbyPlayerTimer--;
+                if (this.nearbyPlayerTimer <= 0) {
+                    this.onFailure(this.currentWaveEntities, FailureReason.NO_NEARBY_PLAYER);
+                    return;
+                }
+            }
+            else {
+                this.nearbyPlayerTimer = 200; // Reset the timer if we have a nearby player.
+            }
+
             // Collect all remaining enemies, which are those that are alive and not removed via a valid reason.
             List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(e -> e.getHealth() > 0 && !this.isValidRemoval(e.getRemovalReason())).toList();
             if (this.tickCount % 20 == 0) {
@@ -179,6 +200,9 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
                         }
                     }
                 }
+
+                Player player = this.level().getNearestPlayer(this, this.getGateway().getLeashRangeSq());
+                this.entityData.set(HAS_NEARBY_PLAYER, player != null);
             }
             this.entityData.set(ENEMIES, enemies.size());
 
@@ -294,6 +318,23 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         this.remove(RemovalReason.DISCARDED);
     }
 
+    /**
+     * Called when a player is killed within 100 blocks of the gateway.
+     * <p>
+     * If the player is within the leash range (+ 25 blocks) of the gateway, the gateway will lose a life.
+     */
+    public void playerDied(Player player) {
+        if (this.getGateway().rules().lives() != -1 && this.distanceToSqr(player) <= Mth.square(this.getGateway().rules().leashRange() + 25)) {
+            int lives = this.getRemainingLives();
+            if (lives <= 0) {
+                this.onFailure(this.currentWaveEntities, FailureReason.OUT_OF_LIVES);
+            }
+            else {
+                this.setRemainingLives(lives - 1);
+            }
+        }
+    }
+
     protected ServerBossEvent createBossEvent() {
         if (this.getGateway().bossSettings().drawAsBar()) {
             ServerBossEvent event = new ServerBossEvent(Component.literal("GATEWAY_ID" + this.getId()), BossBarColor.BLUE, BossBarOverlay.PROGRESS);
@@ -368,6 +409,8 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         builder.define(TICKS_ACTIVE, 0);
         builder.define(WAVE, 0);
         builder.define(ENEMIES, 0);
+        builder.define(HAS_NEARBY_PLAYER, true);
+        builder.define(LIVES_REMAINING, -1);
     }
 
     @Override
@@ -400,6 +443,14 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
 
     public int getActiveEnemies() {
         return this.entityData.get(ENEMIES);
+    }
+
+    public int getRemainingLives() {
+        return this.entityData.get(LIVES_REMAINING);
+    }
+
+    public void setRemainingLives(int lives) {
+        this.entityData.set(LIVES_REMAINING, lives);
     }
 
     public Gateway getGateway() {
@@ -564,7 +615,9 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         ENTITY_TOO_FAR("error.gateways.too_far"),
         TIMER_ELAPSED("error.gateways.wave_elapsed"),
         ENTITY_DISCARDED("error.gateways.entity_discarded"),
-        ENTITY_LEFT_DIMENSION("error.gateways.left_dimension");
+        ENTITY_LEFT_DIMENSION("error.gateways.left_dimension"),
+        NO_NEARBY_PLAYER("error.gateways.no_nearby_player"),
+        OUT_OF_LIVES("error.gateways.out_of_lives");
 
         private final String langKey;
 

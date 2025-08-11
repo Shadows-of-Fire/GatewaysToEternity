@@ -1,5 +1,7 @@
 package dev.shadowsoffire.gateways;
 
+import java.util.List;
+
 import dev.shadowsoffire.gateways.command.GatewayCommand;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import net.minecraft.world.entity.Entity;
@@ -10,6 +12,7 @@ import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
 import net.neoforged.neoforge.event.entity.living.LivingConversionEvent;
+import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.living.MobDespawnEvent;
 
@@ -54,6 +57,16 @@ public class GatewayEvents {
     public void despawn(MobDespawnEvent e) {
         if (GatewayEntity.getOwner(e.getEntity()) != null) {
             e.setResult(MobDespawnEvent.Result.DENY);
+        }
+    }
+
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void death(LivingDeathEvent e) {
+        if (e.getEntity() instanceof Player player) {
+            List<GatewayEntity> gateways = player.level().getEntitiesOfClass(GatewayEntity.class, player.getBoundingBox().inflate(100));
+            for (GatewayEntity gate : gateways) {
+                gate.playerDied(player);
+            }
         }
     }
 
