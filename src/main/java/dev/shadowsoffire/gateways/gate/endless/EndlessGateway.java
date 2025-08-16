@@ -27,7 +27,7 @@ import net.minecraft.world.level.Level;
 public record EndlessGateway(Size size, TextColor color, Wave baseWave, List<EndlessModifier> modifiers, List<Failure> failures, SpawnAlgorithm spawnAlgo, GateRules rules,
     BossEventSettings bossSettings) implements Gateway {
 
-    public static Codec<EndlessGateway> CODEC = RecordCodecBuilder.create(inst -> inst
+    public static final Codec<EndlessGateway> CODEC = RecordCodecBuilder.create(inst -> inst
         .group(
             Size.CODEC.fieldOf("size").forGetter(EndlessGateway::size),
             TextColor.CODEC.fieldOf("color").forGetter(EndlessGateway::color),

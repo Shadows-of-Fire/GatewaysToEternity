@@ -41,7 +41,7 @@ import net.minecraft.world.level.Level;
 public record NormalGateway(Size size, TextColor color, List<Wave> waves, List<Reward> rewards, List<Failure> failures, SpawnAlgorithm spawnAlgo, GateRules rules,
     BossEventSettings bossSettings) implements Gateway {
 
-    public static Codec<NormalGateway> CODEC = RecordCodecBuilder.create(inst -> inst
+    public static final Codec<NormalGateway> CODEC = RecordCodecBuilder.create(inst -> inst
         .group(
             Size.CODEC.fieldOf("size").forGetter(NormalGateway::size),
             TextColor.CODEC.fieldOf("color").forGetter(NormalGateway::color),
@@ -206,6 +206,16 @@ public record NormalGateway(Size size, TextColor color, List<Wave> waves, List<R
         public Builder rules(GateRules rules) {
             this.rules = rules;
             return this;
+        }
+
+        /**
+         * Sets the rules for this gateway using a configuration function.
+         * 
+         * @param config A unary operator to configure the GateRules
+         * @return This builder for chaining
+         */
+        public Builder rules(UnaryOperator<GateRules.Builder> config) {
+            return this.rules(config.apply(GateRules.builder()).build());
         }
 
         /**
