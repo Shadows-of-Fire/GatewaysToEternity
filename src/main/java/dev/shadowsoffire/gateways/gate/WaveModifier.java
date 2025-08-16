@@ -20,17 +20,22 @@ import dev.shadowsoffire.placebo.systems.gear.GearSet;
 import dev.shadowsoffire.placebo.systems.gear.GearSetRegistry;
 import dev.shadowsoffire.placebo.util.StepFunction;
 import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.minecraft.world.level.storage.loot.LootTable;
 
 public interface WaveModifier extends CodecProvider<WaveModifier> {
 
@@ -59,6 +64,7 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
         register("mob_effect", EffectModifier.CODEC);
         register("attribute", AttributeModifier.CODEC);
         register("gear_set", GearSetModifier.CODEC);
+        register("loot_table", LootTableModifier.CODEC);
         CODEC.setDefaultCodec(AttributeModifier.CODEC);
     }
 
@@ -169,5 +175,36 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
             return new GearSetModifier(GearSetRegistry.INSTANCE.holder(set));
         }
 
+    }
+
+    public static record LootTableModifier(ResourceKey<LootTable> table) implements WaveModifier {
+
+        public static Codec<LootTableModifier> CODEC = RecordCodecBuilder.create(inst -> inst
+            .group(
+                ResourceKey.codec(Registries.LOOT_TABLE).fieldOf("loot_table").forGetter(LootTableModifier::table))
+            .apply(inst, LootTableModifier::new));
+
+        @Override
+        public Codec<? extends WaveModifier> getCodec() {
+            return CODEC;
+        }
+
+        @Override
+        public void apply(LivingEntity entity, GatewayEntity gate) {
+            if (entity instanceof Mob mob) {
+                mob.lootTable = this.table;
+            }
+        }
+
+        @Override
+        public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {}
+
+        public static LootTableModifier create(ResourceKey<LootTable> table) {
+            return new LootTableModifier(table);
+        }
+
+        public static LootTableModifier createEmpty() {
+            return create(BuiltInLootTables.EMPTY);
+        }
     }
 }

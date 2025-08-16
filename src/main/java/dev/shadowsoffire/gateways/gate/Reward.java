@@ -79,6 +79,7 @@ public interface Reward extends CodecProvider<Reward> {
         register("command", CommandReward.CODEC);
         register("experience", ExperienceReward.CODEC);
         register("summon", SummonReward.CODEC);
+        register("counted", CountedReward.CODEC);
     }
 
     private static void register(String id, Codec<? extends Reward> codec) {
@@ -227,6 +228,10 @@ public interface Reward extends CodecProvider<Reward> {
         public Codec<? extends Reward> getCodec() {
             return CODEC;
         }
+
+        public static LootTableReward create(ResourceKey<LootTable> table, int rolls, String desc) {
+            return new LootTableReward(table.location(), rolls, desc);
+        }
     }
 
     /**
@@ -344,6 +349,37 @@ public interface Reward extends CodecProvider<Reward> {
         @Override
         public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {
             list.accept(Component.translatable("reward.gateways.summon", this.entity.getDescription()));
+        }
+
+        @Override
+        public Codec<? extends Reward> getCodec() {
+            return CODEC;
+        }
+    }
+
+    /**
+     * Rolls the same reward multiple times.
+     */
+    public static record CountedReward(Reward reward, int count) implements Reward {
+
+        public static Codec<CountedReward> CODEC = RecordCodecBuilder.create(inst -> inst
+            .group(
+                Reward.CODEC.fieldOf("reward").forGetter(CountedReward::reward),
+                Codec.intRange(1, 1024).fieldOf("count").forGetter(CountedReward::count))
+            .apply(inst, CountedReward::new));
+
+        @Override
+        public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
+            for (int i = 0; i < this.count; i++) {
+                this.reward.generateLoot(level, gate, summoner, list);
+            }
+        }
+
+        @Override
+        public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {
+            this.reward.appendHoverText(ctx, c -> {
+                list.accept(Gateways.lang("tooltip", "with_count", this.count, c));
+            });
         }
 
         @Override
