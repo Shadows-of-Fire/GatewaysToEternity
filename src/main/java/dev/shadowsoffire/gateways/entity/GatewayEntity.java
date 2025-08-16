@@ -1,5 +1,6 @@
 package dev.shadowsoffire.gateways.entity;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashSet;
@@ -75,7 +76,7 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
     protected final Set<LivingEntity> currentWaveEntities = new HashSet<>();
     protected final Set<UUID> unresolvedWaveEntities = new HashSet<>();
 
-    protected UUID summonerId;
+    protected UUID summonerId = UUID.fromString("41C82C87-7AfB-4024-BA57-13D2C99CAE77"); // Uses the FakePlayerFactory's default UUID as a fallback.
     protected DynamicHolder<Gateway> gate;
     protected float clientScale = 0F;
     protected Queue<ItemStack> undroppedItems = new ArrayDeque<>();
@@ -90,6 +91,8 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
 
     @Nullable
     protected ServerBossEvent bossEvent;
+
+    protected transient WeakReference<Player> knownPlayer;
 
     public GatewayEntity(EntityType<? extends GatewayEntity> type, Level level, Player placer, DynamicHolder<Gateway> gate) {
         super(type, level);
@@ -286,13 +289,27 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
     }
 
     public Player summonerOrClosest() {
-        Player player = this.summonerId == null ? null : this.level().getPlayerByUUID(this.summonerId);
+        if (this.knownPlayer != null) {
+            Player player = this.knownPlayer.get();
+            if (player != null && player.isAlive()) {
+                return player;
+            }
+            else {
+                this.knownPlayer = null;
+            }
+        }
+
+        Player player = this.level().getPlayerByUUID(this.summonerId);
         if (player == null) {
             player = this.level().getNearestPlayer(this, 50);
         }
+
         if (player == null) {
-            return this.summonerId == null ? FakePlayerFactory.getMinecraft((ServerLevel) this.level()) : FakePlayerFactory.get((ServerLevel) this.level(), new GameProfile(this.summonerId, ""));
+            GameProfile profile = new GameProfile(this.summonerId, "Gateway_Summoner");
+            return FakePlayerFactory.get((ServerLevel) this.level(), profile);
         }
+
+        this.knownPlayer = new WeakReference<>(player);
         return player;
     }
 
@@ -358,7 +375,7 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         tag.putLongArray("wave_entities", ids);
         tag.putBoolean("active", this.isWaveActive());
         tag.putInt("ticks_active", this.getTicksActive());
-        if (this.summonerId != null) tag.putUUID("summoner", this.summonerId);
+        tag.putUUID("summoner", this.summonerId);
         ListTag stacks = new ListTag();
         for (ItemStack s : this.undroppedItems) {
             stacks.add(s.save(this.registryAccess()));
