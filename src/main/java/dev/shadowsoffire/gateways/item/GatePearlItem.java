@@ -111,7 +111,7 @@ public class GatePearlItem extends Item implements ITabFiller, SpecialTooltipIte
     public void appendHoverText(ItemStack stack, TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
         DynamicHolder<Gateway> holder = GatePearlItem.getGate(stack);
         if (!holder.isBound()) {
-            tooltip.add(Gateways.lang("text", "errored_gate_pearl", holder.getId()));
+            tooltip.add(Gateways.lang("text", "errored_gate_pearl", holder.getId().toString()));
         }
         else if (FMLEnvironment.dist.isClient()) {
             holder.get().appendPearlTooltip(ctx, tooltip, flag);
