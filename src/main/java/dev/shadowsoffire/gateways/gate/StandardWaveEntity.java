@@ -39,7 +39,7 @@ public record StandardWaveEntity(EntityType<?> type, Optional<String> desc, Opti
         data.putString("id", EntityType.getKey(type).toString());
         Entity ent = EntityType.loadEntityRecursive(data, level, Function.identity());
         if (ent instanceof LivingEntity living) {
-            this.modifiers.forEach(m -> m.apply(living));
+            this.modifiers.forEach(m -> m.apply(living, gate));
             return living;
         }
         return null;

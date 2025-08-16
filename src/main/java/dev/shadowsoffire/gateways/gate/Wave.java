@@ -107,7 +107,7 @@ public record Wave(List<WaveEntity> entities, List<WaveModifier> modifiers, List
         entity.moveTo(spawnPos.x(), spawnPos.y(), spawnPos.z(), level.random.nextFloat() * 360, level.random.nextFloat() * 360);
 
         entity.getPassengersAndSelf().filter(e -> e instanceof LivingEntity).map(LivingEntity.class::cast).forEach(e -> {
-            wave.modifiers.forEach(m -> m.apply(e));
+            wave.modifiers.forEach(m -> m.apply(e, gate));
             e.setHealth(e.getMaxHealth());
             e.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 5, 100, true, false));
         });

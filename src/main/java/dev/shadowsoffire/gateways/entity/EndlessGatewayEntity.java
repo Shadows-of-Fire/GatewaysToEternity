@@ -72,7 +72,7 @@ public class EndlessGatewayEntity extends GatewayEntity {
         int applied = executeModifiers(m -> {
             for (LivingEntity entity : this.currentWaveEntities) {
                 for (WaveModifier waveModif : m.modifiers()) {
-                    waveModif.apply(entity);
+                    waveModif.apply(entity, this);
                 }
                 entity.setHealth(entity.getMaxHealth());
             }
