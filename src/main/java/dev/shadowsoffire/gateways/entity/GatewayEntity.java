@@ -325,12 +325,12 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
      */
     public void playerDied(Player player) {
         if (this.getGateway().rules().lives() != -1 && this.distanceToSqr(player) <= Mth.square(this.getGateway().rules().leashRange() + 25)) {
-            int lives = this.getRemainingLives();
+            int lives = this.getRemainingLives() - 1;
             if (lives <= 0) {
                 this.onFailure(this.currentWaveEntities, FailureReason.OUT_OF_LIVES);
             }
             else {
-                this.setRemainingLives(lives - 1);
+                this.setRemainingLives(lives);
             }
         }
     }
