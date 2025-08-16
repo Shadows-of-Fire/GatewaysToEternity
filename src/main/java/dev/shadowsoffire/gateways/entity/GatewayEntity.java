@@ -364,6 +364,8 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
             stacks.add(s.save(this.registryAccess()));
         }
         tag.put("queued_stacks", stacks);
+        tag.putInt("lives", this.getRemainingLives());
+        tag.putInt("nearby_player_timer", this.nearbyPlayerTimer);
     }
 
     @Override
@@ -399,6 +401,9 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
                 }
             }
         }
+        if (tag.contains("lives")) this.setRemainingLives(tag.getInt("lives"));
+        if (tag.contains("nearby_player_timer")) this.nearbyPlayerTimer = tag.getInt("nearby_player_timer");
+
         this.bossEvent = this.createBossEvent();
         this.refreshDimensions();
     }
@@ -445,8 +450,19 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         return this.entityData.get(ENEMIES);
     }
 
+    /**
+     * Returns the number of lives remaining for this gateway.
+     * <p>
+     * If the synced data value is -1, the lives have not been initialized, and the gateway returns the number of lives defined by the {@link GateRules}.
+     */
     public int getRemainingLives() {
-        return this.entityData.get(LIVES_REMAINING);
+        int lives = this.entityData.get(LIVES_REMAINING);
+        if (lives == -1) {
+            return this.getGateway().rules().lives();
+        }
+        else {
+            return lives;
+        }
     }
 
     public void setRemainingLives(int lives) {
