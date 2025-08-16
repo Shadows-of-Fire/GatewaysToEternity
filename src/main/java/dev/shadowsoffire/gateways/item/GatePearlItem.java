@@ -48,6 +48,12 @@ public class GatePearlItem extends Item implements ITabFiller, SpecialTooltipIte
         if (!gate.isBound()) return InteractionResult.FAIL;
         if (world.isClientSide) return InteractionResult.SUCCESS;
 
+        Component errMsg = gate.get().canOpen(ctx.getPlayer());
+        if (errMsg != null) {
+            ctx.getPlayer().sendSystemMessage(Component.translatable("%s", errMsg).withStyle(ChatFormatting.RED));
+            return InteractionResult.FAIL;
+        }
+
         GatewayEntity entity = gate.get().createEntity(world, ctx.getPlayer());
         BlockState state = world.getBlockState(pos);
         VoxelShape shape = state.getCollisionShape(world, pos);

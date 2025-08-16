@@ -1,6 +1,5 @@
 package dev.shadowsoffire.gateways.client;
 
-import dev.shadowsoffire.gateways.GatewayObjects;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.sounds.AbstractTickableSoundInstance;
@@ -10,20 +9,15 @@ public class GatewayTickableSound extends AbstractTickableSoundInstance {
     private final GatewayEntity gateway;
 
     public GatewayTickableSound(GatewayEntity gateway) {
-        super(GatewayObjects.GATE_AMBIENT.value(), SoundSource.HOSTILE, gateway.level().getRandom());
+        super(gateway.getGateway().getSoundtrack().value(), SoundSource.HOSTILE, gateway.level().getRandom());
         this.gateway = gateway;
         this.looping = true;
         this.delay = 0;
         this.x = (float) gateway.getX();
         this.y = (float) gateway.getY();
         this.z = (float) gateway.getZ();
-        this.relative = true;
+        // this.relative = true;
         this.pitch = 0.75F;
-    }
-
-    @Override
-    public boolean canStartSilent() {
-        return true;
     }
 
     @Override

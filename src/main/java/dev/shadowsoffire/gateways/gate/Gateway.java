@@ -6,6 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.mojang.serialization.Codec;
 
+import dev.shadowsoffire.gateways.GatewayObjects;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.SpawnAlgorithms.SpawnAlgorithm;
 import dev.shadowsoffire.gateways.item.GatePearlItem;
@@ -99,9 +100,8 @@ public interface Gateway extends CodecProvider<Gateway> {
     /**
      * Returns the soundtrack for this gateway, which is played (in a loop) while the gateway is active.
      */
-    @Nullable
     default Holder<SoundEvent> getSoundtrack() {
-        return null;
+        return GatewayObjects.GATE_AMBIENT;
     }
 
     /**
@@ -109,6 +109,8 @@ public interface Gateway extends CodecProvider<Gateway> {
      * <p>
      * Returning null means the player can always open the gateway.
      * Returning a non-null Component means the player cannot open the gateway, and the returned Component will be displayed as an error message.
+     * 
+     * @apiNote This method is only called on the logical server.
      */
     @Nullable
     default Component canOpen(Player player) {
