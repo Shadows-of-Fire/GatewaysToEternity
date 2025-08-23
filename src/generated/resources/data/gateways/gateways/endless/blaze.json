@@ -1,6 +1,10 @@
 {
     "type": "gateways:endless",
+    "size": "medium",
+    "color": "#FFFF84",
     "base_wave": {
+        "max_wave_time": 800,
+        "setup_time": 100,
         "entities": [
             {
                 "type": "gateways:standard",
@@ -8,21 +12,14 @@
                 "entity": "minecraft:blaze"
             }
         ],
-        "max_wave_time": 800,
         "rewards": [
             {
                 "type": "gateways:entity_loot",
                 "entity": "minecraft:blaze",
                 "rolls": 10
             }
-        ],
-        "setup_time": 100
+        ]
     },
-    "boss_event": {
-        "fog": false,
-        "mode": "name_plate"
-    },
-    "color": "#FFFF84",
     "modifiers": [
         {
             "application_mode": {
@@ -30,6 +27,8 @@
                 "max": 10,
                 "waves": 3
             },
+            "max_wave_time": -40,
+            "setup_time": -10,
             "entities": [
                 {
                     "type": "gateways:standard",
@@ -37,15 +36,13 @@
                     "entity": "minecraft:blaze"
                 }
             ],
-            "max_wave_time": -40,
             "rewards": [
                 {
                     "type": "gateways:entity_loot",
                     "entity": "minecraft:blaze",
                     "rolls": 10
                 }
-            ],
-            "setup_time": -10
+            ]
         },
         {
             "application_mode": {
@@ -63,6 +60,9 @@
             ]
         }
     ],
-    "size": "medium",
-    "spawn_algorithm": "gateways:inward_spiral"
+    "spawn_algorithm": "gateways:inward_spiral",
+    "boss_event": {
+        "fog": false,
+        "mode": "name_plate"
+    }
 }

@@ -1,16 +1,11 @@
 {
     "type": "gateways:normal",
-    "color": "#FFFF84",
-    "rewards": [
-        {
-            "type": "gateways:entity_loot",
-            "entity": "minecraft:blaze",
-            "rolls": 75
-        }
-    ],
     "size": "small",
+    "color": "#FFFF84",
     "waves": [
         {
+            "max_wave_time": 800,
+            "setup_time": 100,
             "entities": [
                 {
                     "type": "gateways:standard",
@@ -18,17 +13,17 @@
                     "entity": "minecraft:blaze"
                 }
             ],
-            "max_wave_time": 800,
             "rewards": [
                 {
                     "type": "gateways:entity_loot",
                     "entity": "minecraft:blaze",
                     "rolls": 10
                 }
-            ],
-            "setup_time": 100
+            ]
         },
         {
+            "max_wave_time": 800,
+            "setup_time": 150,
             "entities": [
                 {
                     "type": "gateways:standard",
@@ -36,7 +31,6 @@
                     "entity": "minecraft:blaze"
                 }
             ],
-            "max_wave_time": 800,
             "modifiers": [
                 {
                     "type": "gateways:attribute",
@@ -81,10 +75,11 @@
                     "entity": "minecraft:blaze",
                     "rolls": 15
                 }
-            ],
-            "setup_time": 150
+            ]
         },
         {
+            "max_wave_time": 800,
+            "setup_time": 200,
             "entities": [
                 {
                     "type": "gateways:standard",
@@ -92,7 +87,6 @@
                     "entity": "minecraft:blaze"
                 }
             ],
-            "max_wave_time": 800,
             "modifiers": [
                 {
                     "type": "gateways:attribute",
@@ -137,10 +131,11 @@
                     "entity": "minecraft:blaze",
                     "rolls": 20
                 }
-            ],
-            "setup_time": 200
+            ]
         },
         {
+            "max_wave_time": 1000,
+            "setup_time": 280,
             "entities": [
                 {
                     "type": "gateways:standard",
@@ -148,7 +143,6 @@
                     "entity": "minecraft:blaze"
                 }
             ],
-            "max_wave_time": 1000,
             "modifiers": [
                 {
                     "type": "gateways:attribute",
@@ -193,10 +187,11 @@
                     "entity": "minecraft:blaze",
                     "rolls": 25
                 }
-            ],
-            "setup_time": 280
+            ]
         },
         {
+            "max_wave_time": 1200,
+            "setup_time": 340,
             "entities": [
                 {
                     "type": "gateways:standard",
@@ -204,7 +199,6 @@
                     "entity": "minecraft:blaze"
                 }
             ],
-            "max_wave_time": 1200,
             "modifiers": [
                 {
                     "type": "gateways:attribute",
@@ -249,8 +243,14 @@
                     "experience": 500,
                     "orb_size": 25
                 }
-            ],
-            "setup_time": 340
+            ]
+        }
+    ],
+    "rewards": [
+        {
+            "type": "gateways:entity_loot",
+            "entity": "minecraft:blaze",
+            "rolls": 75
         }
     ]
 }

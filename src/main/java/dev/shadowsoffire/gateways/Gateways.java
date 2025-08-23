@@ -14,6 +14,7 @@ import dev.shadowsoffire.gateways.payloads.ParticlePayload;
 import dev.shadowsoffire.placebo.datagen.DataGenBuilder;
 import dev.shadowsoffire.placebo.network.PayloadHelper;
 import dev.shadowsoffire.placebo.tabs.TabFillingRegistry;
+import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.data.DataProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -60,6 +61,8 @@ public class Gateways {
         DataGenBuilder.create(MODID)
             .provider(GatewayProvider::new)
             .build(e);
+
+        setupDatagenFieldOrder();
     }
 
     public static ResourceLocation loc(String path) {
@@ -81,4 +84,27 @@ public class Gateways {
         return type + "." + MODID + "." + path;
     }
 
+    public static void setupDatagenFieldOrder() {
+        Object2IntOpenHashMap<String> map = (Object2IntOpenHashMap<String>) DataProvider.FIXED_ORDER_FIELDS;
+        // Try to keep the gateway data in a consistent order.
+
+        // Normal Gateway Fields
+        map.put("size", 10);
+        map.put("color", 20);
+        map.put("waves", 30);
+        map.put("rewards", 40);
+        map.put("failures", 50);
+        map.put("spawn_algorithm", 60);
+        map.put("rules", 70);
+        map.put("boss_event", 80);
+
+        // Endless Gateway Fields
+        map.put("base_wave", 30);
+        map.put("modifiers", 35);
+
+        // Wave Fields
+        map.put("max_wave_time", 5);
+        map.put("setup_time", 8);
+        map.put("entities", 10);
+    }
 }
