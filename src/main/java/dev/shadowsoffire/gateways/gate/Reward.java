@@ -99,11 +99,12 @@ public interface Reward extends CodecProvider<Reward> {
     /**
      * Provides a single stack as a reward.
      */
-    public static record StackReward(ItemStack stack) implements Reward {
+    public static record StackReward(ItemStack stack, Optional<String> desc) implements Reward {
 
         public static Codec<StackReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
-                ItemStack.CODEC.fieldOf("stack").forGetter(StackReward::stack))
+                ItemStack.CODEC.fieldOf("stack").forGetter(StackReward::stack),
+                Codec.STRING.optionalFieldOf("desc").forGetter(StackReward::desc))
             .apply(inst, StackReward::new));
 
         @Override
@@ -113,7 +114,8 @@ public interface Reward extends CodecProvider<Reward> {
 
         @Override
         public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {
-            list.accept(Component.translatable("reward.gateways.stack", this.stack.getCount(), this.stack.getHoverName()));
+            Component name = this.desc.<Component>map(Component::translatable).orElse(this.stack.getHoverName());
+            list.accept(Gateways.lang("tooltip", "with_count", this.stack.getCount(), name));
         }
 
         @Override
@@ -140,7 +142,7 @@ public interface Reward extends CodecProvider<Reward> {
         @Override
         public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {
             for (ItemStack stack : this.stacks) {
-                list.accept(Component.translatable("reward.gateways.stack", stack.getCount(), stack.getHoverName()));
+                list.accept(Gateways.lang("tooltip", "with_count", stack.getCount(), stack.getHoverName()));
             }
         }
 
