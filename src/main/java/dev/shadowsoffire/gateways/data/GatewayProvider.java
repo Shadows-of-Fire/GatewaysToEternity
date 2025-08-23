@@ -5,12 +5,16 @@ import java.util.function.UnaryOperator;
 
 import dev.shadowsoffire.apothic_attributes.api.ALObjects;
 import dev.shadowsoffire.gateways.Gateways;
+import dev.shadowsoffire.gateways.gate.BossEventSettings;
 import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
 import dev.shadowsoffire.gateways.gate.Reward.EntityLootReward;
 import dev.shadowsoffire.gateways.gate.Reward.ExperienceReward;
+import dev.shadowsoffire.gateways.gate.SpawnAlgorithms;
 import dev.shadowsoffire.gateways.gate.StandardWaveEntity;
 import dev.shadowsoffire.gateways.gate.WaveModifier.AttributeModifier;
+import dev.shadowsoffire.gateways.gate.endless.ApplicationMode.AfterEveryNWaves;
+import dev.shadowsoffire.gateways.gate.endless.EndlessGateway;
 import dev.shadowsoffire.gateways.gate.normal.NormalGateway;
 import dev.shadowsoffire.placebo.util.data.DynamicRegistryProvider;
 import net.minecraft.core.HolderLookup.Provider;
@@ -33,7 +37,7 @@ public class GatewayProvider extends DynamicRegistryProvider<Gateway> {
     @Override
     public void generate() {
         normalGateway("basic/blaze", b -> b
-            .size(NormalGateway.Size.SMALL)
+            .size(Gateway.Size.SMALL)
             .color(0xFFFF84)
             .wave(w -> w
                 .maxWaveTime(800)
@@ -100,10 +104,40 @@ public class GatewayProvider extends DynamicRegistryProvider<Gateway> {
                 .modifier(AttributeModifier.create(Attributes.MOVEMENT_SPEED, Operation.ADD_MULTIPLIED_TOTAL, 0.15F))
                 .reward(new ExperienceReward(500, 25)))
             .keyReward(new EntityLootReward(EntityType.BLAZE, null, 75)));
+
+        endlessGateway("endless/blaze", b -> b
+            .size(Gateway.Size.MEDIUM)
+            .color(0xFFFF84)
+            .baseWave(w -> w
+                .maxWaveTime(800)
+                .setupTime(100)
+                .entity(StandardWaveEntity
+                    .builder(EntityType.BLAZE)
+                    .count(3)
+                    .build())
+                .reward(new EntityLootReward(EntityType.BLAZE, null, 10)))
+            .modifier(m -> m
+                .applicationMode(new AfterEveryNWaves(3, 10)) // TODO: This isn't that readable. Static factory methods on ApplicationMode?
+                .entity(StandardWaveEntity
+                    .builder(EntityType.BLAZE)
+                    .count(3)
+                    .build())
+                .reward(new EntityLootReward(EntityType.BLAZE, null, 10))
+                .setupTime(-10)
+                .maxWaveTime(-40))
+            .modifier(m -> m
+                .applicationMode(new AfterEveryNWaves(5, 3))
+                .modifier(AttributeModifier.create(Attributes.MAX_HEALTH, Operation.ADD_MULTIPLIED_TOTAL, 0.15F)))
+            .bossSettings(new BossEventSettings(BossEventSettings.Mode.NAME_PLATE, false))
+            .spawnAlgo(SpawnAlgorithms.INWARD_SPIRAL));
     }
 
     private void normalGateway(String path, UnaryOperator<NormalGateway.Builder> config) {
         this.add(Gateways.loc(path), config.apply(NormalGateway.builder()).build());
+    }
+
+    private void endlessGateway(String path, UnaryOperator<EndlessGateway.Builder> config) {
+        this.add(Gateways.loc(path), config.apply(EndlessGateway.builder()).build());
     }
 
 }

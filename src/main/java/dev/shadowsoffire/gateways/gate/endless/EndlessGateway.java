@@ -1,7 +1,9 @@
 package dev.shadowsoffire.gateways.gate.endless;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -57,6 +59,90 @@ public record EndlessGateway(Size size, TextColor color, Wave baseWave, List<End
     @Override
     public Codec<? extends Gateway> getCodec() {
         return CODEC;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private EndlessGateway.Size size;
+        private TextColor color;
+        private Wave baseWave;
+        private List<EndlessModifier> modifiers = new ArrayList<>();
+        private List<Failure> failures = Collections.emptyList();
+        private SpawnAlgorithm spawnAlgo = SpawnAlgorithms.OPEN_FIELD;
+        private GateRules rules = GateRules.DEFAULT;
+        private BossEventSettings bossSettings = BossEventSettings.DEFAULT;
+
+        public Builder size(Gateway.Size size) {
+            this.size = size;
+            return this;
+        }
+
+        public Builder color(TextColor color) {
+            this.color = color;
+            return this;
+        }
+
+        public Builder color(int rgb) {
+            this.color = TextColor.fromRgb(rgb);
+            return this;
+        }
+
+        public Builder baseWave(Wave baseWave) {
+            this.baseWave = baseWave;
+            return this;
+        }
+
+        public Builder baseWave(UnaryOperator<Wave.Builder> config) {
+            this.baseWave = config.apply(Wave.builder()).build();
+            return this;
+        }
+
+        public Builder modifier(EndlessModifier modifier) {
+            this.modifiers.add(modifier);
+            return this;
+        }
+
+        public Builder modifier(UnaryOperator<EndlessModifier.Builder> config) {
+            this.modifiers.add(config.apply(EndlessModifier.builder()).build());
+            return this;
+        }
+
+        public Builder failures(List<Failure> failures) {
+            this.failures = new ArrayList<>(failures);
+            return this;
+        }
+
+        public Builder spawnAlgo(SpawnAlgorithm spawnAlgo) {
+            this.spawnAlgo = spawnAlgo;
+            return this;
+        }
+
+        public Builder rules(GateRules rules) {
+            this.rules = rules;
+            return this;
+        }
+
+        public Builder bossSettings(BossEventSettings bossSettings) {
+            this.bossSettings = bossSettings;
+            return this;
+        }
+
+        public EndlessGateway build() {
+            if (size == null) {
+                throw new IllegalStateException("Size must be specified");
+            }
+            if (color == null) {
+                throw new IllegalStateException("Color must be specified");
+            }
+            if (baseWave == null) {
+                throw new IllegalStateException("Base wave must be specified");
+            }
+
+            return new EndlessGateway(size, color, baseWave, modifiers, failures, spawnAlgo, rules, bossSettings);
+        }
     }
 
 }
