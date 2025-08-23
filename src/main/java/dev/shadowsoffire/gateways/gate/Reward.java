@@ -107,6 +107,10 @@ public interface Reward extends CodecProvider<Reward> {
                 Codec.STRING.optionalFieldOf("desc").forGetter(StackReward::desc))
             .apply(inst, StackReward::new));
 
+        public StackReward(ItemStack stack) {
+            this(stack, Optional.empty());
+        }
+
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
             list.accept(this.stack.copy());
