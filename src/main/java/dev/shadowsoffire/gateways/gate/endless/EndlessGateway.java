@@ -110,8 +110,13 @@ public record EndlessGateway(Size size, TextColor color, Wave baseWave, List<End
             return this;
         }
 
+        public Builder failure(Failure failure) {
+            this.failures.add(failure);
+            return this;
+        }
+
         public Builder failures(List<Failure> failures) {
-            this.failures = new ArrayList<>(failures);
+            this.failures.addAll(failures);
             return this;
         }
 
@@ -123,6 +128,10 @@ public record EndlessGateway(Size size, TextColor color, Wave baseWave, List<End
         public Builder rules(GateRules rules) {
             this.rules = rules;
             return this;
+        }
+
+        public Builder rules(UnaryOperator<GateRules.Builder> config) {
+            return this.rules(config.apply(GateRules.builder()).build());
         }
 
         public Builder bossSettings(BossEventSettings bossSettings) {

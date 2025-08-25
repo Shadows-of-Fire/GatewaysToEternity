@@ -52,11 +52,11 @@ import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
@@ -102,6 +102,7 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         this.setCustomName(Component.translatable(gate.getId().toString().replace(':', '.')).withStyle(Style.EMPTY.withColor(gate.get().color())));
         this.bossEvent = this.createBossEvent();
         this.refreshDimensions();
+        this.knownPlayer = new WeakReference<>(placer);
     }
 
     public GatewayEntity(EntityType<?> type, Level level) {
@@ -202,6 +203,15 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
                             return;
                         }
                     }
+
+                    if (this.tickCount % 100 == 0 && entity instanceof Mob mob) {
+                        if (!(mob.getTarget() instanceof Player)) {
+                            Player p = summonerOrClosest();
+                            if (!(p instanceof FakePlayer)) {
+                                mob.setTarget(p);
+                            }
+                        }
+                    }
                 }
 
                 Player player = this.level().getNearestPlayer(this, this.getGateway().getLeashRangeSq());
@@ -279,7 +289,13 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         this.remove(RemovalReason.KILLED);
         this.playSound(GatewayObjects.GATE_END.value(), 16, 1);
 
-        this.level().getNearbyPlayers(TargetingConditions.DEFAULT, null, this.getBoundingBox().inflate(15)).forEach(p -> p.awardStat(GatewayObjects.GATES_DEFEATED));
+        AABB completionBB = this.getBoundingBox().inflate(10 + this.getGateway().rules().leashRange());
+        this.level().getEntitiesOfClass(Player.class, completionBB).forEach(p -> {
+            p.awardStat(GatewayObjects.GATES_DEFEATED);
+            if (p instanceof ServerPlayer sp) {
+                GatewayObjects.FINISH_GATEWAY.trigger(sp, this.getGateway());
+            }
+        });
         NeoForge.EVENT_BUS.post(new GateEvent.Completed(this));
     }
 
@@ -288,6 +304,13 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         NeoForge.EVENT_BUS.post(new GateEvent.Opened(this));
     }
 
+    /**
+     * Attempts to resolve the player-in-context for this gateway.
+     * <p>
+     * This method first prefers the original summoner, then the closest player within 50 blocks, and finally a fake player if no valid player is found.
+     * <p>
+     * The fake player, if used, will have the same UUID as the original summoner.
+     */
     public Player summonerOrClosest() {
         if (this.knownPlayer != null) {
             Player player = this.knownPlayer.get();

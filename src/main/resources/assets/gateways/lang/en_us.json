@@ -78,6 +78,8 @@
     "error.gateways.too_far": "The Gateway imploded because a wave entity ran too far away",
     "error.gateways.wave_elapsed": "Wave Timer Expired",
     "error.gateways.entity_discarded": "The Gateway imploded because an entity was removed without being killed",
+    "error.gateways.no_nearby_player": "The Gateway imploded because there was no player nearby",
+    "error.gateways.out_of_lives": "The Gateway imploded because you ran out of lives",
 
     "appmode.gateways.after_wave": "Applied on wave %s.",
     "appmode.gateways.after_every_n_waves": "Applies every %s waves. Max %s applications.",
