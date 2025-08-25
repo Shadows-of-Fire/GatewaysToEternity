@@ -100,7 +100,7 @@ public interface Gateway extends CodecProvider<Gateway> {
     /**
      * Returns the soundtrack for this gateway, which is played (in a loop) while the gateway is active.
      */
-    default Holder<SoundEvent> getSoundtrack() {
+    default Holder<SoundEvent> soundtrack() {
         return GatewayObjects.GATE_AMBIENT;
     }
 
