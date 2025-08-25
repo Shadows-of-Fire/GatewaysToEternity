@@ -8,6 +8,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.TextureSheetParticle;
@@ -28,6 +29,7 @@ public class GatewayParticle extends TextureSheetParticle {
             RenderSystem.disableCull();
             RenderSystem.blendFuncSeparate(SourceFactor.SRC_ALPHA, DestFactor.ONE, SourceFactor.ONE, DestFactor.ZERO);
             RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
+            Minecraft.getInstance().gameRenderer.lightTexture().turnOnLightLayer();
             return tess.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
         }
 
