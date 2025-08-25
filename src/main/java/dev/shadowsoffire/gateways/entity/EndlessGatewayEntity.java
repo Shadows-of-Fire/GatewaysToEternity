@@ -184,5 +184,7 @@ public class EndlessGatewayEntity extends GatewayEntity {
         if (tag.contains("modifiers_applied")) {
             this.entityData.set(MODIFIERS, tag.getInt("modifiers_applied"));
         }
+        this.entityData.set(MAX_WAVE_TIME, this.getCurrentWave().maxWaveTime());
+        this.entityData.set(SETUP_TIME, this.getCurrentWave().setupTime());
     }
 }
