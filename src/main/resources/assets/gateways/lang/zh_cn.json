@@ -70,12 +70,16 @@
     "rule.gateways.remove_mobs_on_failure": "失败时清除生物：%s",
     "rule.gateways.fail_on_out_of_bounds": "超出范围即失败：%s",
     "rule.gateways.spacing": "最小间距：%s格",
+    "rule.gateways.requires_nearby_player": "附近需有玩家：%s",
+    "rule.gateways.lives": "生命数：%s",
 
-    "error.gateways.no_space": "空间不足，无法开启永恒之门",
-    "error.gateways.wave_failed": "生物生成空间不足导致传送门崩溃",
-    "error.gateways.too_far": "生物超出活动范围导致传送门崩溃",
-    "error.gateways.wave_elapsed": "波次超时",
-    "error.gateways.entity_discarded": "一个未被杀死的实体被移除导致崩溃",
+    "error.gateways.no_space": "空间不足，无法开启传送门",
+    "error.gateways.wave_failed": "由于生物生成空间不足，传送门已崩溃",
+    "error.gateways.too_far": "由于生物超出活动范围，传送门已崩溃",
+    "error.gateways.wave_elapsed": "此波次已超时",
+    "error.gateways.entity_discarded": "由于有一个实体未死亡，传送门已崩溃",
+    "error.gateways.no_nearby_player": "由于附近没有玩家，传送门已崩溃",
+    "error.gateways.out_of_lives": "由于生命耗尽，传送门已崩溃",
 
     "appmode.gateways.after_wave": "第%s波后生效。",
     "appmode.gateways.after_every_n_waves": "每%s波循环生效（最多%s次）",
@@ -100,12 +104,18 @@
     "rewards.gateways.loot_table.nether_bridge": "下界要塞战利品",
 
     "name.gateways.necrotic_farmer": "暗蚀农夫",
-    "name.gateways.being": "§5未§k§r§5知存在",
     "name.gateways.undead_legionnaire": "亡灵军团",
     "name.gateways.withered_ranger": "凋灵游侠",
     "name.gateways.butcher": "屠戮者",
     "name.gateways.huge_slime": "巨型史莱姆",
     "name.gateways.magicbane_slime": "魔骨史莱姆",
     "name.gateways.acidic_slime": "酸蚀史莱姆",
-    "name.gateways.flaming_enderman": "炽焰末影人"
+    "name.gateways.flaming_enderman": "炽焰末影人",
+    
+    "subtitle.gateways.gate_warp": "永恒之门：生成",
+    "subtitle.gateways.gate_ambient": "永恒之门：环境音",
+    "subtitle.gateways.gate_start": "永恒之门：开启",
+    "subtitle.gateways.gate_end": "永恒之门：关闭",
+
+    "text.gateways.errored_gate_pearl": "未知传送门：%s"
 }
