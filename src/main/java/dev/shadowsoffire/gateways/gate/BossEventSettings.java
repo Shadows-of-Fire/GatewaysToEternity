@@ -4,7 +4,13 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
+import net.minecraft.server.level.ServerBossEvent;
 
+/**
+ * Boss event settings for a Gateway. Controls how the {@link ServerBossEvent} is managed.
+ * <p>
+ * Currently you can only choose between a boss bar or an above-gateway nameplate. Fog is only supported with boss bars.
+ */
 public record BossEventSettings(Mode mode, boolean fog) {
 
     public static final BossEventSettings DEFAULT = new BossEventSettings(Mode.BOSS_BAR, true);

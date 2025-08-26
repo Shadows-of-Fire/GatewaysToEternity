@@ -1,3 +1,28 @@
+## 5.1.0
+* A stock datapack is now generated with each Gateways release.
+* Added two new fields to `GateRules` - `lives` and `requires_nearby_player`. These allow setting more restrictions on how players must interact with a gateway.
+  * `lives` specifies the number of times that nearby players may die before the gateway fails.
+  * `requires_nearby_player` forces players to stay within the leash range of the gateway, or the gate will fail.
+* `WaveModifier#apply` now has context of the `GatewayEntity`.
+* Added `CountedReward` (type `gateways:counted`) which allows repeating any other reward multiple times.
+* Added an optional `desc` field to `StackReward`.
+* Fixed an issue that caused gateway particles to flicker on item or xp orb pickup.
+* Added the `finish_gateway` criteria trigger.
+  * This can be used to make advancements that complete when the player finishes a specific gateway.
+  * Previously this was possible through command rewards, but that was a bit ugly.
+* Fixed an issue where Endless Gateways could fail on world reload.
+
+## 5.0.4
+* Updated to Placebo 9.9.0.
+
+## 5.0.3
+* Toblerone0508: Updated recipes to use more tags.
+* nageih: Updated Chinese Translation.
+* Fixed subtitles being untranslated.
+* Updated errored gate pearl text to simply state the broken gateway name.
+  * The previous text mostly resulted in incorrect bug reports, so it wasn't serving the intended purpose.
+* Started working on Datagen for Gateways. Only implemented the basic blaze gateway for now, but this should ideally make it easier to make new gateways in the future.
+
 ## 5.0.2
 * Added the active gateway entity as context to `WaveEntity#createEntity`.
 

@@ -72,7 +72,7 @@ public class EndlessGatewayEntity extends GatewayEntity {
         int applied = executeModifiers(m -> {
             for (LivingEntity entity : this.currentWaveEntities) {
                 for (WaveModifier waveModif : m.modifiers()) {
-                    waveModif.apply(entity);
+                    waveModif.apply(entity, this);
                 }
                 entity.setHealth(entity.getMaxHealth());
             }
@@ -184,5 +184,7 @@ public class EndlessGatewayEntity extends GatewayEntity {
         if (tag.contains("modifiers_applied")) {
             this.entityData.set(MODIFIERS, tag.getInt("modifiers_applied"));
         }
+        this.entityData.set(MAX_WAVE_TIME, this.getCurrentWave().maxWaveTime());
+        this.entityData.set(SETUP_TIME, this.getCurrentWave().setupTime());
     }
 }

@@ -2,8 +2,11 @@ package dev.shadowsoffire.gateways.gate;
 
 import java.util.List;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.mojang.serialization.Codec;
 
+import dev.shadowsoffire.gateways.GatewayObjects;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.SpawnAlgorithms.SpawnAlgorithm;
 import dev.shadowsoffire.gateways.item.GatePearlItem;
@@ -11,8 +14,10 @@ import dev.shadowsoffire.placebo.codec.CodecProvider;
 import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import dev.shadowsoffire.placebo.color.GradientColor;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item.TooltipContext;
@@ -90,6 +95,26 @@ public interface Gateway extends CodecProvider<Gateway> {
     default double getLeashRangeSq() {
         double leashRange = this.rules().leashRange();
         return leashRange * leashRange;
+    }
+
+    /**
+     * Returns the soundtrack for this gateway, which is played (in a loop) while the gateway is active.
+     */
+    default Holder<SoundEvent> soundtrack() {
+        return GatewayObjects.GATE_AMBIENT;
+    }
+
+    /**
+     * Checks if the player can open this gateway.
+     * <p>
+     * Returning null means the player can always open the gateway.
+     * Returning a non-null Component means the player cannot open the gateway, and the returned Component will be displayed as an error message.
+     * 
+     * @apiNote This method is only called on the logical server.
+     */
+    @Nullable
+    default Component canOpen(Player player) {
+        return null;
     }
 
     public static enum Size {

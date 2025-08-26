@@ -4,6 +4,7 @@ import java.util.function.Supplier;
 
 import com.mojang.serialization.MapCodec;
 
+import dev.shadowsoffire.gateways.advancements.FinishGatewayTrigger;
 import dev.shadowsoffire.gateways.client.GatewayParticleData;
 import dev.shadowsoffire.gateways.entity.EndlessGatewayEntity;
 import dev.shadowsoffire.gateways.entity.NormalGatewayEntity;
@@ -72,9 +73,11 @@ public class GatewayObjects {
 
     public static final Holder<CreativeModeTab> TAB = R.creativeTab("tab", b -> b.title(Component.translatable("itemGroup.gateways")).icon(() -> GATE_PEARL.value().getDefaultInstance()));
 
-    public static final Holder<ResourceLocation> GATES_DEFEATED = R.custom("gates_defeated", Registries.CUSTOM_STAT, () -> Gateways.loc("gates_defeated"));
+    public static final ResourceLocation GATES_DEFEATED = R.custom("gates_defeated", Registries.CUSTOM_STAT, Gateways.loc("gates_defeated"));
 
     public static final DataComponentType<DynamicHolder<Gateway>> GATEWAY_COMPONENT = R.component("gateway", b -> b.persistent(GatewayRegistry.INSTANCE.holderCodec()).networkSynchronized(GatewayRegistry.INSTANCE.holderStreamCodec()));
+
+    public static final FinishGatewayTrigger FINISH_GATEWAY = R.criteriaTrigger("finish_gateway", new FinishGatewayTrigger());
 
     private static Holder<SoundEvent> sound(String name) {
         return R.sound(name, () -> SoundEvent.createVariableRangeEvent(Gateways.loc(name)));

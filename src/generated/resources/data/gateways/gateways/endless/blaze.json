@@ -1,0 +1,68 @@
+{
+    "type": "gateways:endless",
+    "size": "medium",
+    "color": "#FFFF84",
+    "base_wave": {
+        "max_wave_time": 800,
+        "setup_time": 100,
+        "entities": [
+            {
+                "type": "gateways:standard",
+                "count": 3,
+                "entity": "minecraft:blaze"
+            }
+        ],
+        "rewards": [
+            {
+                "type": "gateways:entity_loot",
+                "entity": "minecraft:blaze",
+                "rolls": 10
+            }
+        ]
+    },
+    "modifiers": [
+        {
+            "application_mode": {
+                "type": "gateways:after_every_n_waves",
+                "max": 10,
+                "waves": 3
+            },
+            "max_wave_time": -40,
+            "setup_time": -10,
+            "entities": [
+                {
+                    "type": "gateways:standard",
+                    "count": 3,
+                    "entity": "minecraft:blaze"
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:blaze",
+                    "rolls": 10
+                }
+            ]
+        },
+        {
+            "application_mode": {
+                "type": "gateways:after_every_n_waves",
+                "max": 3,
+                "waves": 5
+            },
+            "modifiers": [
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:generic.max_health",
+                    "operation": "add_multiplied_total",
+                    "value": 0.15
+                }
+            ]
+        }
+    ],
+    "spawn_algorithm": "gateways:inward_spiral",
+    "boss_event": {
+        "fog": false,
+        "mode": "name_plate"
+    }
+}

@@ -7,11 +7,13 @@ import java.util.function.Consumer;
 import org.jetbrains.annotations.Nullable;
 
 import dev.shadowsoffire.gateways.GatewayObjects;
+import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import dev.shadowsoffire.placebo.tabs.ITabFiller;
+import dev.shadowsoffire.placebo.util.SpecialTooltipItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
@@ -30,7 +32,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
-public class GatePearlItem extends Item implements ITabFiller {
+public class GatePearlItem extends Item implements ITabFiller, SpecialTooltipItem {
 
     public GatePearlItem(Properties props) {
         super(props);
@@ -45,6 +47,12 @@ public class GatePearlItem extends Item implements ITabFiller {
 
         if (!gate.isBound()) return InteractionResult.FAIL;
         if (world.isClientSide) return InteractionResult.SUCCESS;
+
+        Component errMsg = gate.get().canOpen(ctx.getPlayer());
+        if (errMsg != null) {
+            ctx.getPlayer().sendSystemMessage(Component.translatable("%s", errMsg).withStyle(ChatFormatting.RED));
+            return InteractionResult.FAIL;
+        }
 
         GatewayEntity entity = gate.get().createEntity(world, ctx.getPlayer());
         BlockState state = world.getBlockState(pos);
@@ -103,7 +111,7 @@ public class GatePearlItem extends Item implements ITabFiller {
     public void appendHoverText(ItemStack stack, TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
         DynamicHolder<Gateway> holder = GatePearlItem.getGate(stack);
         if (!holder.isBound()) {
-            tooltip.add(Component.literal("Errored Gate Pearl, file a bug report detailing how you obtained this."));
+            tooltip.add(Gateways.lang("text", "errored_gate_pearl", holder.getId().toString()));
         }
         else if (FMLEnvironment.dist.isClient()) {
             holder.get().appendPearlTooltip(ctx, tooltip, flag);

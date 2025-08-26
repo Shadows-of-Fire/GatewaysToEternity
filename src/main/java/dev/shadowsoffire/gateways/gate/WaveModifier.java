@@ -10,6 +10,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import dev.shadowsoffire.apothic_attributes.ApothicAttributes;
 import dev.shadowsoffire.gateways.Gateways;
+import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.placebo.codec.CodecMap;
 import dev.shadowsoffire.placebo.codec.CodecProvider;
 import dev.shadowsoffire.placebo.json.ChancedEffectInstance;
@@ -17,34 +18,53 @@ import dev.shadowsoffire.placebo.json.RandomAttributeModifier;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import dev.shadowsoffire.placebo.systems.gear.GearSet;
 import dev.shadowsoffire.placebo.systems.gear.GearSetRegistry;
+import dev.shadowsoffire.placebo.util.StepFunction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.level.storage.loot.BuiltInLootTables;
+import net.minecraft.world.level.storage.loot.LootTable;
 
 public interface WaveModifier extends CodecProvider<WaveModifier> {
 
     public static final CodecMap<WaveModifier> CODEC = new CodecMap<>("Gateway Wave Modifier");
 
+    @Deprecated
+    default void apply(LivingEntity entity) {}
+
     /**
      * Applies this modifier to the given entity, which will have been freshly spawned by a Wave.
      * 
-     * @param entity The fresh Wave Entity.
+     * @param entity   The fresh Wave Entity.
+     * @param gate     The GatewayEntity that spawned the wave.
+     * @param summoner The Player that summoned the wave, or the closest player.
      */
-    void apply(LivingEntity entity);
+    default void apply(LivingEntity entity, GatewayEntity gate) {
+        apply(entity);
+    }
 
     /**
      * Adds this wave modifier to the gate pearl's tooltip.
      */
     public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list);
 
-    public static void initSerializers() {
+    public static void initCodecs() {
         register("mob_effect", EffectModifier.CODEC);
         register("attribute", AttributeModifier.CODEC);
         register("gear_set", GearSetModifier.CODEC);
+        register("loot_table", LootTableModifier.CODEC);
         CODEC.setDefaultCodec(AttributeModifier.CODEC);
     }
 
@@ -70,7 +90,7 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
         }
 
         @Override
-        public void apply(LivingEntity entity) {
+        public void apply(LivingEntity entity, GatewayEntity gate) {
             int duration = entity instanceof Creeper ? 6000 : Integer.MAX_VALUE;
             entity.addEffect(effect.createDeterministic(duration));
         }
@@ -82,6 +102,13 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
             list.accept(Component.literal(output.get(0).getString()));
         }
 
+        public static EffectModifier create(Holder<MobEffect> effect, int amplifier, boolean ambient, boolean visible) {
+            return new EffectModifier(new ChancedEffectInstance(1, effect, StepFunction.constant(amplifier), ambient, visible));
+        }
+
+        public static EffectModifier create(Holder<MobEffect> effect, int amplifier) {
+            return create(effect, amplifier, false, true);
+        }
     }
 
     /**
@@ -99,7 +126,7 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
         }
 
         @Override
-        public void apply(LivingEntity entity) {
+        public void apply(LivingEntity entity, GatewayEntity gate) {
             AttributeInstance inst = entity.getAttribute(this.modifier.attribute());
             if (inst == null) return;
             // TODO: Figure out a better way to generate a random ID (maybe generate a full UUID?) or have users provide an identifier.
@@ -109,6 +136,10 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
         @Override
         public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {
             list.accept(modifier.attribute().value().toComponent(modifier.createDeterministic(Gateways.loc("gateway_random_modifier")), ApothicAttributes.getTooltipFlag()));
+        }
+
+        public static AttributeModifier create(Holder<Attribute> attribute, Operation op, float value) {
+            return new AttributeModifier(new RandomAttributeModifier(attribute, op, StepFunction.constant(value)));
         }
 
     }
@@ -131,7 +162,7 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
         }
 
         @Override
-        public void apply(LivingEntity entity) {
+        public void apply(LivingEntity entity, GatewayEntity gate) {
             this.set.get().apply(entity);
         }
 
@@ -140,5 +171,40 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
             list.accept(Component.translatable("modifier.gateways.gear_set", Component.translatable(this.set.getId().toLanguageKey("gear_set"))));
         }
 
+        public static GearSetModifier create(ResourceLocation set) {
+            return new GearSetModifier(GearSetRegistry.INSTANCE.holder(set));
+        }
+
+    }
+
+    public static record LootTableModifier(ResourceKey<LootTable> table) implements WaveModifier {
+
+        public static Codec<LootTableModifier> CODEC = RecordCodecBuilder.create(inst -> inst
+            .group(
+                ResourceKey.codec(Registries.LOOT_TABLE).fieldOf("loot_table").forGetter(LootTableModifier::table))
+            .apply(inst, LootTableModifier::new));
+
+        @Override
+        public Codec<? extends WaveModifier> getCodec() {
+            return CODEC;
+        }
+
+        @Override
+        public void apply(LivingEntity entity, GatewayEntity gate) {
+            if (entity instanceof Mob mob) {
+                mob.lootTable = this.table;
+            }
+        }
+
+        @Override
+        public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {}
+
+        public static LootTableModifier create(ResourceKey<LootTable> table) {
+            return new LootTableModifier(table);
+        }
+
+        public static LootTableModifier createEmpty() {
+            return create(BuiltInLootTables.EMPTY);
+        }
     }
 }

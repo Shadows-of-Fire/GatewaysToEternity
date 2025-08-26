@@ -8,19 +8,19 @@
   ],
   "key": {
     "D": {
-      "item": "minecraft:glowstone_dust"
+      "tag": "c:dusts/glowstone"
     },
 	"E": {
       "item": "minecraft:spider_eye"
     },
 	"G": {
-      "item": "minecraft:gunpowder"
+      "tag": "c:gunpowders"
     },
 	"A": {
       "item": "minecraft:ender_eye"
     },
 	"B": {
-      "item": "minecraft:bone"
+      "tag": "c:bones"
     },
 	"F": {
       "item": "minecraft:rotten_flesh"

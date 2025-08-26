@@ -8,6 +8,7 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.TextureSheetParticle;
@@ -22,14 +23,13 @@ public class GatewayParticle extends TextureSheetParticle {
     static final ParticleRenderType RENDER_TYPE = new ParticleRenderType(){
         @Override
         public BufferBuilder begin(Tesselator tess, TextureManager manager) {
-            // RenderSystem.enableAlphaTest();
             RenderSystem.depthMask(false);
             RenderSystem.disableDepthTest();
             RenderSystem.enableBlend();
             RenderSystem.disableCull();
-            RenderSystem.blendFunc(SourceFactor.SRC_ALPHA, DestFactor.ONE);
-            // RenderSystem.alphaFunc(GL11.GL_GREATER, 0.003921569F);
+            RenderSystem.blendFuncSeparate(SourceFactor.SRC_ALPHA, DestFactor.ONE, SourceFactor.ONE, DestFactor.ZERO);
             RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
+            Minecraft.getInstance().gameRenderer.lightTexture().turnOnLightLayer();
             return tess.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
         }
 
@@ -48,6 +48,8 @@ public class GatewayParticle extends TextureSheetParticle {
         this.xd = velX;
         this.yd = velY;
         this.zd = velZ;
+        this.speedUpWhenYMotionIsBlocked = true;
+        this.friction = 0.86F;
     }
 
     @Override
@@ -67,29 +69,8 @@ public class GatewayParticle extends TextureSheetParticle {
 
     @Override
     public void tick() {
-        this.xo = this.x;
-        this.yo = this.y;
-        this.zo = this.z;
+        super.tick();
         this.alpha = 1 - (float) this.age / this.lifetime;
-        if (this.age++ >= this.lifetime) {
-            this.remove();
-        }
-        else {
-            this.move(this.xd, this.yd, this.zd);
-            if (this.y == this.yo) {
-                this.xd *= 1.1D;
-                this.zd *= 1.1D;
-            }
-
-            this.xd *= 0.86F;
-            this.yd *= 0.86F;
-            this.zd *= 0.86F;
-            if (this.onGround) {
-                this.xd *= 0.7F;
-                this.zd *= 0.7F;
-            }
-
-        }
     }
 
 }

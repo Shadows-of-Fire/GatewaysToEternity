@@ -1,7 +1,9 @@
 package dev.shadowsoffire.gateways.gate.normal;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -39,7 +41,7 @@ import net.minecraft.world.level.Level;
 public record NormalGateway(Size size, TextColor color, List<Wave> waves, List<Reward> rewards, List<Failure> failures, SpawnAlgorithm spawnAlgo, GateRules rules,
     BossEventSettings bossSettings) implements Gateway {
 
-    public static Codec<NormalGateway> CODEC = RecordCodecBuilder.create(inst -> inst
+    public static final Codec<NormalGateway> CODEC = RecordCodecBuilder.create(inst -> inst
         .group(
             Size.CODEC.fieldOf("size").forGetter(NormalGateway::size),
             TextColor.CODEC.fieldOf("color").forGetter(NormalGateway::color),
@@ -77,6 +79,185 @@ public record NormalGateway(Size size, TextColor color, List<Wave> waves, List<R
     @Override
     public Codec<NormalGateway> getCodec() {
         return CODEC;
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private Size size;
+        private TextColor color;
+        private final List<Wave> waves = new ArrayList<>();
+        private final List<Reward> rewards = new ArrayList<>();
+        private final List<Failure> failures = new ArrayList<>();
+        private SpawnAlgorithm spawnAlgo = SpawnAlgorithms.OPEN_FIELD;
+        private GateRules rules = GateRules.DEFAULT;
+        private BossEventSettings bossSettings = BossEventSettings.DEFAULT;
+
+        public Builder size(Size size) {
+            this.size = size;
+            return this;
+        }
+
+        public Builder color(TextColor color) {
+            this.color = color;
+            return this;
+        }
+
+        public Builder color(int color) {
+            return this.color(TextColor.fromRgb(color));
+        }
+
+        /**
+         * Adds a wave to this gateway.
+         * 
+         * @param wave The wave to add
+         * @return This builder for chaining
+         */
+        public Builder wave(Wave wave) {
+            this.waves.add(wave);
+            return this;
+        }
+
+        /**
+         * Adds a wave to this gateway.
+         * 
+         * @param config A unary operator to create the wave.
+         * @return This builder for chaining
+         */
+        public Builder wave(UnaryOperator<Wave.Builder> config) {
+            return this.wave(config.apply(new Wave.Builder()).build());
+        }
+
+        /**
+         * Adds multiple waves to this gateway.
+         * 
+         * @param waves The waves to add
+         * @return This builder for chaining
+         */
+        public Builder waves(List<Wave> waves) {
+            this.waves.addAll(waves);
+            return this;
+        }
+
+        /**
+         * Adds a reward to this gateway.
+         * 
+         * @param reward The reward to add
+         * @return This builder for chaining
+         */
+        public Builder keyReward(Reward reward) {
+            this.rewards.add(reward);
+            return this;
+        }
+
+        /**
+         * Adds multiple rewards to this gateway.
+         * 
+         * @param rewards The rewards to add
+         * @return This builder for chaining
+         */
+        public Builder keyRewards(List<Reward> rewards) {
+            this.rewards.addAll(rewards);
+            return this;
+        }
+
+        /**
+         * Adds a failure condition to this gateway.
+         * 
+         * @param failure The failure to add
+         * @return This builder for chaining
+         */
+        public Builder failure(Failure failure) {
+            this.failures.add(failure);
+            return this;
+        }
+
+        /**
+         * Adds multiple failure conditions to this gateway.
+         * 
+         * @param failures The failures to add
+         * @return This builder for chaining
+         */
+        public Builder failures(List<Failure> failures) {
+            this.failures.addAll(failures);
+            return this;
+        }
+
+        /**
+         * Sets the spawn algorithm for this gateway.
+         * 
+         * @param spawnAlgo The spawn algorithm to use
+         * @return This builder for chaining
+         */
+        public Builder spawnAlgorithm(SpawnAlgorithm spawnAlgo) {
+            this.spawnAlgo = spawnAlgo;
+            return this;
+        }
+
+        /**
+         * Sets the rules for this gateway.
+         * 
+         * @param rules The rules to use
+         * @return This builder for chaining
+         */
+        public Builder rules(GateRules rules) {
+            this.rules = rules;
+            return this;
+        }
+
+        /**
+         * Sets the rules for this gateway using a configuration function.
+         * 
+         * @param config A unary operator to configure the GateRules
+         * @return This builder for chaining
+         */
+        public Builder rules(UnaryOperator<GateRules.Builder> config) {
+            return this.rules(config.apply(GateRules.builder()).build());
+        }
+
+        /**
+         * Sets the boss event settings for this gateway.
+         * 
+         * @param bossSettings The boss event settings to use
+         * @return This builder for chaining
+         */
+        public Builder bossSettings(BossEventSettings bossSettings) {
+            this.bossSettings = bossSettings;
+            return this;
+        }
+
+        /**
+         * Builds a new NormalGateway with the configured parameters.
+         * 
+         * @return A new NormalGateway instance
+         * @throws IllegalStateException if required parameters are missing
+         */
+        public NormalGateway build() {
+            if (size == null) {
+                throw new IllegalStateException("Gateway size must be specified");
+            }
+
+            if (color == null) {
+                throw new IllegalStateException("Gateway color must be specified");
+            }
+
+            if (waves.isEmpty()) {
+                throw new IllegalStateException("Gateway must have at least one wave");
+            }
+
+            return new NormalGateway(
+                size,
+                color,
+                Collections.unmodifiableList(new ArrayList<>(waves)),
+                Collections.unmodifiableList(new ArrayList<>(rewards)),
+                Collections.unmodifiableList(new ArrayList<>(failures)),
+                spawnAlgo,
+                rules,
+                bossSettings);
+        }
     }
 
 }

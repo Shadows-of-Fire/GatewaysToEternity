@@ -8,7 +8,7 @@ import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.ingredients.subtypes.IIngredientSubtypeInterpreter;
+import mezz.jei.api.ingredients.subtypes.ISubtypeInterpreter;
 import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
@@ -38,10 +38,15 @@ public class GatewayJEIPlugin implements IModPlugin {
         return Gateways.loc("gateways");
     }
 
-    private static class GateOpenerSubtypes implements IIngredientSubtypeInterpreter<ItemStack> {
+    private static class GateOpenerSubtypes implements ISubtypeInterpreter<ItemStack> {
 
         @Override
-        public String apply(ItemStack stack, UidContext context) {
+        public DynamicHolder<Gateway> getSubtypeData(ItemStack stack, UidContext context) {
+            return GatePearlItem.getGate(stack);
+        }
+
+        @Override
+        public String getLegacyStringSubtypeInfo(ItemStack stack, UidContext context) {
             DynamicHolder<Gateway> holder = GatePearlItem.getGate(stack);
             if (holder.isBound()) {
                 return holder.getId().toString();

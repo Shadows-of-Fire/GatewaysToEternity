@@ -70,15 +70,16 @@ public interface Reward extends CodecProvider<Reward> {
 
     public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list);
 
-    public static void initSerializers() {
+    public static void initCodecs() {
         register("stack", StackReward.CODEC);
         register("stack_list", StackListReward.CODEC);
         register("entity_loot", EntityLootReward.CODEC);
         register("loot_table", LootTableReward.CODEC);
         register("chanced", ChancedReward.CODEC);
         register("command", CommandReward.CODEC);
-        register("experience", XpReward.CODEC);
+        register("experience", ExperienceReward.CODEC);
         register("summon", SummonReward.CODEC);
+        register("counted", CountedReward.CODEC);
     }
 
     private static void register(String id, Codec<? extends Reward> codec) {
@@ -98,12 +99,21 @@ public interface Reward extends CodecProvider<Reward> {
     /**
      * Provides a single stack as a reward.
      */
-    public static record StackReward(ItemStack stack) implements Reward {
+    public static record StackReward(ItemStack stack, Optional<String> desc) implements Reward {
 
         public static Codec<StackReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
-                ItemStack.CODEC.fieldOf("stack").forGetter(StackReward::stack))
+                ItemStack.CODEC.fieldOf("stack").forGetter(StackReward::stack),
+                Codec.STRING.optionalFieldOf("desc").forGetter(StackReward::desc))
             .apply(inst, StackReward::new));
+
+        public StackReward(ItemStack stack) {
+            this(stack, Optional.empty());
+        }
+
+        public StackReward(ItemStack stack, String desc) {
+            this(stack, Optional.of(desc));
+        }
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
@@ -112,7 +122,8 @@ public interface Reward extends CodecProvider<Reward> {
 
         @Override
         public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {
-            list.accept(Component.translatable("reward.gateways.stack", this.stack.getCount(), this.stack.getHoverName()));
+            Component name = this.desc.<Component>map(Component::translatable).orElse(this.stack.getHoverName());
+            list.accept(Gateways.lang("tooltip", "with_count", this.stack.getCount(), name));
         }
 
         @Override
@@ -139,7 +150,7 @@ public interface Reward extends CodecProvider<Reward> {
         @Override
         public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {
             for (ItemStack stack : this.stacks) {
-                list.accept(Component.translatable("reward.gateways.stack", stack.getCount(), stack.getHoverName()));
+                list.accept(Gateways.lang("tooltip", "with_count", stack.getCount(), stack.getHoverName()));
             }
         }
 
@@ -227,6 +238,10 @@ public interface Reward extends CodecProvider<Reward> {
         public Codec<? extends Reward> getCodec() {
             return CODEC;
         }
+
+        public static LootTableReward create(ResourceKey<LootTable> table, int rolls, String desc) {
+            return new LootTableReward(table.location(), rolls, desc);
+        }
     }
 
     /**
@@ -291,13 +306,13 @@ public interface Reward extends CodecProvider<Reward> {
     /**
      * Provides a certain amount of XP as a reward.
      */
-    public static record XpReward(int xp, int orbSize) implements Reward {
+    public static record ExperienceReward(int xp, int orbSize) implements Reward {
 
-        public static Codec<XpReward> CODEC = RecordCodecBuilder.create(inst -> inst
+        public static Codec<ExperienceReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
-                Codec.INT.fieldOf("experience").forGetter(XpReward::xp),
-                Codec.INT.optionalFieldOf("orb_size", 5).forGetter(XpReward::orbSize))
-            .apply(inst, XpReward::new));
+                Codec.INT.fieldOf("experience").forGetter(ExperienceReward::xp),
+                Codec.INT.optionalFieldOf("orb_size", 5).forGetter(ExperienceReward::orbSize))
+            .apply(inst, ExperienceReward::new));
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
@@ -344,6 +359,37 @@ public interface Reward extends CodecProvider<Reward> {
         @Override
         public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {
             list.accept(Component.translatable("reward.gateways.summon", this.entity.getDescription()));
+        }
+
+        @Override
+        public Codec<? extends Reward> getCodec() {
+            return CODEC;
+        }
+    }
+
+    /**
+     * Rolls the same reward multiple times.
+     */
+    public static record CountedReward(Reward reward, int count) implements Reward {
+
+        public static Codec<CountedReward> CODEC = RecordCodecBuilder.create(inst -> inst
+            .group(
+                Reward.CODEC.fieldOf("reward").forGetter(CountedReward::reward),
+                Codec.intRange(1, 1024).fieldOf("count").forGetter(CountedReward::count))
+            .apply(inst, CountedReward::new));
+
+        @Override
+        public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
+            for (int i = 0; i < this.count; i++) {
+                this.reward.generateLoot(level, gate, summoner, list);
+            }
+        }
+
+        @Override
+        public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {
+            this.reward.appendHoverText(ctx, c -> {
+                list.accept(Gateways.lang("tooltip", "with_count", this.count, c));
+            });
         }
 
         @Override

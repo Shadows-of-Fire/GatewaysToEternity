@@ -1,22 +1,22 @@
 {
 	"gate_warp": {
 		"category": "hostile",
-		"subtitle": "gateways.subtitle.gate_warp",
+		"subtitle": "subtitle.gateways.gate_warp",
 		"sounds": ["gateways:warp"]
 	},
 	"gate_ambient": {
 		"category": "hostile",
-		"subtitle": "gateways.subtitle.portal_noise",
+		"subtitle": "subtitle.gateways.gate_ambient",
 		"sounds": ["gateways:ambient_loop"]
 	},
 	"gate_start": {
 		"category": "hostile",
-		"subtitle": "gateways.subtitle.gate_start",
+		"subtitle": "subtitle.gateways.gate_start",
 		"sounds": ["gateways:start"]
 	},
 	"gate_end": {
 		"category": "hostile",
-		"subtitle": "gateways.subtitle.gate_end",
+		"subtitle": "subtitle.gateways.gate_end",
 		"sounds": ["gateways:end"]
 	}
 }

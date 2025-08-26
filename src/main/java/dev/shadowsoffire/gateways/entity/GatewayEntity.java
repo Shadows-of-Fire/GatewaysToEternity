@@ -1,5 +1,6 @@
 package dev.shadowsoffire.gateways.entity;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.HashSet;
@@ -51,11 +52,11 @@ import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.common.util.FakePlayer;
@@ -69,18 +70,29 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
     public static final EntityDataAccessor<Integer> TICKS_ACTIVE = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> WAVE = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
     public static final EntityDataAccessor<Integer> ENEMIES = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
+    public static final EntityDataAccessor<Boolean> HAS_NEARBY_PLAYER = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.BOOLEAN);
+    public static final EntityDataAccessor<Integer> LIVES_REMAINING = SynchedEntityData.defineId(GatewayEntity.class, EntityDataSerializers.INT);
 
     protected final Set<LivingEntity> currentWaveEntities = new HashSet<>();
     protected final Set<UUID> unresolvedWaveEntities = new HashSet<>();
 
-    protected UUID summonerId;
+    protected UUID summonerId = UUID.fromString("41C82C87-7AfB-4024-BA57-13D2C99CAE77"); // Uses the FakePlayerFactory's default UUID as a fallback.
     protected DynamicHolder<Gateway> gate;
     protected float clientScale = 0F;
     protected Queue<ItemStack> undroppedItems = new ArrayDeque<>();
     protected FailureReason failureReason;
 
+    /**
+     * Remaining ticks before the gateway will fail due to a lack of nearby players.
+     * <p>
+     * This counter ticks down if {@link #HAS_NEARBY_PLAYER} is false, and resets to 200 if a player returns.
+     */
+    protected int nearbyPlayerTimer = 200;
+
     @Nullable
     protected ServerBossEvent bossEvent;
+
+    protected transient WeakReference<Player> knownPlayer;
 
     public GatewayEntity(EntityType<? extends GatewayEntity> type, Level level, Player placer, DynamicHolder<Gateway> gate) {
         super(type, level);
@@ -90,6 +102,7 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         this.setCustomName(Component.translatable(gate.getId().toString().replace(':', '.')).withStyle(Style.EMPTY.withColor(gate.get().color())));
         this.bossEvent = this.createBossEvent();
         this.refreshDimensions();
+        this.knownPlayer = new WeakReference<>(placer);
     }
 
     public GatewayEntity(EntityType<?> type, Level level) {
@@ -157,6 +170,18 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
 
             this.entityData.set(TICKS_ACTIVE, this.getTicksActive() + 1);
 
+            // If we don't have a nearby player, tick down the counter, and if it reaches zero, fail the gateway.
+            if (!this.entityData.get(HAS_NEARBY_PLAYER)) {
+                this.nearbyPlayerTimer--;
+                if (this.nearbyPlayerTimer <= 0) {
+                    this.onFailure(this.currentWaveEntities, FailureReason.NO_NEARBY_PLAYER);
+                    return;
+                }
+            }
+            else {
+                this.nearbyPlayerTimer = 200; // Reset the timer if we have a nearby player.
+            }
+
             // Collect all remaining enemies, which are those that are alive and not removed via a valid reason.
             List<LivingEntity> enemies = this.currentWaveEntities.stream().filter(e -> e.getHealth() > 0 && !this.isValidRemoval(e.getRemovalReason())).toList();
             if (this.tickCount % 20 == 0) {
@@ -178,7 +203,19 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
                             return;
                         }
                     }
+
+                    if (this.tickCount % 100 == 0 && entity instanceof Mob mob) {
+                        if (!(mob.getTarget() instanceof Player)) {
+                            Player p = summonerOrClosest();
+                            if (!(p instanceof FakePlayer)) {
+                                mob.setTarget(p);
+                            }
+                        }
+                    }
                 }
+
+                Player player = this.level().getNearestPlayer(this, this.getGateway().getLeashRangeSq());
+                this.entityData.set(HAS_NEARBY_PLAYER, player != null);
             }
             this.entityData.set(ENEMIES, enemies.size());
 
@@ -252,7 +289,13 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         this.remove(RemovalReason.KILLED);
         this.playSound(GatewayObjects.GATE_END.value(), 16, 1);
 
-        this.level().getNearbyPlayers(TargetingConditions.DEFAULT, null, this.getBoundingBox().inflate(15)).forEach(p -> p.awardStat(GatewayObjects.GATES_DEFEATED.value()));
+        AABB completionBB = this.getBoundingBox().inflate(10 + this.getGateway().rules().leashRange());
+        this.level().getEntitiesOfClass(Player.class, completionBB).forEach(p -> {
+            p.awardStat(GatewayObjects.GATES_DEFEATED);
+            if (p instanceof ServerPlayer sp) {
+                GatewayObjects.FINISH_GATEWAY.trigger(sp, this.getGateway());
+            }
+        });
         NeoForge.EVENT_BUS.post(new GateEvent.Completed(this));
     }
 
@@ -261,14 +304,35 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         NeoForge.EVENT_BUS.post(new GateEvent.Opened(this));
     }
 
+    /**
+     * Attempts to resolve the player-in-context for this gateway.
+     * <p>
+     * This method first prefers the original summoner, then the closest player within 50 blocks, and finally a fake player if no valid player is found.
+     * <p>
+     * The fake player, if used, will have the same UUID as the original summoner.
+     */
     public Player summonerOrClosest() {
-        Player player = this.summonerId == null ? null : this.level().getPlayerByUUID(this.summonerId);
+        if (this.knownPlayer != null) {
+            Player player = this.knownPlayer.get();
+            if (player != null && player.isAlive()) {
+                return player;
+            }
+            else {
+                this.knownPlayer = null;
+            }
+        }
+
+        Player player = this.level().getPlayerByUUID(this.summonerId);
         if (player == null) {
             player = this.level().getNearestPlayer(this, 50);
         }
+
         if (player == null) {
-            return this.summonerId == null ? FakePlayerFactory.getMinecraft((ServerLevel) this.level()) : FakePlayerFactory.get((ServerLevel) this.level(), new GameProfile(this.summonerId, ""));
+            GameProfile profile = new GameProfile(this.summonerId, "Gateway_Summoner");
+            return FakePlayerFactory.get((ServerLevel) this.level(), profile);
         }
+
+        this.knownPlayer = new WeakReference<>(player);
         return player;
     }
 
@@ -294,6 +358,23 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         this.remove(RemovalReason.DISCARDED);
     }
 
+    /**
+     * Called when a player is killed within 100 blocks of the gateway.
+     * <p>
+     * If the player is within the leash range (+ 25 blocks) of the gateway, the gateway will lose a life.
+     */
+    public void playerDied(Player player) {
+        if (this.getGateway().rules().lives() != -1 && this.distanceToSqr(player) <= Mth.square(this.getGateway().rules().leashRange() + 25)) {
+            int lives = this.getRemainingLives() - 1;
+            if (lives <= 0) {
+                this.onFailure(this.currentWaveEntities, FailureReason.OUT_OF_LIVES);
+            }
+            else {
+                this.setRemainingLives(lives);
+            }
+        }
+    }
+
     protected ServerBossEvent createBossEvent() {
         if (this.getGateway().bossSettings().drawAsBar()) {
             ServerBossEvent event = new ServerBossEvent(Component.literal("GATEWAY_ID" + this.getId()), BossBarColor.BLUE, BossBarOverlay.PROGRESS);
@@ -317,12 +398,14 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         tag.putLongArray("wave_entities", ids);
         tag.putBoolean("active", this.isWaveActive());
         tag.putInt("ticks_active", this.getTicksActive());
-        if (this.summonerId != null) tag.putUUID("summoner", this.summonerId);
+        tag.putUUID("summoner", this.summonerId);
         ListTag stacks = new ListTag();
         for (ItemStack s : this.undroppedItems) {
             stacks.add(s.save(this.registryAccess()));
         }
         tag.put("queued_stacks", stacks);
+        tag.putInt("lives", this.getRemainingLives());
+        tag.putInt("nearby_player_timer", this.nearbyPlayerTimer);
     }
 
     @Override
@@ -358,6 +441,9 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
                 }
             }
         }
+        if (tag.contains("lives")) this.setRemainingLives(tag.getInt("lives"));
+        if (tag.contains("nearby_player_timer")) this.nearbyPlayerTimer = tag.getInt("nearby_player_timer");
+
         this.bossEvent = this.createBossEvent();
         this.refreshDimensions();
     }
@@ -368,6 +454,8 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         builder.define(TICKS_ACTIVE, 0);
         builder.define(WAVE, 0);
         builder.define(ENEMIES, 0);
+        builder.define(HAS_NEARBY_PLAYER, true);
+        builder.define(LIVES_REMAINING, -1);
     }
 
     @Override
@@ -400,6 +488,25 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
 
     public int getActiveEnemies() {
         return this.entityData.get(ENEMIES);
+    }
+
+    /**
+     * Returns the number of lives remaining for this gateway.
+     * <p>
+     * If the synced data value is -1, the lives have not been initialized, and the gateway returns the number of lives defined by the {@link GateRules}.
+     */
+    public int getRemainingLives() {
+        int lives = this.entityData.get(LIVES_REMAINING);
+        if (lives == -1) {
+            return this.getGateway().rules().lives();
+        }
+        else {
+            return lives;
+        }
+    }
+
+    public void setRemainingLives(int lives) {
+        this.entityData.set(LIVES_REMAINING, lives);
     }
 
     public Gateway getGateway() {
@@ -564,7 +671,9 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         ENTITY_TOO_FAR("error.gateways.too_far"),
         TIMER_ELAPSED("error.gateways.wave_elapsed"),
         ENTITY_DISCARDED("error.gateways.entity_discarded"),
-        ENTITY_LEFT_DIMENSION("error.gateways.left_dimension");
+        ENTITY_LEFT_DIMENSION("error.gateways.left_dimension"),
+        NO_NEARBY_PLAYER("error.gateways.no_nearby_player"),
+        OUT_OF_LIVES("error.gateways.out_of_lives");
 
         private final String langKey;
 

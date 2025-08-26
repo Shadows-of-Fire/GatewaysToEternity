@@ -21,21 +21,24 @@ import net.minecraft.network.chat.MutableComponent;
 /**
  * Gate Rules are all of the various metadata rules for a Gateway.
  * 
- * @param spawnRange        The spawn range as a radius in blocks in which mobs may spawn around the gateway, from the edges of the gateway.
- * @param leashRange        The distance that a wave entity may be from the center of the Gateway before out-of-bounds rules are triggered.
- * @param allowDiscarding   If entities marked as discarded are counted as valid kills.
- * @param allowDimChange    If entities marked as changed dimension are counted as valid kills.
- * @param playerDamageOnly  If wave entities may only be hurt by damage that is sourced to a player.
- * @param removeOnFailure   If the wave entities will be removed if the Gateway is failed.
- * @param failOnOutOfBounds If true, when out-of-bounds rules are triggered, the Gateway will fail. If false, the entity will be re-placed using the spawn
- *                          algorithm.
- * @param spacing           The distance that this gateway must be from another Gateway.
- * @param followRangeBoost  Bonus value added to the follow range of all wave entities. Invisible to users.
- * @param defaultDropChance Default drop chance set for all slots on all wave entities. Invisible to users.
+ * @param spawnRange           The spawn range as a radius in blocks in which mobs may spawn around the gateway, from the edges of the gateway.
+ * @param leashRange           The distance that a wave entity may be from the center of the Gateway before out-of-bounds rules are triggered.
+ * @param allowDiscarding      If entities marked as discarded are counted as valid kills.
+ * @param allowDimChange       If entities marked as changed dimension are counted as valid kills.
+ * @param playerDamageOnly     If wave entities may only be hurt by damage that is sourced to a player.
+ * @param removeOnFailure      If the wave entities will be removed if the Gateway is failed.
+ * @param failOnOutOfBounds    If true, when out-of-bounds rules are triggered, the Gateway will fail. If false, the entity will be re-placed using the spawn
+ *                             algorithm.
+ * @param spacing              The distance that this gateway must be from another Gateway.
+ * @param followRangeBoost     Bonus value added to the follow range of all wave entities. Invisible to users.
+ * @param defaultDropChance    Default drop chance set for all slots on all wave entities. Invisible to users.
+ * @param requiresNearbyPlayer If true, the Gateway will fail if there is not a player within the leash range of the Gateway.
+ * @param lives                The number of player deaths that this Gateway will allow before it is failed. -1 means infinite lives.
  */
 public record GateRules(double spawnRange, double leashRange, boolean allowDiscarding,
     boolean allowDimChange, boolean playerDamageOnly, boolean removeOnFailure,
-    boolean failOnOutOfBounds, double spacing, double followRangeBoost, float defaultDropChance) {
+    boolean failOnOutOfBounds, double spacing, double followRangeBoost, float defaultDropChance,
+    boolean requiresNearbyPlayer, int lives) {
 
     public static final DecimalFormat FORMAT = Util.make(new DecimalFormat("#.#"), fmt -> fmt.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.ROOT)));
 
@@ -50,7 +53,9 @@ public record GateRules(double spawnRange, double leashRange, boolean allowDisca
             Codec.BOOL.optionalFieldOf("fail_on_out_of_bounds", false).forGetter(GateRules::failOnOutOfBounds),
             Codec.DOUBLE.optionalFieldOf("spacing", 0D).forGetter(GateRules::spacing),
             Codec.DOUBLE.optionalFieldOf("follow_range_boost", 32D).forGetter(GateRules::followRangeBoost),
-            Codec.FLOAT.optionalFieldOf("default_drop_chance", 0F).forGetter(GateRules::defaultDropChance))
+            Codec.FLOAT.optionalFieldOf("default_drop_chance", 0F).forGetter(GateRules::defaultDropChance),
+            Codec.BOOL.optionalFieldOf("requires_nearby_player", false).forGetter(GateRules::requiresNearbyPlayer),
+            Codec.intRange(-1, 1024).optionalFieldOf("lives", -1).forGetter(GateRules::lives))
         .apply(inst, GateRules::new));
 
     public static final GateRules DEFAULT = CODEC.decode(JsonOps.INSTANCE, new JsonObject()).getOrThrow().getFirst();
@@ -69,7 +74,13 @@ public record GateRules(double spawnRange, double leashRange, boolean allowDisca
         append("remove_mobs_on_failure", list, this.removeOnFailure, DEFAULT.removeOnFailure);
         append("fail_on_out_of_bounds", list, this.failOnOutOfBounds, DEFAULT.failOnOutOfBounds);
         append("spacing", list, this.spacing, DEFAULT.spacing);
+        append("requires_nearby_player", list, this.requiresNearbyPlayer, DEFAULT.requiresNearbyPlayer);
+        append("lives", list, this.lives, DEFAULT.lives);
         return list;
+    }
+
+    public static Builder builder() {
+        return new Builder();
     }
 
     private static <T> void append(String name, List<MutableComponent> list, T val, T def) {
@@ -85,6 +96,85 @@ public record GateRules(double spawnRange, double leashRange, boolean allowDisca
         if (val instanceof Number n) return Component.literal(FORMAT.format(n));
         else if (val instanceof Boolean b) return Component.translatable("tooltip.gateways." + (b ? "true" : "false"));
         return Component.literal("Unknown: " + val);
+    }
+
+    public static class Builder {
+        private double spawnRange = DEFAULT.spawnRange();
+        private double leashRange = DEFAULT.leashRange();
+        private boolean allowDiscarding = DEFAULT.allowDiscarding();
+        private boolean allowDimChange = DEFAULT.allowDimChange();
+        private boolean playerDamageOnly = DEFAULT.playerDamageOnly();
+        private boolean removeOnFailure = DEFAULT.removeOnFailure();
+        private boolean failOnOutOfBounds = DEFAULT.failOnOutOfBounds();
+        private double spacing = DEFAULT.spacing();
+        private double followRangeBoost = DEFAULT.followRangeBoost();
+        private float defaultDropChance = DEFAULT.defaultDropChance();
+        private boolean requiresNearbyPlayer = DEFAULT.requiresNearbyPlayer();
+        private int lives = DEFAULT.lives();
+
+        public Builder spawnRange(double spawnRange) {
+            this.spawnRange = spawnRange;
+            return this;
+        }
+
+        public Builder leashRange(double leashRange) {
+            this.leashRange = leashRange;
+            return this;
+        }
+
+        public Builder allowDiscarding(boolean allowDiscarding) {
+            this.allowDiscarding = allowDiscarding;
+            return this;
+        }
+
+        public Builder allowDimChange(boolean allowDimChange) {
+            this.allowDimChange = allowDimChange;
+            return this;
+        }
+
+        public Builder playerDamageOnly(boolean playerDamageOnly) {
+            this.playerDamageOnly = playerDamageOnly;
+            return this;
+        }
+
+        public Builder removeOnFailure(boolean removeOnFailure) {
+            this.removeOnFailure = removeOnFailure;
+            return this;
+        }
+
+        public Builder failOnOutOfBounds(boolean failOnOutOfBounds) {
+            this.failOnOutOfBounds = failOnOutOfBounds;
+            return this;
+        }
+
+        public Builder spacing(double spacing) {
+            this.spacing = spacing;
+            return this;
+        }
+
+        public Builder followRangeBoost(double followRangeBoost) {
+            this.followRangeBoost = followRangeBoost;
+            return this;
+        }
+
+        public Builder defaultDropChance(float defaultDropChance) {
+            this.defaultDropChance = defaultDropChance;
+            return this;
+        }
+
+        public Builder requiresNearbyPlayer(boolean requiresNearbyPlayer) {
+            this.requiresNearbyPlayer = requiresNearbyPlayer;
+            return this;
+        }
+
+        public Builder lives(int lives) {
+            this.lives = lives;
+            return this;
+        }
+
+        public GateRules build() {
+            return new GateRules(spawnRange, leashRange, allowDiscarding, allowDimChange, playerDamageOnly, removeOnFailure, failOnOutOfBounds, spacing, followRangeBoost, defaultDropChance, requiresNearbyPlayer, lives);
+        }
     }
 
 }

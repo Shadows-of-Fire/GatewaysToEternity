@@ -16,6 +16,7 @@ import dev.shadowsoffire.gateways.gate.WaveModifier;
 import dev.shadowsoffire.gateways.gate.endless.EndlessGateway;
 import dev.shadowsoffire.gateways.gate.endless.EndlessModifier;
 import dev.shadowsoffire.gateways.gate.normal.NormalGateway;
+import dev.shadowsoffire.placebo.PlaceboClient;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -68,7 +69,7 @@ public class EndlessGateClient {
             });
         }
 
-        int modifIdx = Math.floorMod(GatewaysClient.scrollIdx, gate.modifiers().size());
+        int modifIdx = PlaceboClient.getTooltipScrollIndex(gate.modifiers().size());
         EndlessModifier modif = gate.modifiers().get(modifIdx);
 
         if (Screen.hasShiftDown()) {
