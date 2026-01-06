@@ -11,6 +11,7 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.EntityTeleportEvent;
+import net.neoforged.neoforge.event.entity.living.FinalizeSpawnEvent;
 import net.neoforged.neoforge.event.entity.living.LivingConversionEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
@@ -70,4 +71,18 @@ public class GatewayEvents {
         }
     }
 
+    /**
+     * Ensure that entities spawned by gateways are not cancelled by spawn rules or other mods that are attempting to cancel spawns.
+     * <p>
+     * This might have unintended side effects if other mods are cancelling spawns for important reasons, but there is no good way to track this otherwise.
+     * The effect of a spawn truly being cancelled is that the gateway implodes, which is terrible player experience.
+     */
+    @SubscribeEvent(priority = EventPriority.LOWEST)
+    public void spawn(FinalizeSpawnEvent e) {
+        Entity entity = e.getEntity();
+        GatewayEntity gate = GatewayEntity.getOwner(entity);
+        if (gate != null && e.isSpawnCancelled()) {
+            e.setSpawnCancelled(false);
+        }
+    }
 }
