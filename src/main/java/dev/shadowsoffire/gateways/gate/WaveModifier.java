@@ -3,7 +3,10 @@ package dev.shadowsoffire.gateways.gate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+
+import org.jetbrains.annotations.ApiStatus;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -40,6 +43,9 @@ import net.minecraft.world.level.storage.loot.LootTable;
 public interface WaveModifier extends CodecProvider<WaveModifier> {
 
     public static final CodecMap<WaveModifier> CODEC = new CodecMap<>("Gateway Wave Modifier");
+
+    @ApiStatus.Internal
+    public static final AtomicInteger ID_COUNTER = new AtomicInteger(0);
 
     @Deprecated
     default void apply(LivingEntity entity) {}
@@ -129,8 +135,10 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
         public void apply(LivingEntity entity, GatewayEntity gate) {
             AttributeInstance inst = entity.getAttribute(this.modifier.attribute());
             if (inst == null) return;
-            // TODO: Figure out a better way to generate a random ID (maybe generate a full UUID?) or have users provide an identifier.
-            inst.addPermanentModifier(this.modifier.createDeterministic(Gateways.loc("gateway_random_modifier_" + entity.getRandom().nextInt())));
+            // We need to avoid modifier ID collisions, so we generate a new ID from an atomic counter.
+            // The uniqueness doesn't need to be persistent, or even unique between entities, just unique enough to avoid collisions between
+            // modifiers applied to the same attribute on the same entity.
+            inst.addPermanentModifier(this.modifier.createDeterministic(Gateways.loc("gateway_random_modifier_" + ID_COUNTER.getAndIncrement())));
         }
 
         @Override
