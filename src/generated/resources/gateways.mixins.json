@@ -2,7 +2,6 @@
     "required": true,
     "package": "dev.shadowsoffire.gateways.mixin",
     "compatibilityLevel": "JAVA_21",
-    "refmap": "gateways.refmap.json",
     "mixins": [
         "SpawnerBlockEntityMixin"
     ],
