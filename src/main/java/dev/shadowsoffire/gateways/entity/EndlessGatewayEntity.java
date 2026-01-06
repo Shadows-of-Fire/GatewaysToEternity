@@ -82,7 +82,7 @@ public class EndlessGatewayEntity extends GatewayEntity {
             }
 
             if (m.setupTime() != 0) {
-                this.entityData.set(SETUP_TIME, this.getSetupTime() + m.setupTime());
+                this.entityData.set(SETUP_TIME, Math.max(0, this.getSetupTime() + m.setupTime()));
             }
         });
 
