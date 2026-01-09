@@ -48,6 +48,7 @@ import net.minecraft.world.BossEvent.BossBarOverlay;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -80,6 +81,7 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
     protected DynamicHolder<Gateway> gate;
     protected float clientScale = 0F;
     protected Queue<ItemStack> undroppedItems = new ArrayDeque<>();
+    protected Queue<Integer> undroppedXP = new ArrayDeque<>();
     protected FailureReason failureReason;
 
     /**
@@ -219,10 +221,17 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
             }
             this.entityData.set(ENEMIES, enemies.size());
 
-            if (this.tickCount % 4 == 0 && !this.undroppedItems.isEmpty()) {
-                for (int i = 0; i < this.getDropCount(); i++) {
+            if (this.tickCount % 4 == 0 && (!this.undroppedItems.isEmpty() || !this.undroppedXP.isEmpty())) {
+                // Spawn items
+                int itemsToSpawn = Math.min(this.getDropCount(), this.undroppedItems.size());
+                for (int i = 0; i < itemsToSpawn; i++) {
                     this.spawnItem(this.undroppedItems.remove());
-                    if (this.undroppedItems.isEmpty()) break;
+                }
+
+                // Spawn XP orbs in parallel - at least 3x faster than items (30 vs 3-10)
+                int xpToSpawn = Math.min(this.getXPDropCount(), this.undroppedXP.size());
+                for (int i = 0; i < xpToSpawn; i++) {
+                    this.spawnXPOrb(this.undroppedXP.remove());
                 }
             }
 
@@ -272,6 +281,14 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
 
     protected int getDropCount() {
         return 3 + this.undroppedItems.size() / 100;
+    }
+
+    /**
+     * Returns the number of XP orbs to spawn per tick cycle.
+     * Spawns at least 3x faster than items to prevent long delays with large XP rewards.
+     */
+    protected int getXPDropCount() {
+        return 30; // Minimum 3x faster than max item drops (which is 3-10)
     }
 
     /**
@@ -404,6 +421,12 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
             stacks.add(s.save(this.registryAccess()));
         }
         tag.put("queued_stacks", stacks);
+        int[] xpArray = new int[this.undroppedXP.size()];
+        int xpIdx = 0;
+        for (Integer xp : this.undroppedXP) {
+            xpArray[xpIdx++] = xp;
+        }
+        tag.putIntArray("queued_xp", xpArray);
         tag.putInt("lives", this.getRemainingLives());
         tag.putInt("nearby_player_timer", this.nearbyPlayerTimer);
     }
@@ -439,6 +462,13 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
                 if (!stack.isEmpty()) {
                     this.undroppedItems.add(stack);
                 }
+            }
+        }
+        if (tag.contains("queued_xp")) {
+            this.undroppedXP.clear();
+            int[] xpArray = tag.getIntArray("queued_xp");
+            for (int xp : xpArray) {
+                this.undroppedXP.add(xp);
             }
         }
         if (tag.contains("lives")) this.setRemainingLives(tag.getInt("lives"));
@@ -540,6 +570,17 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         i.setDeltaMovement(Mth.nextDouble(this.random, -0.15, 0.15), 0.4, Mth.nextDouble(this.random, -0.15, 0.15));
         this.level().addFreshEntity(i);
         this.level().playSound(null, i.getX(), i.getY(), i.getZ(), GatewayObjects.GATE_WARP, SoundSource.HOSTILE, 0.25F, 2.0F);
+    }
+
+    public void spawnXPOrb(int value) {
+        ExperienceOrb orb = new ExperienceOrb(this.level(), this.getX() + Mth.nextDouble(this.random, -0.5, 0.5), this.getY() + 1.5, this.getZ() + Mth.nextDouble(this.random, -0.5, 0.5), value);
+        orb.setDeltaMovement(Mth.nextDouble(this.random, -0.15, 0.15), 0.4, Mth.nextDouble(this.random, -0.15, 0.15));
+        this.level().addFreshEntity(orb);
+        this.level().playSound(null, orb.getX(), orb.getY(), orb.getZ(), GatewayObjects.GATE_WARP, SoundSource.HOSTILE, 0.25F, 2.0F);
+    }
+
+    public void queueXP(int value) {
+        this.undroppedXP.add(value);
     }
 
     public void spawnCompletionItem(ItemStack stack) {
