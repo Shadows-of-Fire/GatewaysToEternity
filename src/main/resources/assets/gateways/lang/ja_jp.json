@@ -1,0 +1,121 @@
+{
+    "entity.gateways.gateway" : "Gateway to Eternity",
+    "item.gateways.gate_pearl": "ゲートパール",
+    "gateways.gate_pearl": "ゲートパール - %s",
+    "itemGroup.gateways": "Gateways to Eternity",
+
+    "info.gateways.gate_pearl": "ゲートパールをブロックに使用することで、ゲートウェイを召喚できます。\n\n間隔設定に基づき、他のゲートウェイに近すぎる場所では使用できません。\n",
+    "info.gateways.gate_pearl.2": "開いたゲートウェイは、モブのスポーン失敗、有効なモブの離脱、または制限時間の終了により、落雷とともにゲートウェイが崩壊します。\n\n報酬は獲得と同時にゲートウェイから出現します。",
+
+    "tooltip.gateways.with_count": "%s個の%s",
+    "tooltip.gateways.dot_with_count": "• %s %s",
+    "tooltip.gateways.dot": "• %s",
+
+    "tooltip.gateways.scroll": "[スクロール]",
+    "tooltip.gateways.shift": "[shift]",
+    "tooltip.gateways.ctrl": "[ctrl]",
+    "tooltip.gateways.alt": "[alt]",
+    "tooltip.gateways.true": "有効",
+    "tooltip.gateways.false": "無効",
+
+    "tooltip.gateways.num_wave": "%sウェーブ分",
+    "tooltip.gateways.num_waves": "%sウェーブ分",
+    "tooltip.gateways.wave": "ウェーブ %s/%s",
+    "tooltip.gateways.entities": "エンティティ: ",
+    "tooltip.gateways.modifiers": "バフ: ",
+    "tooltip.gateways.rewards": "報酬: ",
+
+    "tooltip.gateways.num_failures": "%s種類のペナルティ",
+    "tooltip.gateways.num_failure": "%s種類のペナルティ",
+    "tooltip.gateways.failures": "失敗時のペナルティ",
+
+    "tooltip.gateways.num_rule": "%s種類のルール変更",
+    "tooltip.gateways.num_rules": "%s種類のルール変更",
+    "tooltip.gateways.rules": "ルール変更",
+
+    "tooltip.gateways.key_rewards": "主要報酬",
+
+    "tooltip.gateways.endless.base_wave": "基本ウェーブ",
+    "tooltip.gateways.endless.num_modif": "%s種類の永久バフ",
+    "tooltip.gateways.endless.num_modifs": "%s種類の永久バフ",
+    "tooltip.gateways.endless.modifier": "永久バフ %s/%s",
+    "tooltip.gateways.endless.wave_time": "ウェーブの最大制限時間 %s",
+    "tooltip.gateways.endless.setup_time": "準備時間 %s",
+
+    "boss.gateways.wave": "ウェーブ: %d/%d | 残り時間: %s | 残り敵数: %d",
+    "boss.gateways.done": "ゲートを制覇！",
+    "boss.gateways.starting": "%dウェーブ目  開始まで: %s",
+    "boss.gateways.endless.top": "ウェーブ: %d/%d | 残り時間: %d",
+    "boss.gateways.endless.bot": "敵数: %d/%d | 有効なバフ: %d",
+    "boss.gateways.endless.incoming": "敵襲接近中: %d",
+
+    "reward.gateways.stack": "%s個の%s",
+    "reward.gateways.entity": "%s個の%sのドロップアイテム",
+    "reward.gateways.loot_table": "%s個の%sの戦利品",
+    "reward.gateways.chance": "%sの確率で%s",
+    "reward.gateways.experience": "%sの経験値",
+    "reward.gateways.summon": "%sを召喚",
+
+    "failure.gateways.explosion": "半径%sブロックで爆発",
+    "failure.gateways.mob_effect": "%s",
+    "failure.gateways.summon": "%sを召喚",
+    "failure.gateways.chance": "%sの確率で%s",
+
+    "rule.gateways.default": "[変更前: %s]",
+    "rule.gateways.spawn_range": "スポーン範囲: %s",
+    "rule.gateways.leash_range": "有効範囲: %s",
+    "rule.gateways.allow_discarding": "削除許可: %s",
+    "rule.gateways.allow_dim_change": "ディメンション移動を許可: %s",
+    "rule.gateways.player_damage_only": "プレイヤーによるダメージのみ: %s",
+    "rule.gateways.remove_mobs_on_failure": "失敗時にエンティティを削除: %s",
+    "rule.gateways.fail_on_out_of_bounds": "範囲外で失敗: %s",
+    "rule.gateways.spacing": "配置間隔: %s",
+    "rule.gateways.requires_nearby_player": "付近にプレイヤーが必要: %s",
+    "rule.gateways.lives": "残機: %s",
+
+    "error.gateways.no_space": "このゲートウェイを開くためのスペースが足りません",
+    "error.gateways.wave_failed": "次のウェーブのスポーン場所が足りないため、ゲートウェイが崩壊しました",
+    "error.gateways.too_far": "ウェーブのモブが離れすぎたため、ゲートウェイが崩壊しました",
+    "error.gateways.wave_elapsed": "ウェーブの制限時間が終了しました",
+    "error.gateways.entity_discarded": "エンティティが倒されずに消えたため、ゲートウェイが崩壊しました",
+    "error.gateways.no_nearby_player": "付近にプレイヤーがいないため、ゲートウェイが崩壊しました",
+    "error.gateways.out_of_lives": "残機がなくなったため、ゲートウェイが崩壊しました",
+
+    "appmode.gateways.after_wave": "%sウェーブで適用されます。",
+    "appmode.gateways.after_every_n_waves": "%sウェーブごとに適用されます。(最大%s回まで)",
+    "appmode.gateways.only_on_wave": "%sウェーブ目のみ適用されます。",
+    "appmode.gateways.only_on_every_n_waves": "%sウェーブごとに適用されます。",
+
+    "stat.gateways.gates_defeated": "制覇したゲートウェイ",
+
+    "modifier.gateways.gear_set": "装備中のアイテム: %s",
+
+    "gateways.basic/blaze": "ブレイズのゲートウェイ",
+    "gateways.basic/slime": "スライムのゲートウェイ",
+    "gateways.basic/enderman": "エンダーマンのゲートウェイ",
+    
+    "gateways.emerald_grove": "エメラルドの森のゲートウェイ",
+    "gateways.overworldian_nights": "夜のオーバーワールドのゲートウェイ",
+    "gateways.hellish_fortress": "ネザー要塞のゲートウェイ",
+
+    "gateways.endless/blaze": "ブレイズの永久ゲートウェイ",
+
+    "rewards.gateways.loot_table.simple_dungeon": "ダンジョン",
+    "rewards.gateways.loot_table.nether_bridge": "ネザー要塞",
+
+    "name.gateways.necrotic_farmer": "死霊農夫",
+    "name.gateways.undead_legionnaire": "アンデッドの軍団兵",
+    "name.gateways.withered_ranger": "ウィザースケルトンの狙撃兵",
+    "name.gateways.butcher": "ブッチャー",
+    "name.gateways.huge_slime": "巨大スライム",
+    "name.gateways.magicbane_slime": "魔滅のスライム",
+    "name.gateways.acidic_slime": "酸のスライム",
+    "name.gateways.flaming_enderman": "火炎のエンダーマン",
+
+    "subtitle.gateways.gate_warp": "ゲートウェイから何かが飛び出す",
+    "subtitle.gateways.gate_ambient": "ゲートウェイがブンブン鳴る",
+    "subtitle.gateways.gate_start": "ゲートウェイが開く",
+    "subtitle.gateways.gate_end": "ゲートウェイが崩壊する",
+
+    "text.gateways.errored_gate_pearl": "未知のゲートウェイ: %s"
+}
