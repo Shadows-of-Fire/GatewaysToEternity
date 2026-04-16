@@ -98,10 +98,16 @@ public record Wave(List<WaveEntity> entities, List<WaveModifier> modifiers, List
     @Nullable
     public static LivingEntity spawnWaveEntity(ServerLevel level, Vec3 pos, GatewayEntity gate, Wave wave, WaveEntity waveEntity) {
         LivingEntity entity = waveEntity.createEntity(level, gate);
-        if (entity == null) return null;
+        if (entity == null) {
+            Gateways.logSpawnDebug(gate, waveEntity, "Entity creation returned null");
+            return null;
+        }
 
         Vec3 spawnPos = gate.getGateway().spawnAlgo().spawn(level, pos, gate, entity);
-        if (spawnPos == null) return null;
+        if (spawnPos == null) {
+            Gateways.logSpawnDebug(gate, waveEntity, "Spawn algorithm returned null position");
+            return null;
+        }
 
         entity.getPersistentData().putUUID("gateways.owner", gate.getUUID());
         entity.moveTo(spawnPos.x(), spawnPos.y(), spawnPos.z(), level.random.nextFloat() * 360, level.random.nextFloat() * 360);

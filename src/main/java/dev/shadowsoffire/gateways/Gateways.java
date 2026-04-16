@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import dev.shadowsoffire.gateways.data.GatewayProvider;
+import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.Failure;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
 import dev.shadowsoffire.gateways.gate.Reward;
@@ -110,5 +111,13 @@ public class Gateways {
                 map.put("entities", 10);
             })
             .build());
+    }
+
+    public static void logSpawnDebug(GatewayEntity gate, WaveEntity entity, String failureReason) {
+        LOGGER.debug("Failed to spawn entity '{}' for gateway '{}' at position {}. Reason: {}",
+            entity.getDescription().getString(),
+            GatewayRegistry.INSTANCE.holder(gate.getGateway()).getId(),
+            gate.blockPosition(),
+            failureReason);
     }
 }

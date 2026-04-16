@@ -10,6 +10,7 @@ import java.util.function.UnaryOperator;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.placebo.json.NBTAdapter;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -38,10 +39,17 @@ public record StandardWaveEntity(EntityType<?> type, Optional<String> desc, Opti
         CompoundTag data = tag.orElse(new CompoundTag());
         data.putString("id", EntityType.getKey(type).toString());
         Entity ent = EntityType.loadEntityRecursive(data, level, Function.identity());
+        if (ent == null) {
+            Gateways.logSpawnDebug(gate, this, "Entity deserialization returned null");
+            return null;
+        }
+
         if (ent instanceof LivingEntity living) {
             this.modifiers.forEach(m -> m.apply(living, gate));
             return living;
         }
+
+        Gateways.logSpawnDebug(gate, this, "Deserialized entity is not a LivingEntity");
         return null;
     }
 
