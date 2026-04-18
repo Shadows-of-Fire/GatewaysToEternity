@@ -1,6 +1,7 @@
 package dev.shadowsoffire.gateways.gate;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -13,7 +14,6 @@ import dev.shadowsoffire.gateways.item.GatePearlItem;
 import dev.shadowsoffire.placebo.codec.CodecProvider;
 import dev.shadowsoffire.placebo.codec.PlaceboCodecs;
 import dev.shadowsoffire.placebo.color.GradientColor;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.TextColor;
@@ -76,7 +76,7 @@ public interface Gateway extends CodecProvider<Gateway> {
      * @param tooltips The current list of tooltips.
      * @param flag     The tooltip flag used to collect tooltips.
      */
-    void appendPearlTooltip(TooltipContext ctx, List<Component> tooltips, TooltipFlag flag);
+    void appendPearlTooltip(TooltipContext ctx, Consumer<Component> tooltips, TooltipFlag flag);
 
     /**
      * Renders the boss bar and other relevant text information on a {@link GatewayEntity}.

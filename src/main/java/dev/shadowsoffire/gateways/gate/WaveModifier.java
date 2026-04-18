@@ -3,6 +3,7 @@ package dev.shadowsoffire.gateways.gate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -26,8 +27,8 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -37,7 +38,6 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 import net.minecraft.world.entity.monster.Creeper;
 import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.alchemy.PotionContents;
-import net.minecraft.world.level.storage.loot.BuiltInLootTables;
 import net.minecraft.world.level.storage.loot.LootTable;
 
 public interface WaveModifier extends CodecProvider<WaveModifier> {
@@ -179,7 +179,7 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
             list.accept(Component.translatable("modifier.gateways.gear_set", Component.translatable(this.set.getId().toLanguageKey("gear_set"))));
         }
 
-        public static GearSetModifier create(ResourceLocation set) {
+        public static GearSetModifier create(Identifier set) {
             return new GearSetModifier(GearSetRegistry.INSTANCE.holder(set));
         }
 
@@ -200,7 +200,7 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
         @Override
         public void apply(LivingEntity entity, GatewayEntity gate) {
             if (entity instanceof Mob mob) {
-                mob.lootTable = this.table;
+                mob.lootTable = Optional.of(this.table);
             }
         }
 
@@ -212,7 +212,7 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
         }
 
         public static LootTableModifier createEmpty() {
-            return create(BuiltInLootTables.EMPTY);
+            return create(ResourceKey.create(Registries.LOOT_TABLE, Identifier.withDefaultNamespace("empty")));
         }
     }
 }

@@ -3,6 +3,7 @@ package dev.shadowsoffire.gateways.gate.endless;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 import com.mojang.serialization.Codec;
@@ -58,7 +59,7 @@ public record EndlessGateway(Size size, TextColor color, Wave baseWave, List<End
     }
 
     @Override
-    public void appendPearlTooltip(TooltipContext ctx, List<Component> tooltips, TooltipFlag flag) {
+    public void appendPearlTooltip(TooltipContext ctx, Consumer<Component> tooltips, TooltipFlag flag) {
         EndlessGateClient.appendPearlTooltip(this, ctx, tooltips, flag);
     }
 

@@ -1,0 +1,24 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "group": "gateways",
+    "key": {
+        "B": "#c:bones",
+        "D": "#c:dusts/glowstone",
+        "E": "minecraft:ender_eye",
+        "G": "#c:gunpowders",
+        "R": "minecraft:rotten_flesh",
+        "S": "minecraft:spider_eye"
+    },
+    "pattern": [
+        "DSD",
+        "GEG",
+        "BRB"
+    ],
+    "result": {
+        "components": {
+            "gateways:gateway": "gateways:overworldian_nights"
+        },
+        "id": "gateways:gate_pearl"
+    }
+}

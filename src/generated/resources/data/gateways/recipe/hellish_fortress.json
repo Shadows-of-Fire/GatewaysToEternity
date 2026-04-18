@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "group": "gateways",
+    "key": {
+        "E": "minecraft:ender_eye",
+        "O": "#c:rods/blaze",
+        "R": "minecraft:rotten_flesh",
+        "S": "#c:storage_blocks/gold",
+        "W": "minecraft:wither_skeleton_skull"
+    },
+    "pattern": [
+        "RWR",
+        "SES",
+        "OOO"
+    ],
+    "result": {
+        "components": {
+            "gateways:gateway": "gateways:hellish_fortress"
+        },
+        "id": "gateways:gate_pearl"
+    }
+}

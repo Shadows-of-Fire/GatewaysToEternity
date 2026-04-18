@@ -9,7 +9,7 @@ import com.mojang.serialization.Codec;
 import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Pose;
@@ -36,20 +36,20 @@ public class SpawnAlgorithms {
     }
 
     /**
-     * This reference must be a static final field so that the same object can be provided to {@link #register(ResourceLocation, SpawnAlgorithm)}
+     * This reference must be a static final field so that the same object can be provided to {@link #register(Identifier, SpawnAlgorithm)}
      * and also passed as the default value in the gateway codecs. Attempting to use the raw method reference in both places will fail the lookup.
      */
     public static final SpawnAlgorithm OPEN_FIELD = SpawnAlgorithms::openField;
     public static final SpawnAlgorithm INWARD_SPIRAL = SpawnAlgorithms::inwardSpiral;
 
-    private static final BiMap<ResourceLocation, SpawnAlgorithm> NAMED_ALGORITHMS = HashBiMap.create();
+    private static final BiMap<Identifier, SpawnAlgorithm> NAMED_ALGORITHMS = HashBiMap.create();
 
     static {
         register(Gateways.loc("open_field"), OPEN_FIELD);
         register(Gateways.loc("inward_spiral"), INWARD_SPIRAL);
     }
 
-    public static final Codec<SpawnAlgorithm> CODEC = ResourceLocation.CODEC.xmap(NAMED_ALGORITHMS::get, NAMED_ALGORITHMS.inverse()::get);
+    public static final Codec<SpawnAlgorithm> CODEC = Identifier.CODEC.xmap(NAMED_ALGORITHMS::get, NAMED_ALGORITHMS.inverse()::get);
     public static final int MAX_SPAWN_TRIES = 15;
 
     /**
@@ -62,12 +62,12 @@ public class SpawnAlgorithms {
 
         for (int i = 0; i < MAX_SPAWN_TRIES; i++) {
             // Select a position
-            double x = pos.x() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
-            double y = pos.y() + level.random.nextInt(3 * (int) gate.getGateway().size().getScale()) + 1;
-            double z = pos.z() + (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
+            double x = pos.x() + (level.getRandom().nextDouble() - level.getRandom().nextDouble()) * spawnRange + 0.5D;
+            double y = pos.y() + level.getRandom().nextInt(3 * (int) gate.getGateway().size().getScale()) + 1;
+            double z = pos.z() + (level.getRandom().nextDouble() - level.getRandom().nextDouble()) * spawnRange + 0.5D;
 
             // Find the floor
-            while (level.getBlockState(BlockPos.containing(x, y - 1, z)).isAir() && y > level.getMinBuildHeight()) {
+            while (level.getBlockState(BlockPos.containing(x, y - 1, z)).isAir() && y > level.getMinY()) {
                 y--;
             }
 
@@ -98,12 +98,12 @@ public class SpawnAlgorithms {
         for (int i = 0; i < MAX_SPAWN_TRIES; i++) {
             // Select a position, getting closer to the center of the gateway as failure count increases.
             float scaleFactor = (MAX_SPAWN_TRIES - 1 - i) / (float) MAX_SPAWN_TRIES;
-            double x = pos.x() + scaleFactor * (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
-            double y = pos.y() + scaleFactor * level.random.nextInt(3 * (int) gate.getGateway().size().getScale()) + 1;
-            double z = pos.z() + scaleFactor * (level.random.nextDouble() - level.random.nextDouble()) * spawnRange + 0.5D;
+            double x = pos.x() + scaleFactor * (level.getRandom().nextDouble() - level.getRandom().nextDouble()) * spawnRange + 0.5D;
+            double y = pos.y() + scaleFactor * level.getRandom().nextInt(3 * (int) gate.getGateway().size().getScale()) + 1;
+            double z = pos.z() + scaleFactor * (level.getRandom().nextDouble() - level.getRandom().nextDouble()) * spawnRange + 0.5D;
 
             // Find the floor
-            while (level.getBlockState(BlockPos.containing(x, y - 1, z)).isAir() && y > level.getMinBuildHeight()) {
+            while (level.getBlockState(BlockPos.containing(x, y - 1, z)).isAir() && y > level.getMinY()) {
                 y--;
             }
 
@@ -125,7 +125,7 @@ public class SpawnAlgorithms {
         return e.getDimensions(Pose.STANDING).makeBoundingBox(x, y, z);
     }
 
-    public static void register(ResourceLocation key, SpawnAlgorithm algo) {
+    public static void register(Identifier key, SpawnAlgorithm algo) {
         if (NAMED_ALGORITHMS.containsKey(key)) throw new UnsupportedOperationException("Attempted to register a spawn algorithm with duplicate key: " + key);
         if (NAMED_ALGORITHMS.containsValue(algo)) throw new UnsupportedOperationException("Attempted to register the spawn algorithm " + key + " twice.");
         NAMED_ALGORITHMS.put(key, algo);

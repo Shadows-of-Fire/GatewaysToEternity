@@ -1,0 +1,49 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "group": "gateways",
+    "key": {
+        "B": "minecraft:brown_mushroom",
+        "D": "#c:dusts/redstone",
+        "E": "#c:ender_pearls",
+        "O": {
+            "neoforge:ingredient_type": "neoforge:components",
+            "components": {
+                "minecraft:potion_contents": {
+                    "potion": "minecraft:water"
+                }
+            },
+            "items": "minecraft:potion"
+        },
+        "P": {
+            "neoforge:ingredient_type": "neoforge:components",
+            "components": {
+                "minecraft:potion_contents": {
+                    "potion": "minecraft:water"
+                }
+            },
+            "items": "minecraft:potion"
+        },
+        "R": "minecraft:red_mushroom",
+        "T": {
+            "neoforge:ingredient_type": "neoforge:components",
+            "components": {
+                "minecraft:potion_contents": {
+                    "potion": "minecraft:water"
+                }
+            },
+            "items": "minecraft:potion"
+        }
+    },
+    "pattern": [
+        "DDD",
+        "REB",
+        "POT"
+    ],
+    "result": {
+        "components": {
+            "gateways:gateway": "gateways:basic/slime"
+        },
+        "id": "gateways:gate_pearl"
+    }
+}

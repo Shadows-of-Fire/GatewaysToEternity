@@ -1,3 +1,8 @@
-// 1.21.1	2025-08-23T00:00:32.0409581	Gateways
-a7643ff5cfc8f35c7df5ab33ccfbc85f18483ea2 data/gateways/gateways/basic/blaze.json
-cdec0c36c196407ce10db905d79bf8c2d2a68ffc data/gateways/gateways/endless/blaze.json
+// 26.1.2	2026-04-17T00:52:55.091910961	Gateways
+dcd8e91598c33383e2a044e27fc38342e9a5a09e data/gateways/gateways/basic/blaze.json
+f453e3cfdb3f2c1dde39ee4cc627a1446e448bd7 data/gateways/gateways/basic/enderman.json
+ffa976ea3a1c00c987d087beb6780e55d673b97c data/gateways/gateways/basic/slime.json
+8f0e3da5e372b1d9dbbf2eee21de838e924e40cd data/gateways/gateways/emerald_grove.json
+770eba6fb206d2c9392fed2bb429d0c3ce6951bc data/gateways/gateways/endless/blaze.json
+bb6b744669ce3f6906d9e7c627f418a7d34a8cd8 data/gateways/gateways/hellish_fortress.json
+c9cda386a24909468643d577f8cae6e74f753030 data/gateways/gateways/overworldian_nights.json

@@ -2,21 +2,20 @@ package dev.shadowsoffire.gateways.client;
 
 import javax.annotation.Nullable;
 
-import com.mojang.blaze3d.vertex.PoseStack;
+import org.joml.Matrix3x2fStack;
+
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 
 import dev.shadowsoffire.gateways.GatewayObjects;
 import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
-import dev.shadowsoffire.gateways.gate.Gateway;
-import dev.shadowsoffire.gateways.item.GatePearlItem;
-import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.BossEvent;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
@@ -27,40 +26,34 @@ import net.neoforged.neoforge.client.event.CustomizeGuiOverlayEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent.RegisterRenderers;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
+import net.neoforged.neoforge.client.event.RegisterSelectItemModelPropertyEvent;
 import net.neoforged.neoforge.client.event.RenderFrameEvent;
 import net.neoforged.neoforge.common.NeoForge;
 
 @EventBusSubscriber(value = Dist.CLIENT, modid = Gateways.MODID)
 public class GatewaysClient {
 
-    public static final ResourceLocation WHITE_PROGRESS = ResourceLocation.withDefaultNamespace("boss_bar/white_progress");
-    public static final ResourceLocation WHITE_BACKGROUND = ResourceLocation.withDefaultNamespace("boss_bar/white_background");
+    public static final Identifier WHITE_PROGRESS = Identifier.withDefaultNamespace("boss_bar/white_progress");
+    public static final Identifier WHITE_BACKGROUND = Identifier.withDefaultNamespace("boss_bar/white_background");
+    public static final RenderPipeline BLIT_PIPELINE = RenderPipelines.GUI_TEXTURED;
 
     @Nullable
     public static Rect2i bossBarRect = null;
 
     @SubscribeEvent
     public static void setup(FMLClientSetupEvent e) {
-        e.enqueueWork(() -> {
-            ItemProperties.register(GatewayObjects.GATE_PEARL.value(), Gateways.loc("size"), (stack, level, entity, seed) -> {
-                DynamicHolder<Gateway> gate = GatePearlItem.getGate(stack);
-                if (gate.isBound()) return gate.get().size().ordinal();
-                return 2;
-            });
-        });
         NeoForge.EVENT_BUS.addListener(GatewaysClient::bossRenderPre);
         NeoForge.EVENT_BUS.addListener(GatewaysClient::renderPre);
     }
 
     @SubscribeEvent
-    public static void colors(RegisterColorHandlersEvent.Item e) {
-        e.register((stack, tint) -> {
-            DynamicHolder<Gateway> gate = GatePearlItem.getGate(stack);
-            if (gate.isBound()) {
-                return 0xFF000000 | gate.get().color().getValue();
-            }
-            return 0xFFAAAAFF;
-        }, GatewayObjects.GATE_PEARL.value());
+    public static void registerTintSources(RegisterColorHandlersEvent.ItemTintSources e) {
+        e.register(Gateways.loc("gateway_color"), GatewayColorTintSource.MAP_CODEC);
+    }
+
+    @SubscribeEvent
+    public static void registerSelectProperties(RegisterSelectItemModelPropertyEvent e) {
+        e.register(Gateways.loc("size"), GatewaySizeProperty.TYPE);
     }
 
     @SubscribeEvent
@@ -71,7 +64,7 @@ public class GatewaysClient {
 
     @SubscribeEvent
     public static void factories(RegisterParticleProvidersEvent e) {
-        e.registerSprite(GatewayObjects.GLOW.get(), GatewayParticle::new);
+        e.registerSpriteSet(GatewayObjects.GLOW.get(), GatewayParticle.Provider::new);
     }
 
     public static void renderPre(RenderFrameEvent.Pre event) {
@@ -92,21 +85,18 @@ public class GatewaysClient {
         bossBarRect = new Rect2i(event.getX(), 0, 200, event.getY() + event.getIncrement());
     }
 
-    /**
-     * When rendering the string in-world, the rotation causes the drop shadow to be rendered behind the original text.
-     */
-    public static void drawReversedDropShadow(GuiGraphics gfx, Font font, Component comp, int x, int y) {
-        gfx.drawString(font, comp, x, y, 0, false);
-        PoseStack pose = gfx.pose();
-        pose.pushPose();
-        pose.translate(1, 1, 0.03);
+    public static void drawReversedDropShadow(GuiGraphicsExtractor gfx, Font font, Component comp, int x, int y) {
+        gfx.text(font, comp, x, y, 0xFF000000, false);
+        Matrix3x2fStack pose = gfx.pose();
+        pose.pushMatrix();
+        pose.translate(1, 1);
         int color = comp.getStyle().getColor().getValue();
         int r = ((color >> 16) & 0xFF) / 4;
         int g = ((color >> 8) & 0xFF) / 4;
         int b = ((color) & 0xFF) / 4;
         color = 0xFF << 24 | r << 16 | g << 8 | b;
-        gfx.drawString(font, comp.getString(), x, y, color, false);
-        pose.popPose();
+        gfx.text(font, comp.getString(), x, y, color, false);
+        pose.popMatrix();
     }
 
 }

@@ -1,46 +1,18 @@
 package dev.shadowsoffire.gateways.client;
 
-import com.mojang.blaze3d.platform.GlStateManager.DestFactor;
-import com.mojang.blaze3d.platform.GlStateManager.SourceFactor;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
-
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.particle.TextureSheetParticle;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.client.renderer.texture.TextureManager;
+import net.minecraft.client.particle.ParticleProvider;
+import net.minecraft.client.particle.SingleQuadParticle;
+import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.util.LightCoordsUtil;
 import net.minecraft.util.Mth;
+import net.minecraft.util.RandomSource;
 
-@SuppressWarnings("deprecation")
-public class GatewayParticle extends TextureSheetParticle {
+public class GatewayParticle extends SingleQuadParticle {
 
-    static final ParticleRenderType RENDER_TYPE = new ParticleRenderType(){
-        @Override
-        public BufferBuilder begin(Tesselator tess, TextureManager manager) {
-            RenderSystem.depthMask(false);
-            RenderSystem.disableDepthTest();
-            RenderSystem.enableBlend();
-            RenderSystem.disableCull();
-            RenderSystem.blendFuncSeparate(SourceFactor.SRC_ALPHA, DestFactor.ONE, SourceFactor.ONE, DestFactor.ZERO);
-            RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
-            Minecraft.getInstance().gameRenderer.lightTexture().turnOnLightLayer();
-            return tess.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.PARTICLE);
-        }
-
-        @Override
-        public String toString() {
-            return "GatewayParticleType";
-        }
-    };
-
-    public GatewayParticle(GatewayParticleData data, ClientLevel level, double x, double y, double z, double velX, double velY, double velZ) {
-        super(level, x, y, z, velX, velY, velZ);
+    public GatewayParticle(GatewayParticleData data, ClientLevel level, double x, double y, double z, double velX, double velY, double velZ, TextureAtlasSprite sprite) {
+        super(level, x, y, z, sprite);
         this.rCol = data.red();
         this.gCol = data.green();
         this.bCol = data.blue();
@@ -53,13 +25,13 @@ public class GatewayParticle extends TextureSheetParticle {
     }
 
     @Override
-    protected int getLightColor(float partialTicks) {
-        return LightTexture.pack(15, 15);
+    protected int getLightCoords(float partialTicks) {
+        return LightCoordsUtil.pack(15, 15);
     }
 
     @Override
-    public ParticleRenderType getRenderType() {
-        return RENDER_TYPE;
+    protected Layer getLayer() {
+        return Layer.TRANSLUCENT;
     }
 
     @Override
@@ -73,4 +45,16 @@ public class GatewayParticle extends TextureSheetParticle {
         this.alpha = 1 - (float) this.age / this.lifetime;
     }
 
+    public static class Provider implements ParticleProvider<GatewayParticleData> {
+        private final SpriteSet sprites;
+
+        public Provider(SpriteSet sprites) {
+            this.sprites = sprites;
+        }
+
+        @Override
+        public GatewayParticle createParticle(GatewayParticleData data, ClientLevel level, double x, double y, double z, double xd, double yd, double zd, RandomSource random) {
+            return new GatewayParticle(data, level, x, y, z, xd, yd, zd, this.sprites.get(random));
+        }
+    }
 }

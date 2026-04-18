@@ -176,7 +176,7 @@ public interface Failure extends CodecProvider<Failure> {
 
         @Override
         public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
-            if (level.random.nextFloat() < this.chance) this.failure.onFailure(level, gate, summoner, reason);
+            if (level.getRandom().nextFloat() < this.chance) this.failure.onFailure(level, gate, summoner, reason);
         }
 
         @Override
@@ -207,8 +207,8 @@ public interface Failure extends CodecProvider<Failure> {
 
         @Override
         public void onFailure(ServerLevel level, GatewayEntity gate, Player summoner, FailureReason reason) {
-            String realCmd = this.command.replace("<summoner>", summoner.getGameProfile().getName());
-            level.getServer().getCommands().performPrefixedCommand(gate.createCommandSourceStack(), realCmd);
+            String realCmd = this.command.replace("<summoner>", summoner.getGameProfile().name());
+            level.getServer().getCommands().performPrefixedCommand(gate.createCommandSourceStackForNameResolution((ServerLevel) gate.level()), realCmd);
         }
 
         @Override

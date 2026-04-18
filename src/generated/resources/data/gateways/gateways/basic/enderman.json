@@ -1,0 +1,271 @@
+{
+    "type": "gateways:normal",
+    "size": "small",
+    "color": "#662266",
+    "waves": [
+        {
+            "max_wave_time": 800,
+            "setup_time": 100,
+            "entities": [
+                {
+                    "type": "gateways:standard",
+                    "count": 3,
+                    "entity": "minecraft:enderman"
+                }
+            ],
+            "modifiers": [
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:movement_speed",
+                    "operation": "add_multiplied_total",
+                    "value": -0.2
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:enderman",
+                    "rolls": 15
+                }
+            ]
+        },
+        {
+            "max_wave_time": 1200,
+            "setup_time": 150,
+            "entities": [
+                {
+                    "type": "gateways:standard",
+                    "count": 3,
+                    "entity": "minecraft:enderman"
+                }
+            ],
+            "modifiers": [
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:max_health",
+                    "operation": "add_multiplied_total",
+                    "value": 0.15
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:armor",
+                    "operation": "add_value",
+                    "value": 2.0
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:attack_damage",
+                    "operation": "add_multiplied_total",
+                    "value": 0.15
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:knockback_resistance",
+                    "operation": "add_value",
+                    "value": 0.05
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:movement_speed",
+                    "operation": "add_multiplied_total",
+                    "value": -0.2
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:enderman",
+                    "rolls": 25
+                }
+            ]
+        },
+        {
+            "max_wave_time": 1400,
+            "setup_time": 200,
+            "entities": [
+                {
+                    "type": "gateways:standard",
+                    "count": 4,
+                    "entity": "minecraft:enderman"
+                }
+            ],
+            "modifiers": [
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:max_health",
+                    "operation": "add_multiplied_total",
+                    "value": 0.2
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:armor",
+                    "operation": "add_value",
+                    "value": 3.0
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:attack_damage",
+                    "operation": "add_multiplied_total",
+                    "value": 0.2
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:knockback_resistance",
+                    "operation": "add_value",
+                    "value": 0.15
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:movement_speed",
+                    "operation": "add_multiplied_total",
+                    "value": -0.2
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:enderman",
+                    "rolls": 35
+                }
+            ]
+        },
+        {
+            "max_wave_time": 1600,
+            "setup_time": 280,
+            "entities": [
+                {
+                    "type": "gateways:standard",
+                    "count": 4,
+                    "entity": "minecraft:enderman"
+                }
+            ],
+            "modifiers": [
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:max_health",
+                    "operation": "add_multiplied_total",
+                    "value": 0.25
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:armor",
+                    "operation": "add_value",
+                    "value": 5.0
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:attack_damage",
+                    "operation": "add_multiplied_total",
+                    "value": 0.3
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:knockback_resistance",
+                    "operation": "add_value",
+                    "value": 0.15
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:movement_speed",
+                    "operation": "add_multiplied_total",
+                    "value": -0.2
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:enderman",
+                    "rolls": 45
+                }
+            ]
+        },
+        {
+            "max_wave_time": 2000,
+            "setup_time": 340,
+            "entities": [
+                {
+                    "type": "gateways:standard",
+                    "desc": "name.gateways.flaming_enderman",
+                    "entity": "minecraft:enderman",
+                    "finalize_spawn": false,
+                    "nbt": {
+                        "CustomName": "{\"translate\":\"name.gateways.flaming_enderman\",\"color\":\"red\"}",
+                        "CustomNameVisible": 1,
+                        "Fire": 32767
+                    },
+                    "modifiers": [
+                        {
+                            "type": "gateways:mob_effect",
+                            "effect": {
+                                "effect": "minecraft:fire_resistance"
+                            }
+                        },
+                        {
+                            "type": "gateways:attribute",
+                            "attribute": "apothic_attributes:fire_damage",
+                            "operation": "add_value",
+                            "value": 4.0
+                        },
+                        {
+                            "type": "gateways:attribute",
+                            "attribute": "minecraft:max_health",
+                            "operation": "add_value",
+                            "value": 8.0
+                        }
+                    ]
+                },
+                {
+                    "type": "gateways:standard",
+                    "count": 3,
+                    "entity": "minecraft:enderman"
+                }
+            ],
+            "modifiers": [
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:max_health",
+                    "operation": "add_multiplied_total",
+                    "value": 0.35
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:armor",
+                    "operation": "add_value",
+                    "value": 5.0
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:attack_damage",
+                    "operation": "add_multiplied_total",
+                    "value": 0.5
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:knockback_resistance",
+                    "operation": "add_value",
+                    "value": 0.2
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:movement_speed",
+                    "operation": "add_multiplied_total",
+                    "value": -0.2
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "gateways:experience",
+                    "experience": 500,
+                    "orb_size": 25
+                }
+            ]
+        }
+    ],
+    "rewards": [
+        {
+            "type": "gateways:entity_loot",
+            "entity": "minecraft:enderman",
+            "rolls": 100
+        }
+    ]
+}

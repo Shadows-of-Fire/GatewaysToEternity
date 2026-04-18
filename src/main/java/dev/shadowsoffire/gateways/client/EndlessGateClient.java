@@ -1,9 +1,9 @@
 package dev.shadowsoffire.gateways.client;
 
 import java.util.List;
+import java.util.function.Consumer;
 
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.PoseStack;
+import org.joml.Matrix3x2fStack;
 
 import dev.shadowsoffire.apothic_attributes.api.AttributeHelper;
 import dev.shadowsoffire.gateways.entity.EndlessGatewayEntity;
@@ -20,8 +20,7 @@ import dev.shadowsoffire.placebo.PlaceboClient;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
@@ -36,88 +35,88 @@ import net.minecraft.world.item.TooltipFlag;
  */
 public class EndlessGateClient {
 
-    public static void appendPearlTooltip(EndlessGateway gate, TooltipContext ctx, List<Component> tooltips, TooltipFlag flag) {
+    public static void appendPearlTooltip(EndlessGateway gate, TooltipContext ctx, Consumer<Component> tooltips, TooltipFlag flag) {
         MutableComponent comp;
 
         Wave wave = gate.baseWave();
         comp = Component.translatable("tooltip.gateways.endless.base_wave").withStyle(ChatFormatting.GRAY);
-        tooltips.add(comp);
+        tooltips.accept(comp);
 
         comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.entities").withStyle(Style.EMPTY.withColor(0x87CEEB)));
-        tooltips.add(comp);
+        tooltips.accept(comp);
 
         for (WaveEntity entity : wave.entities()) {
             comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", entity.getDescription()).withStyle(Style.EMPTY.withColor(0x87CEEB)));
-            tooltips.add(comp);
+            tooltips.accept(comp);
         }
 
         if (!wave.modifiers().isEmpty()) {
             comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.modifiers").withStyle(ChatFormatting.RED));
-            tooltips.add(comp);
+            tooltips.accept(comp);
             for (WaveModifier modif : wave.modifiers()) {
                 modif.appendHoverText(ctx, c -> {
-                    tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c.withStyle(ChatFormatting.RED)).withStyle(ChatFormatting.RED)));
+                    tooltips.accept(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c.withStyle(ChatFormatting.RED)).withStyle(ChatFormatting.RED)));
                 });
             }
         }
 
         comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.rewards").withStyle(ChatFormatting.GOLD));
-        tooltips.add(comp);
+        tooltips.accept(comp);
         for (Reward r : wave.rewards()) {
             r.appendHoverText(ctx, c -> {
-                tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c).withStyle(ChatFormatting.GOLD)));
+                tooltips.accept(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c).withStyle(ChatFormatting.GOLD)));
             });
         }
 
         int modifIdx = PlaceboClient.getTooltipScrollIndex(gate.modifiers().size());
         EndlessModifier modif = gate.modifiers().get(modifIdx);
 
-        if (Screen.hasShiftDown()) {
+        if (Minecraft.getInstance().hasShiftDown()) {
             comp = Component.translatable("tooltip.gateways.endless.modifier", modifIdx + 1, gate.modifiers().size()).withStyle(ChatFormatting.LIGHT_PURPLE);
             comp.append(CommonComponents.SPACE);
             comp.append(Component.translatable("tooltip.gateways.scroll").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_GRAY).withUnderlined(false)));
-            tooltips.add(comp);
+            tooltips.accept(comp);
 
             comp = AttributeHelper.list().append(modif.appMode().getDescription().withStyle(ChatFormatting.LIGHT_PURPLE));
-            tooltips.add(comp);
+            tooltips.accept(comp);
 
             if (modif.waveTime() != 0) {
                 String value = modif.waveTime() > 0 ? "+" + modif.waveTime() : String.valueOf(modif.waveTime());
                 comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.endless.wave_time", value).withStyle(ChatFormatting.LIGHT_PURPLE));
-                tooltips.add(comp);
+                tooltips.accept(comp);
             }
 
             if (modif.setupTime() != 0) {
                 String value = modif.setupTime() > 0 ? "+" + modif.setupTime() : String.valueOf(modif.setupTime());
                 comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.endless.setup_time", value).withStyle(ChatFormatting.LIGHT_PURPLE));
-                tooltips.add(comp);
+                tooltips.accept(comp);
             }
 
             if (!modif.entities().isEmpty()) {
                 comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.entities").withStyle(Style.EMPTY.withColor(0x87CEEB)));
-                tooltips.add(comp);
+                tooltips.accept(comp);
                 for (WaveEntity entity : modif.entities()) {
                     comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", entity.getDescription()).withStyle(Style.EMPTY.withColor(0x87CEEB)));
-                    tooltips.add(comp);
+                    tooltips.accept(comp);
                 }
             }
 
             if (!modif.modifiers().isEmpty()) {
                 comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.modifiers").withStyle(ChatFormatting.RED));
-                tooltips.add(comp);
+                tooltips.accept(comp);
                 for (WaveModifier waveModif : modif.modifiers()) {
                     waveModif.appendHoverText(ctx, c -> {
-                        tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c.withStyle(ChatFormatting.RED)).withStyle(ChatFormatting.RED)));
+                        tooltips.accept(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c.withStyle(ChatFormatting.RED)).withStyle(ChatFormatting.RED)));
                     });
                 }
             }
 
             if (!modif.rewards().isEmpty()) {
                 comp = AttributeHelper.list().append(Component.translatable("tooltip.gateways.rewards").withStyle(ChatFormatting.GOLD));
-                tooltips.add(comp);
+                tooltips.accept(comp);
                 for (Reward r : modif.rewards()) {
                     r.appendHoverText(ctx, c -> {
-                        tooltips.add(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c).withStyle(ChatFormatting.GOLD)));
+                        tooltips.accept(AttributeHelper.list().append(Component.translatable("tooltip.gateways.dot", c).withStyle(ChatFormatting.GOLD)));
                     });
                 }
             }
@@ -126,17 +125,17 @@ public class EndlessGateClient {
             comp = Component.translatable("tooltip.gateways.endless.num_modif" + (gate.modifiers().size() == 1 ? "" : "s"), gate.modifiers().size()).withStyle(ChatFormatting.LIGHT_PURPLE);
             comp.append(CommonComponents.SPACE);
             comp.append(Component.translatable("tooltip.gateways.shift").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_GRAY)));
-            tooltips.add(comp);
+            tooltips.accept(comp);
         }
 
         List<Failure> failures = gate.failures();
         if (!failures.isEmpty()) {
-            if (Screen.hasControlDown()) {
+            if (Minecraft.getInstance().hasControlDown()) {
                 comp = Component.translatable("tooltip.gateways.failures").withStyle(Style.EMPTY.withColor(ChatFormatting.RED));
-                tooltips.add(comp);
+                tooltips.accept(comp);
                 for (Failure f : failures) {
                     f.appendHoverText(ctx, c -> {
-                        tooltips.add(AttributeHelper.list().append(c.withStyle(Style.EMPTY.withColor(ChatFormatting.RED))));
+                        tooltips.accept(AttributeHelper.list().append(c.withStyle(Style.EMPTY.withColor(ChatFormatting.RED))));
                     });
                 }
             }
@@ -144,35 +143,34 @@ public class EndlessGateClient {
                 comp = Component.translatable("tooltip.gateways.num_failure" + (failures.size() == 1 ? "" : "s"), failures.size()).withStyle(Style.EMPTY.withColor(ChatFormatting.RED));
                 comp.append(CommonComponents.SPACE);
                 comp.append(Component.translatable("tooltip.gateways.ctrl").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_GRAY)));
-                tooltips.add(comp);
+                tooltips.accept(comp);
             }
         }
 
         List<MutableComponent> deviations = gate.rules().buildDeviations();
         if (!deviations.isEmpty()) {
-            if (Screen.hasAltDown()) {
+            if (Minecraft.getInstance().hasAltDown()) {
                 comp = Component.translatable("tooltip.gateways.rules", deviations.size()).withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_GREEN));
-                tooltips.add(comp);
+                tooltips.accept(comp);
                 deviations.forEach(c -> {
-                    tooltips.add(AttributeHelper.list().append(c.withStyle(ChatFormatting.DARK_GREEN)));
+                    tooltips.accept(AttributeHelper.list().append(c.withStyle(ChatFormatting.DARK_GREEN)));
                 });
             }
             else {
                 comp = Component.translatable("tooltip.gateways.num_rule" + (deviations.size() == 1 ? "" : "s"), deviations.size()).withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_GREEN));
                 comp.append(CommonComponents.SPACE);
                 comp.append(Component.translatable("tooltip.gateways.alt").withStyle(Style.EMPTY.withColor(ChatFormatting.DARK_GRAY)));
-                tooltips.add(comp);
+                tooltips.accept(comp);
             }
         }
     }
 
     public static void renderBossBar(GatewayEntity gateEntity, Object guiGfx, int x, int y, boolean isInWorld) {
         EndlessGatewayEntity gate = (EndlessGatewayEntity) gateEntity;
-        GuiGraphics gfx = (GuiGraphics) guiGfx;
-        PoseStack pose = gfx.pose();
+        GuiGraphicsExtractor gfx = (GuiGraphicsExtractor) guiGfx;
+        Matrix3x2fStack pose = gfx.pose();
         int color = gate.getGateway().color().getValue();
-        int r = color >> 16 & 255, g = color >> 8 & 255, b = color & 255;
-        RenderSystem.setShaderColor(r / 255F, g / 255F, b / 255F, 1.0F);
+        int tintColor = 0xFF000000 | color;
 
         int wave = gate.getWave() + 1;
         int enemies = gate.getActiveEnemies();
@@ -184,11 +182,10 @@ public class EndlessGateClient {
         int yBar2 = yBar1 + 10 + lineHeight;
         int textY = y - lineHeight;
 
-        pose.pushPose();
-        pose.translate(0, 0, 0.01);
-        gfx.blitSprite(GatewaysClient.WHITE_BACKGROUND, x, yBar1, 182, 5);
-        gfx.blitSprite(GatewaysClient.WHITE_BACKGROUND, x, yBar2, 182, 5);
-        pose.popPose();
+        pose.pushMatrix();
+        gfx.blitSprite(GatewaysClient.BLIT_PIPELINE, GatewaysClient.WHITE_BACKGROUND, x, yBar1, 182, 5, tintColor);
+        gfx.blitSprite(GatewaysClient.BLIT_PIPELINE, GatewaysClient.WHITE_BACKGROUND, x, yBar2, 182, 5, tintColor);
+        pose.popMatrix();
 
         int barWidth = 183;
 
@@ -196,24 +193,23 @@ public class EndlessGateClient {
         if (gate.isWaveActive()) {
             barWidth = (int) (183.0F * enemies / maxEnemies);
             if (barWidth > 0) {
-                gfx.blitSprite(GatewaysClient.WHITE_PROGRESS, 182, 5, 0, 0, x, yBar1, barWidth, 5);
+                gfx.blitSprite(GatewaysClient.BLIT_PIPELINE, GatewaysClient.WHITE_PROGRESS, 182, 5, 0, 0, x, yBar1, barWidth, 5, tintColor);
             }
 
             barWidth = (int) ((maxTime - gate.getTicksActive()) / maxTime * 183.0F);
             if (barWidth > 0) {
-                gfx.blitSprite(GatewaysClient.WHITE_PROGRESS, 182, 5, 0, 0, x, yBar2, barWidth, 5);
+                gfx.blitSprite(GatewaysClient.BLIT_PIPELINE, GatewaysClient.WHITE_PROGRESS, 182, 5, 0, 0, x, yBar2, barWidth, 5, tintColor);
             }
         }
         else {
             maxTime = gate.getSetupTime();
             barWidth = (int) (gate.getTicksActive() / maxTime * 183.0F);
             if (barWidth > 0) {
-                gfx.blitSprite(GatewaysClient.WHITE_PROGRESS, 182, 5, 0, 0, x, yBar1, barWidth, 5);
-                gfx.blitSprite(GatewaysClient.WHITE_PROGRESS, 182, 5, 0, 0, x, yBar2, barWidth, 5);
+                gfx.blitSprite(GatewaysClient.BLIT_PIPELINE, GatewaysClient.WHITE_PROGRESS, 182, 5, 0, 0, x, yBar1, barWidth, 5, tintColor);
+                gfx.blitSprite(GatewaysClient.BLIT_PIPELINE, GatewaysClient.WHITE_PROGRESS, 182, 5, 0, 0, x, yBar2, barWidth, 5, tintColor);
             }
         }
 
-        RenderSystem.setShaderColor(1, 1, 1, 1);
         Font font = Minecraft.getInstance().font;
 
         Component component = Component.literal(gate.getCustomName().getString()).withStyle(ChatFormatting.GOLD, ChatFormatting.UNDERLINE);
@@ -223,7 +219,7 @@ public class EndlessGateClient {
             GatewaysClient.drawReversedDropShadow(gfx, font, component, textX, textY);
         }
         else {
-            gfx.drawString(font, component, textX, textY, 16777215, true);
+            gfx.text(font, component, textX, textY, 0xFFFFFFFF, true);
         }
 
         int time = (int) maxTime - gate.getTicksActive();
@@ -242,7 +238,7 @@ public class EndlessGateClient {
             GatewaysClient.drawReversedDropShadow(gfx, font, component, textX, textY);
         }
         else {
-            gfx.drawString(font, component, textX, textY, 16777215, true);
+            gfx.text(font, component, textX, textY, 0xFFFFFFFF, true);
         }
 
         component = Component.literal(str2).withStyle(ChatFormatting.GREEN);
@@ -253,7 +249,7 @@ public class EndlessGateClient {
             GatewaysClient.drawReversedDropShadow(gfx, font, component, textX, textY);
         }
         else {
-            gfx.drawString(font, component, textX, textY, 16777215, true);
+            gfx.text(font, component, textX, textY, 0xFFFFFFFF, true);
         }
     }
 

@@ -53,7 +53,7 @@
             "modifiers": [
                 {
                     "type": "gateways:attribute",
-                    "attribute": "minecraft:generic.max_health",
+                    "attribute": "minecraft:max_health",
                     "operation": "add_multiplied_total",
                     "value": 0.15
                 }

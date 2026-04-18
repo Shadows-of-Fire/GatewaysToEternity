@@ -24,13 +24,15 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Entity.RemovalReason;
+import net.minecraft.world.entity.EntityProcessor;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
@@ -38,6 +40,7 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item.TooltipContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
@@ -52,10 +55,7 @@ public interface Reward extends CodecProvider<Reward> {
 
     public static final CodecMap<Reward> CODEC = new CodecMap<>("Gateway Reward");
 
-    /**
-     * Method ref to public net.minecraft.world.entity.LivingEntity dropFromLootTable(Lnet/minecraft/world/damagesource/DamageSource;Z)V # dropFromLootTable
-     */
-    public static final Method dropFromLootTable = ObfuscationReflectionHelper.findMethod(LivingEntity.class, "dropFromLootTable", DamageSource.class, boolean.class);
+    public static final Method dropFromLootTable = ObfuscationReflectionHelper.findMethod(LivingEntity.class, "dropFromLootTable", ServerLevel.class, DamageSource.class, boolean.class);
     public static final MethodHandle DROP_LOOT = lootMethodHandle();
 
     /**
@@ -99,31 +99,32 @@ public interface Reward extends CodecProvider<Reward> {
     /**
      * Provides a single stack as a reward.
      */
-    public static record StackReward(ItemStack stack, Optional<String> desc) implements Reward {
+    public static record StackReward(ItemStackTemplate stack, Optional<String> desc) implements Reward {
 
         public static Codec<StackReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
-                ItemStack.CODEC.fieldOf("stack").forGetter(StackReward::stack),
+                ItemStackTemplate.CODEC.fieldOf("stack").forGetter(StackReward::stack),
                 Codec.STRING.optionalFieldOf("desc").forGetter(StackReward::desc))
             .apply(inst, StackReward::new));
 
-        public StackReward(ItemStack stack) {
+        public StackReward(ItemStackTemplate stack) {
             this(stack, Optional.empty());
         }
 
-        public StackReward(ItemStack stack, String desc) {
+        public StackReward(ItemStackTemplate stack, String desc) {
             this(stack, Optional.of(desc));
         }
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
-            list.accept(this.stack.copy());
+            list.accept(this.stack.create());
         }
 
         @Override
         public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {
-            Component name = this.desc.<Component>map(Component::translatable).orElse(this.stack.getHoverName());
-            list.accept(Gateways.lang("tooltip", "with_count", this.stack.getCount(), name));
+            ItemStack resolved = this.stack.create();
+            Component name = this.desc.<Component>map(Component::translatable).orElse(resolved.getHoverName());
+            list.accept(Gateways.lang("tooltip", "with_count", resolved.getCount(), name));
         }
 
         @Override
@@ -135,22 +136,23 @@ public interface Reward extends CodecProvider<Reward> {
     /**
      * Provides a list of stacks as a reward.
      */
-    public static record StackListReward(List<ItemStack> stacks) implements Reward {
+    public static record StackListReward(List<ItemStackTemplate> stacks) implements Reward {
 
         public static Codec<StackListReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
-                ItemStack.CODEC.listOf().fieldOf("stacks").forGetter(StackListReward::stacks))
+                ItemStackTemplate.CODEC.listOf().fieldOf("stacks").forGetter(StackListReward::stacks))
             .apply(inst, StackListReward::new));
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
-            this.stacks.forEach(s -> list.accept(s.copy()));
+            this.stacks.forEach(s -> list.accept(s.create()));
         }
 
         @Override
         public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {
-            for (ItemStack stack : this.stacks) {
-                list.accept(Gateways.lang("tooltip", "with_count", stack.getCount(), stack.getHoverName()));
+            for (ItemStackTemplate stack : this.stacks) {
+                ItemStack resolved = stack.create();
+                list.accept(Gateways.lang("tooltip", "with_count", resolved.getCount(), resolved.getHoverName()));
             }
         }
 
@@ -177,15 +179,17 @@ public interface Reward extends CodecProvider<Reward> {
             try {
                 List<ItemEntity> items = new ArrayList<>();
 
-                Entity entity = this.type.create(level);
+                CompoundTag data = this.nbt != null ? this.nbt.copy() : new CompoundTag();
+                data.putString("id", BuiltInRegistries.ENTITY_TYPE.getKey(this.type).toString());
+                Entity entity = EntityType.loadEntityRecursive(data, level, EntitySpawnReason.SPAWNER, EntityProcessor.NOP);
+                if (entity == null) return;
                 entity.getPersistentData().putBoolean("apoth.no_pinata", true);
                 for (int i = 0; i < this.rolls; i++) {
-                    if (this.nbt != null) entity.load(this.nbt);
-                    entity.moveTo(summoner.getX(), summoner.getY(), summoner.getZ(), 0, 0);
-                    DamageSource src = new DamageSource(level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(DamageTypes.GENERIC_KILL), summoner);
-                    entity.hurt(src, 1);
+                    entity.snapTo(summoner.getX(), summoner.getY(), summoner.getZ(), 0, 0);
+                    DamageSource src = new DamageSource(level.registryAccess().lookupOrThrow(Registries.DAMAGE_TYPE).getOrThrow(DamageTypes.GENERIC_KILL), summoner);
+                    entity.hurtServer(level, src, 1);
                     entity.captureDrops(items);
-                    DROP_LOOT.invoke(entity, level.damageSources().playerAttack(summoner), true);
+                    DROP_LOOT.invoke(entity, level, level.damageSources().playerAttack(summoner), true);
                 }
                 entity.remove(RemovalReason.DISCARDED);
 
@@ -210,11 +214,11 @@ public interface Reward extends CodecProvider<Reward> {
     /**
      * Provides a roll of a single loot table as a reward.
      */
-    public static record LootTableReward(ResourceLocation table, int rolls, String desc) implements Reward {
+    public static record LootTableReward(Identifier table, int rolls, String desc) implements Reward {
 
         public static Codec<LootTableReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
-                ResourceLocation.CODEC.fieldOf("loot_table").forGetter(LootTableReward::table),
+                Identifier.CODEC.fieldOf("loot_table").forGetter(LootTableReward::table),
                 Codec.intRange(1, Integer.MAX_VALUE).optionalFieldOf("rolls", 1).forGetter(LootTableReward::rolls),
                 Codec.STRING.fieldOf("desc").forGetter(LootTableReward::desc))
             .apply(inst, LootTableReward::new));
@@ -240,7 +244,7 @@ public interface Reward extends CodecProvider<Reward> {
         }
 
         public static LootTableReward create(ResourceKey<LootTable> table, int rolls, String desc) {
-            return new LootTableReward(table.location(), rolls, desc);
+            return new LootTableReward(table.identifier(), rolls, desc);
         }
     }
 
@@ -259,7 +263,7 @@ public interface Reward extends CodecProvider<Reward> {
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
-            if (level.random.nextFloat() < this.chance) this.reward.generateLoot(level, gate, summoner, list);
+            if (level.getRandom().nextFloat() < this.chance) this.reward.generateLoot(level, gate, summoner, list);
         }
 
         @Override
@@ -288,8 +292,8 @@ public interface Reward extends CodecProvider<Reward> {
 
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
-            String realCmd = this.command.replace("<summoner>", summoner.getGameProfile().getName());
-            level.getServer().getCommands().performPrefixedCommand(gate.createCommandSourceStack(), realCmd);
+            String realCmd = this.command.replace("<summoner>", summoner.getGameProfile().name());
+            level.getServer().getCommands().performPrefixedCommand(gate.createCommandSourceStackForNameResolution((ServerLevel) gate.level()), realCmd);
         }
 
         @Override

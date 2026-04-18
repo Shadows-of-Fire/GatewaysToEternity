@@ -4,6 +4,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import dev.shadowsoffire.gateways.data.GatewayProvider;
+import dev.shadowsoffire.gateways.data.GatewayRecipeProvider;
+import dev.shadowsoffire.gateways.data.GearSetProvider;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.gate.Failure;
 import dev.shadowsoffire.gateways.gate.GatewayRegistry;
@@ -20,7 +22,7 @@ import dev.shadowsoffire.placebo.tabs.TabFillingRegistry;
 import net.minecraft.data.DataProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.stats.StatFormatter;
 import net.minecraft.stats.Stats;
 import net.neoforged.bus.api.IEventBus;
@@ -58,17 +60,19 @@ public class Gateways {
     }
 
     @SubscribeEvent
-    public void data(GatherDataEvent e) {
+    public void data(GatherDataEvent.Client e) {
         DataProvider.INDENT_WIDTH.set(4);
         DataGenBuilder.create(MODID)
             .provider(GatewayProvider::new)
+            .provider(GearSetProvider::new)
+            .provider(GatewayRecipeProvider::new)
             .build(e);
 
         setupDatagenFieldOrder();
     }
 
-    public static ResourceLocation loc(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MODID, path);
+    public static Identifier loc(String path) {
+        return Identifier.fromNamespaceAndPath(MODID, path);
     }
 
     /**

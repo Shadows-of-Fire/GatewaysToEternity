@@ -1,0 +1,341 @@
+{
+    "type": "gateways:normal",
+    "size": "medium",
+    "color": "#5C54A4",
+    "waves": [
+        {
+            "max_wave_time": 1000,
+            "setup_time": 100,
+            "entities": [
+                {
+                    "type": "gateways:standard",
+                    "count": 5,
+                    "entity": "minecraft:zombie"
+                },
+                {
+                    "type": "gateways:standard",
+                    "count": 3,
+                    "entity": "minecraft:skeleton"
+                },
+                {
+                    "type": "gateways:standard",
+                    "entity": "minecraft:spider"
+                },
+                {
+                    "type": "gateways:standard",
+                    "entity": "minecraft:creeper"
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:zombie",
+                    "rolls": 10
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:skeleton",
+                    "rolls": 10
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:spider",
+                    "rolls": 5
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:creeper",
+                    "rolls": 5
+                }
+            ]
+        },
+        {
+            "max_wave_time": 1000,
+            "setup_time": 400,
+            "entities": [
+                {
+                    "type": "gateways:standard",
+                    "count": 8,
+                    "entity": "minecraft:zombie"
+                },
+                {
+                    "type": "gateways:standard",
+                    "count": 5,
+                    "entity": "minecraft:skeleton"
+                },
+                {
+                    "type": "gateways:standard",
+                    "count": 3,
+                    "entity": "minecraft:spider"
+                },
+                {
+                    "type": "gateways:standard",
+                    "count": 2,
+                    "entity": "minecraft:creeper"
+                },
+                {
+                    "type": "gateways:standard",
+                    "entity": "minecraft:witch"
+                }
+            ],
+            "modifiers": [
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:max_health",
+                    "operation": "add_multiplied_total",
+                    "value": 0.1
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:movement_speed",
+                    "operation": "add_multiplied_total",
+                    "value": 0.05
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:zombie",
+                    "rolls": 15
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:skeleton",
+                    "rolls": 15
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:spider",
+                    "rolls": 10
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:creeper",
+                    "rolls": 10
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:witch",
+                    "rolls": 10
+                }
+            ]
+        },
+        {
+            "max_wave_time": 1600,
+            "setup_time": 400,
+            "entities": [
+                {
+                    "type": "gateways:standard",
+                    "count": 8,
+                    "entity": "minecraft:zombie"
+                },
+                {
+                    "type": "gateways:standard",
+                    "count": 5,
+                    "entity": "minecraft:skeleton"
+                },
+                {
+                    "type": "gateways:standard",
+                    "count": 3,
+                    "entity": "minecraft:spider"
+                },
+                {
+                    "type": "gateways:standard",
+                    "count": 2,
+                    "entity": "minecraft:creeper"
+                },
+                {
+                    "type": "gateways:standard",
+                    "entity": "minecraft:witch"
+                }
+            ],
+            "modifiers": [
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:max_health",
+                    "operation": "add_multiplied_total",
+                    "value": 0.15
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:movement_speed",
+                    "operation": "add_multiplied_total",
+                    "value": 0.05
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:attack_damage",
+                    "operation": "add_value",
+                    "value": 2.5
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "apothic_attributes:arrow_damage",
+                    "operation": "add_value",
+                    "value": 0.1
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "apothic_attributes:life_steal",
+                    "operation": "add_value",
+                    "value": 0.1
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:zombie",
+                    "rolls": 15
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:skeleton",
+                    "rolls": 15
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:spider",
+                    "rolls": 15
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:creeper",
+                    "rolls": 15
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:witch",
+                    "rolls": 25
+                }
+            ]
+        },
+        {
+            "max_wave_time": 2000,
+            "setup_time": 400,
+            "entities": [
+                {
+                    "type": "gateways:standard",
+                    "count": 5,
+                    "desc": "name.gateways.undead_legionnaire",
+                    "entity": "minecraft:zombie",
+                    "finalize_spawn": false,
+                    "nbt": {
+                        "CustomName": "{\"translate\":\"name.gateways.undead_legionnaire\",\"color\":\"red\"}",
+                        "CustomNameVisible": 1
+                    },
+                    "modifiers": [
+                        {
+                            "type": "gateways:gear_set",
+                            "gear_set": "gateways:iron_with_diamond"
+                        }
+                    ]
+                },
+                {
+                    "type": "gateways:standard",
+                    "count": 3,
+                    "entity": "minecraft:skeleton"
+                },
+                {
+                    "type": "gateways:standard",
+                    "count": 2,
+                    "entity": "minecraft:creeper"
+                },
+                {
+                    "type": "gateways:standard",
+                    "entity": "minecraft:witch"
+                }
+            ],
+            "modifiers": [
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:max_health",
+                    "operation": "add_multiplied_total",
+                    "value": 0.25
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:knockback_resistance",
+                    "operation": "add_value",
+                    "value": 0.5
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:armor",
+                    "operation": "add_value",
+                    "value": 3.0
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:attack_damage",
+                    "operation": "add_value",
+                    "value": 3.0
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "apothic_attributes:armor_pierce",
+                    "operation": "add_value",
+                    "value": 3.0
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "apothic_attributes:life_steal",
+                    "operation": "add_value",
+                    "value": 0.1
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:zombie",
+                    "rolls": 20
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:skeleton",
+                    "rolls": 20
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:spider",
+                    "rolls": 20
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:creeper",
+                    "rolls": 20
+                },
+                {
+                    "type": "gateways:entity_loot",
+                    "entity": "minecraft:witch",
+                    "rolls": 30
+                }
+            ]
+        }
+    ],
+    "rewards": [
+        {
+            "type": "gateways:loot_table",
+            "desc": "rewards.gateways.loot_table.simple_dungeon",
+            "loot_table": "minecraft:chests/simple_dungeon",
+            "rolls": 10
+        }
+    ],
+    "failures": [
+        {
+            "type": "gateways:mob_effect",
+            "duration": 400,
+            "effect": "minecraft:blindness"
+        },
+        {
+            "type": "gateways:summon",
+            "entity": {
+                "type": "gateways:standard",
+                "count": 2,
+                "entity": "minecraft:witch"
+            }
+        }
+    ],
+    "rules": {
+        "allow_discarding": true
+    }
+}

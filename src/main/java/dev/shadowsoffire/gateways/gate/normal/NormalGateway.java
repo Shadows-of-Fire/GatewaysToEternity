@@ -3,6 +3,7 @@ package dev.shadowsoffire.gateways.gate.normal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 
 import com.mojang.serialization.Codec;
@@ -59,7 +60,7 @@ public record NormalGateway(Size size, TextColor color, List<Wave> waves, List<R
     }
 
     @Override
-    public void appendPearlTooltip(TooltipContext ctx, List<Component> tooltips, TooltipFlag flag) {
+    public void appendPearlTooltip(TooltipContext ctx, Consumer<Component> tooltips, TooltipFlag flag) {
         NormalGateClient.appendPearlTooltip(this, ctx, tooltips, flag);
     }
 

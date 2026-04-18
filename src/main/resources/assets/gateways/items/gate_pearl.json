@@ -1,0 +1,53 @@
+{
+    "model": {
+        "type": "minecraft:select",
+        "property": "gateways:size",
+        "fallback": {
+            "type": "minecraft:model",
+            "model": "gateways:item/gate_pearl_large",
+            "tints": [
+                {
+                    "type": "gateways:gateway_color"
+                }
+            ]
+        },
+        "cases": [
+            {
+                "when": "small",
+                "model": {
+                    "type": "minecraft:model",
+                    "model": "gateways:item/gate_pearl",
+                    "tints": [
+                        {
+                            "type": "gateways:gateway_color"
+                        }
+                    ]
+                }
+            },
+            {
+                "when": "medium",
+                "model": {
+                    "type": "minecraft:model",
+                    "model": "gateways:item/gate_pearl_med",
+                    "tints": [
+                        {
+                            "type": "gateways:gateway_color"
+                        }
+                    ]
+                }
+            },
+            {
+                "when": "large",
+                "model": {
+                    "type": "minecraft:model",
+                    "model": "gateways:item/gate_pearl_large",
+                    "tints": [
+                        {
+                            "type": "gateways:gateway_color"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+}

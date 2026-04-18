@@ -28,25 +28,27 @@ import dev.shadowsoffire.gateways.gate.normal.NormalGateway;
 import dev.shadowsoffire.gateways.payloads.ParticlePayload;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerBossEvent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.PermissionSet;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.BossEvent.BossBarColor;
 import net.minecraft.world.BossEvent.BossBarOverlay;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.entity.LivingEntity;
@@ -56,6 +58,8 @@ import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.common.NeoForge;
@@ -151,7 +155,7 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
 
         super.tick();
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             if (!this.unresolvedWaveEntities.isEmpty()) {
                 for (UUID id : this.unresolvedWaveEntities) {
                     Entity e = ((ServerLevel) this.level()).getEntity(id);
@@ -377,7 +381,7 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
 
     protected ServerBossEvent createBossEvent() {
         if (this.getGateway().bossSettings().drawAsBar()) {
-            ServerBossEvent event = new ServerBossEvent(Component.literal("GATEWAY_ID" + this.getId()), BossBarColor.BLUE, BossBarOverlay.PROGRESS);
+            ServerBossEvent event = new ServerBossEvent(this.getUUID(), Component.literal("GATEWAY_ID" + this.getId()), BossBarColor.BLUE, BossBarOverlay.PROGRESS);
             event.setCreateWorldFog(this.getGateway().bossSettings().fog());
             return event;
         }
@@ -385,33 +389,26 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
-        tag.putInt("wave", this.getWave());
-        tag.putString("gate", this.gate.getId().toString());
-        long[] ids = new long[this.currentWaveEntities.size() * 2];
-        int idx = 0;
+    protected void addAdditionalSaveData(ValueOutput output) {
+        output.putInt("wave", this.getWave());
+        output.putString("gate", this.gate.getId().toString());
+        java.util.List<UUID> waveEntityIds = new java.util.ArrayList<>();
         for (LivingEntity e : this.currentWaveEntities) {
-            UUID id = e.getUUID();
-            ids[idx++] = id.getMostSignificantBits();
-            ids[idx++] = id.getLeastSignificantBits();
+            waveEntityIds.add(e.getUUID());
         }
-        tag.putLongArray("wave_entities", ids);
-        tag.putBoolean("active", this.isWaveActive());
-        tag.putInt("ticks_active", this.getTicksActive());
-        tag.putUUID("summoner", this.summonerId);
-        ListTag stacks = new ListTag();
-        for (ItemStack s : this.undroppedItems) {
-            stacks.add(s.save(this.registryAccess()));
-        }
-        tag.put("queued_stacks", stacks);
-        tag.putInt("lives", this.getRemainingLives());
-        tag.putInt("nearby_player_timer", this.nearbyPlayerTimer);
+        output.store("wave_entities", UUIDUtil.CODEC.listOf(), waveEntityIds);
+        output.putBoolean("active", this.isWaveActive());
+        output.putInt("ticks_active", this.getTicksActive());
+        output.store("summoner", UUIDUtil.CODEC, this.summonerId);
+        output.store("queued_stacks", ItemStack.CODEC.listOf(), new java.util.ArrayList<>(this.undroppedItems));
+        output.putInt("lives", this.getRemainingLives());
+        output.putInt("nearby_player_timer", this.nearbyPlayerTimer);
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
-        if (tag.contains("wave")) this.entityData.set(WAVE, tag.getInt("wave"));
-        if (tag.contains("gate")) this.gate = GatewayRegistry.INSTANCE.holder(ResourceLocation.tryParse(tag.getString("gate")));
+    protected void readAdditionalSaveData(ValueInput input) {
+        this.entityData.set(WAVE, input.getIntOr("wave", 0));
+        input.getString("gate").ifPresent(gateId -> this.gate = GatewayRegistry.INSTANCE.holder(Identifier.tryParse(gateId)));
 
         if (!this.gate.isBound()) {
             Gateways.LOGGER.error("Invalid gateway at {} will be removed.", this.position());
@@ -419,30 +416,21 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
             return;
         }
 
-        if (tag.contains("wave_entities")) {
+        input.read("wave_entities", UUIDUtil.CODEC.listOf()).ifPresent(uuids -> {
             this.currentWaveEntities.clear();
             this.unresolvedWaveEntities.clear();
-            long[] entities = tag.getLongArray("wave_entities");
-            for (int i = 0; i < entities.length; i += 2) {
-                this.unresolvedWaveEntities.add(new UUID(entities[i], entities[i + 1]));
-            }
-        }
+            this.unresolvedWaveEntities.addAll(uuids);
+        });
 
-        if (tag.contains("active")) this.entityData.set(WAVE_ACTIVE, tag.getBoolean("active"));
-        if (tag.contains("ticks_active")) this.entityData.set(TICKS_ACTIVE, tag.getInt("ticks_active"));
-        if (tag.contains("summoner")) this.summonerId = tag.getUUID("summoner");
-        if (tag.contains("queued_stacks")) {
+        this.entityData.set(WAVE_ACTIVE, input.getBooleanOr("active", false));
+        this.entityData.set(TICKS_ACTIVE, input.getIntOr("ticks_active", 0));
+        input.read("summoner", UUIDUtil.CODEC).ifPresent(id -> this.summonerId = id);
+        input.read("queued_stacks", ItemStack.CODEC.listOf()).ifPresent(stacks -> {
             this.undroppedItems.clear();
-            ListTag stacks = tag.getList("queued_stacks", Tag.TAG_COMPOUND);
-            for (Tag inbt : stacks) {
-                ItemStack stack = ItemStack.parse(this.registryAccess(), (CompoundTag) inbt).orElse(ItemStack.EMPTY);
-                if (!stack.isEmpty()) {
-                    this.undroppedItems.add(stack);
-                }
-            }
-        }
-        if (tag.contains("lives")) this.setRemainingLives(tag.getInt("lives"));
-        if (tag.contains("nearby_player_timer")) this.nearbyPlayerTimer = tag.getInt("nearby_player_timer");
+            stacks.stream().filter(s -> !s.isEmpty()).forEach(this.undroppedItems::add);
+        });
+        this.setRemainingLives(input.getIntOr("lives", -1));
+        this.nearbyPlayerTimer = input.getIntOr("nearby_player_timer", 0);
 
         this.bossEvent = this.createBossEvent();
         this.refreshDimensions();
@@ -472,6 +460,20 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
         if (this.bossEvent != null) {
             this.bossEvent.removePlayer(player);
         }
+    }
+
+    @Override
+    public CommandSourceStack createCommandSourceStackForNameResolution(ServerLevel level) {
+        return new CommandSourceStack(
+            level.getServer(),
+            this.position(),
+            this.getRotationVector(),
+            level,
+            PermissionSet.ALL_PERMISSIONS,
+            this.getPlainTextName(),
+            this.getDisplayName(),
+            level.getServer(),
+            this);
     }
 
     public int getTicksActive() {
@@ -553,20 +555,20 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
 
     @Override
     public void writeSpawnData(RegistryFriendlyByteBuf buf) {
-        buf.writeResourceLocation(this.gate.getId());
+        buf.writeIdentifier(this.gate.getId());
     }
 
     @Override
     public void readSpawnData(RegistryFriendlyByteBuf buf) {
-        this.gate = GatewayRegistry.INSTANCE.holder(buf.readResourceLocation());
+        this.gate = GatewayRegistry.INSTANCE.holder(buf.readIdentifier());
         if (!this.gate.isBound()) throw new RuntimeException("Invalid gateway received on client!");
         this.refreshDimensions();
         GatewayTickableSound.startGatewaySound(this);
     }
 
     @Override
-    protected int getPermissionLevel() {
-        return 2;
+    public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
+        return false;
     }
 
     /**
@@ -599,7 +601,7 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
      */
     public void handleConversion(Entity entity, LivingEntity outcome) {
         entity.getPersistentData().remove("gateways.owner");
-        outcome.getPersistentData().putUUID("gateways.owner", this.getUUID());
+        outcome.getPersistentData().putString("gateways.owner", this.getUUID().toString());
 
         if (this.unresolvedWaveEntities.contains(entity.getUUID())) {
             this.unresolvedWaveEntities.remove(entity.getUUID());
@@ -612,7 +614,7 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
     }
 
     @Override
-    public boolean canBeCollidedWith() {
+    public boolean canBeCollidedWith(@Nullable Entity other) {
         return false;
     }
 
@@ -639,7 +641,7 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
     }
 
     public static void spawnLightningOn(Entity entity, boolean effectOnly) {
-        LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(entity.level());
+        LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(entity.level(), EntitySpawnReason.TRIGGERED);
         bolt.setPos(entity.getX(), entity.getY(), entity.getZ());
         bolt.setVisualOnly(effectOnly);
         entity.level().addFreshEntity(bolt);
@@ -657,13 +659,12 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
 
     @Nullable
     public static GatewayEntity getOwner(Entity entity) {
-        if (entity.getPersistentData().contains("gateways.owner")) {
-            UUID id = entity.getPersistentData().getUUID("gateways.owner");
+        return entity.getPersistentData().read("gateways.owner", UUIDUtil.CODEC).map(id -> {
             if (entity.level() instanceof ServerLevel sl && sl.getEntity(id) instanceof GatewayEntity gate && gate.isValid()) {
                 return gate;
             }
-        }
-        return null;
+            return null;
+        }).orElse(null);
     }
 
     public static enum FailureReason {

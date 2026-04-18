@@ -19,9 +19,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.DropChances;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
@@ -109,20 +111,20 @@ public record Wave(List<WaveEntity> entities, List<WaveModifier> modifiers, List
             return null;
         }
 
-        entity.getPersistentData().putUUID("gateways.owner", gate.getUUID());
-        entity.moveTo(spawnPos.x(), spawnPos.y(), spawnPos.z(), level.random.nextFloat() * 360, level.random.nextFloat() * 360);
+        entity.getPersistentData().putString("gateways.owner", gate.getUUID().toString());
+        entity.snapTo(spawnPos.x(), spawnPos.y(), spawnPos.z(), level.getRandom().nextFloat() * 360, level.getRandom().nextFloat() * 360);
 
         entity.getPassengersAndSelf().filter(e -> e instanceof LivingEntity).map(LivingEntity.class::cast).forEach(e -> {
             wave.modifiers.forEach(m -> m.apply(e, gate));
             e.setHealth(e.getMaxHealth());
-            e.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, 5, 100, true, false));
+            e.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, 5, 100, true, false));
         });
 
         GateRules rules = gate.getGateway().rules();
 
         if (entity instanceof Mob mob) {
             if (waveEntity.shouldFinalizeSpawn()) {
-                EventHooks.finalizeMobSpawn(mob, level, level.getCurrentDifficultyAt(entity.blockPosition()), MobSpawnType.SPAWNER, null);
+                EventHooks.finalizeMobSpawn(mob, level, level.getCurrentDifficultyAt(entity.blockPosition()), EntitySpawnReason.SPAWNER, null);
             }
             Player summoner = gate.summonerOrClosest();
             if (!(summoner instanceof FakePlayer)) {
@@ -132,14 +134,9 @@ public record Wave(List<WaveEntity> entities, List<WaveModifier> modifiers, List
 
             // Override the drop chances to the rules-specified default if they are unchanged from the default of 0.085F
             if (rules.defaultDropChance() >= 0) {
-                for (int i = 0; i < 2; i++) {
-                    if (mob.handDropChances[i] == 0.085F) {
-                        mob.handDropChances[i] = rules.defaultDropChance();
-                    }
-                }
-                for (int i = 0; i < 4; i++) {
-                    if (mob.armorDropChances[i] == 0.085F) {
-                        mob.armorDropChances[i] = rules.defaultDropChance();
+                for (EquipmentSlot slot : EquipmentSlot.values()) {
+                    if (mob.getDropChances().byEquipment(slot) == DropChances.DEFAULT_EQUIPMENT_DROP_CHANCE) {
+                        mob.setDropChance(slot, rules.defaultDropChance());
                     }
                 }
             }

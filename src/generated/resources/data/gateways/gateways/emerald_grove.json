@@ -1,0 +1,320 @@
+{
+    "type": "gateways:normal",
+    "size": "medium",
+    "color": "#056608",
+    "waves": [
+        {
+            "max_wave_time": 1000,
+            "setup_time": 200,
+            "entities": [
+                {
+                    "type": "gateways:standard",
+                    "count": 5,
+                    "entity": "minecraft:zombie"
+                }
+            ],
+            "modifiers": [
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:max_health",
+                    "operation": "add_multiplied_total",
+                    "value": 0.25
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "gateways:stack",
+                    "stack": {
+                        "count": 16,
+                        "id": "minecraft:hay_block"
+                    }
+                }
+            ]
+        },
+        {
+            "max_wave_time": 1000,
+            "setup_time": 200,
+            "entities": [
+                {
+                    "type": "gateways:standard",
+                    "count": 5,
+                    "entity": "minecraft:spider"
+                }
+            ],
+            "modifiers": [
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:max_health",
+                    "operation": "add_multiplied_total",
+                    "value": 0.2
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:movement_speed",
+                    "operation": "add_multiplied_total",
+                    "value": 0.05
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:armor",
+                    "operation": "add_value",
+                    "value": 4.0
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:attack_damage",
+                    "operation": "add_value",
+                    "value": 2.5
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "apothic_attributes:armor_pierce",
+                    "operation": "add_value",
+                    "value": 2.0
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "gateways:stack_list",
+                    "stacks": [
+                        {
+                            "count": 16,
+                            "id": "minecraft:cactus"
+                        },
+                        {
+                            "count": 16,
+                            "id": "minecraft:sugar_cane"
+                        },
+                        {
+                            "count": 16,
+                            "id": "minecraft:bamboo"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "max_wave_time": 1000,
+            "setup_time": 200,
+            "entities": [
+                {
+                    "type": "gateways:standard",
+                    "count": 5,
+                    "entity": "minecraft:zombie"
+                },
+                {
+                    "type": "gateways:standard",
+                    "count": 2,
+                    "entity": "minecraft:spider"
+                }
+            ],
+            "modifiers": [
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:max_health",
+                    "operation": "add_multiplied_total",
+                    "value": 0.35
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:movement_speed",
+                    "operation": "add_multiplied_total",
+                    "value": 0.15
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:armor",
+                    "operation": "add_value",
+                    "value": 5.0
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:attack_damage",
+                    "operation": "add_value",
+                    "value": 2.5
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "apothic_attributes:armor_pierce",
+                    "operation": "add_value",
+                    "value": 3.0
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "apothic_attributes:life_steal",
+                    "operation": "add_value",
+                    "value": 0.1
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "gateways:stack_list",
+                    "stacks": [
+                        {
+                            "count": 32,
+                            "id": "minecraft:carrot"
+                        },
+                        {
+                            "count": 32,
+                            "id": "minecraft:potato"
+                        },
+                        {
+                            "count": 32,
+                            "id": "minecraft:apple"
+                        },
+                        {
+                            "count": 32,
+                            "id": "minecraft:beetroot"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "max_wave_time": 1200,
+            "setup_time": 200,
+            "entities": [
+                {
+                    "type": "gateways:standard",
+                    "desc": "name.gateways.necrotic_farmer",
+                    "entity": "minecraft:zombie_villager",
+                    "finalize_spawn": false,
+                    "nbt": {
+                        "CustomName": "{\"translate\":\"name.gateways.necrotic_farmer\",\"color\":\"red\"}",
+                        "CustomNameVisible": 1,
+                        "VillagerData": {
+                            "profession": "minecraft:farmer"
+                        }
+                    },
+                    "modifiers": [
+                        {
+                            "type": "gateways:gear_set",
+                            "gear_set": "gateways:iron"
+                        }
+                    ]
+                },
+                {
+                    "type": "gateways:standard",
+                    "count": 3,
+                    "entity": "minecraft:zombie"
+                },
+                {
+                    "type": "gateways:standard",
+                    "count": 2,
+                    "entity": "minecraft:spider"
+                }
+            ],
+            "modifiers": [
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:max_health",
+                    "operation": "add_multiplied_total",
+                    "value": 0.4
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:knockback_resistance",
+                    "operation": "add_value",
+                    "value": 0.5
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:armor",
+                    "operation": "add_value",
+                    "value": 5.0
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "minecraft:attack_damage",
+                    "operation": "add_value",
+                    "value": 4.0
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "apothic_attributes:armor_pierce",
+                    "operation": "add_value",
+                    "value": 3.0
+                },
+                {
+                    "type": "gateways:attribute",
+                    "attribute": "apothic_attributes:life_steal",
+                    "operation": "add_value",
+                    "value": 0.1
+                }
+            ],
+            "rewards": [
+                {
+                    "type": "gateways:stack_list",
+                    "stacks": [
+                        {
+                            "count": 16,
+                            "id": "minecraft:oak_sapling"
+                        },
+                        {
+                            "count": 16,
+                            "id": "minecraft:birch_sapling"
+                        },
+                        {
+                            "count": 16,
+                            "id": "minecraft:spruce_sapling"
+                        },
+                        {
+                            "count": 16,
+                            "id": "minecraft:dark_oak_sapling"
+                        },
+                        {
+                            "count": 16,
+                            "id": "minecraft:acacia_sapling"
+                        },
+                        {
+                            "count": 16,
+                            "id": "minecraft:cherry_sapling"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "rewards": [
+        {
+            "type": "gateways:summon",
+            "entity": {
+                "type": "gateways:standard",
+                "count": 6,
+                "entity": "minecraft:cow"
+            }
+        },
+        {
+            "type": "gateways:summon",
+            "entity": {
+                "type": "gateways:standard",
+                "count": 6,
+                "entity": "minecraft:chicken"
+            }
+        },
+        {
+            "type": "gateways:summon",
+            "entity": {
+                "type": "gateways:standard",
+                "count": 6,
+                "entity": "minecraft:sheep"
+            }
+        },
+        {
+            "type": "gateways:summon",
+            "entity": {
+                "type": "gateways:standard",
+                "count": 6,
+                "entity": "minecraft:pig"
+            }
+        }
+    ],
+    "failures": [
+        {
+            "type": "gateways:explosion",
+            "block_damage": true,
+            "fire": true,
+            "strength": 2.0
+        }
+    ]
+}

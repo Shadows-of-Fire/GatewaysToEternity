@@ -1,0 +1,28 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "group": "gateways",
+    "key": {
+        "A": {
+            "neoforge:ingredient_type": "neoforge:components",
+            "components": {
+                "gateways:gateway": "gateways:basic/blaze"
+            },
+            "items": "gateways:gate_pearl"
+        },
+        "G": "#c:gems/emerald",
+        "M": "minecraft:magma_cream",
+        "R": "#c:rods/blaze"
+    },
+    "pattern": [
+        "GGG",
+        "RAR",
+        "MMM"
+    ],
+    "result": {
+        "components": {
+            "gateways:gateway": "gateways:endless/blaze"
+        },
+        "id": "gateways:gate_pearl"
+    }
+}

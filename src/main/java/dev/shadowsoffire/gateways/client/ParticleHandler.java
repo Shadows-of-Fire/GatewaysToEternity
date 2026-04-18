@@ -21,7 +21,7 @@ public class ParticleHandler {
         switch (type) {
             case IDLE -> {
                 GatewayParticleData data = new GatewayParticleData(color >> 16 & 255, color >> 8 & 255, color & 255);
-                RandomSource rand = src.level().random;
+                RandomSource rand = src.level().getRandom();
                 for (int i = 0; i < 6; i++) {
                     double velX = Mth.nextDouble(rand, -0.15, 0.15);
                     double velY = Mth.nextDouble(rand, -0.15, 0.15);
@@ -34,7 +34,7 @@ public class ParticleHandler {
             }
             case SPAWNED -> {
                 GatewayParticleData data = new GatewayParticleData(color >> 16 & 255, color >> 8 & 255, color & 255);
-                RandomSource rand = src.level().random;
+                RandomSource rand = src.level().getRandom();
                 for (int i = 0; i < 25; i++) {
                     double velY = Mth.nextDouble(rand, 0.05, 0.35);
                     double xOff = Mth.nextDouble(rand, -0.15, 0.15);
@@ -50,7 +50,7 @@ public class ParticleHandler {
         if (!gate.isValid()) return;
 
         Level level = gate.level();
-        RandomSource rand = level.random;
+        RandomSource rand = level.getRandom();
         int color = gate.getGateway().color().getValue();
         GatewayParticleData data = new GatewayParticleData(color >> 16 & 255, color >> 8 & 255, color & 255);
 

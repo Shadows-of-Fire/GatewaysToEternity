@@ -13,29 +13,29 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.commands.arguments.EntityArgument;
-import net.minecraft.commands.arguments.ResourceLocationArgument;
+import net.minecraft.commands.arguments.IdentifierArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.Vec3;
 
 public class GatewayCommand {
 
-    public static final SuggestionProvider<CommandSourceStack> SUGGEST_TYPE = (ctx, builder) -> SharedSuggestionProvider.suggest(GatewayRegistry.INSTANCE.getKeys().stream().map(ResourceLocation::toString), builder);
+    public static final SuggestionProvider<CommandSourceStack> SUGGEST_TYPE = (ctx, builder) -> SharedSuggestionProvider.suggest(GatewayRegistry.INSTANCE.getKeys().stream().map(Identifier::toString), builder);
 
     public static void register(CommandDispatcher<CommandSourceStack> pDispatcher) {
-        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("open_gateway").requires(s -> s.hasPermission(2));
+        LiteralArgumentBuilder<CommandSourceStack> builder = Commands.literal("open_gateway").requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS));
 
         builder.then(Commands.argument("pos", Vec3Argument.vec3())
-            .then(Commands.argument("type", ResourceLocationArgument.id()).suggests(SUGGEST_TYPE).executes(c -> openGateway(c, Vec3Argument.getVec3(c, "pos"), ResourceLocationArgument.getId(c, "type")))));
+            .then(Commands.argument("type", IdentifierArgument.id()).suggests(SUGGEST_TYPE).executes(c -> openGateway(c, Vec3Argument.getVec3(c, "pos"), IdentifierArgument.getId(c, "type")))));
         builder.then(Commands.argument("entity", EntityArgument.entity())
-            .then(Commands.argument("type", ResourceLocationArgument.id()).suggests(SUGGEST_TYPE).executes(c -> openGateway(c, EntityArgument.getEntity(c, "entity").position(), ResourceLocationArgument.getId(c, "type")))));
+            .then(Commands.argument("type", IdentifierArgument.id()).suggests(SUGGEST_TYPE).executes(c -> openGateway(c, EntityArgument.getEntity(c, "entity").position(), IdentifierArgument.getId(c, "type")))));
         pDispatcher.register(builder);
     }
 
-    public static int openGateway(CommandContext<CommandSourceStack> c, Vec3 pos, ResourceLocation type) {
+    public static int openGateway(CommandContext<CommandSourceStack> c, Vec3 pos, Identifier type) {
         try {
             Entity nullableSummoner = c.getSource().getEntity();
             Player summoner = nullableSummoner instanceof Player ? (Player) nullableSummoner : c.getSource().getLevel().getNearestPlayer(pos.x(), pos.y(), pos.z(), 64, false);
@@ -45,7 +45,7 @@ public class GatewayCommand {
                 return -1;
             }
             GatewayEntity entity = gate.get().createEntity(c.getSource().getLevel(), summoner);
-            entity.moveTo(pos);
+            entity.setPos(pos);
             c.getSource().getLevel().addFreshEntity(entity);
             entity.onGateCreated();
         }

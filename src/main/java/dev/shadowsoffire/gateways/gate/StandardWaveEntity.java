@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
 import com.mojang.serialization.Codec;
@@ -19,6 +18,8 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityProcessor;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -38,7 +39,7 @@ public record StandardWaveEntity(EntityType<?> type, Optional<String> desc, Opti
     public LivingEntity createEntity(ServerLevel level, GatewayEntity gate) {
         CompoundTag data = tag.orElse(new CompoundTag());
         data.putString("id", EntityType.getKey(type).toString());
-        Entity ent = EntityType.loadEntityRecursive(data, level, Function.identity());
+        Entity ent = EntityType.loadEntityRecursive(data, level, EntitySpawnReason.SPAWNER, EntityProcessor.NOP);
         if (ent == null) {
             Gateways.logSpawnDebug(gate, this, "Entity deserialization returned null");
             return null;

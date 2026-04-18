@@ -1,0 +1,21 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "group": "gateways",
+    "key": {
+        "E": "#c:ender_pearls",
+        "N": "minecraft:nether_bricks",
+        "R": "#c:rods/blaze"
+    },
+    "pattern": [
+        "RRR",
+        "RER",
+        "NNN"
+    ],
+    "result": {
+        "components": {
+            "gateways:gateway": "gateways:basic/blaze"
+        },
+        "id": "gateways:gate_pearl"
+    }
+}

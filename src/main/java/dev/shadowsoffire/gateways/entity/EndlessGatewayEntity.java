@@ -12,6 +12,8 @@ import dev.shadowsoffire.gateways.gate.endless.EndlessGateway;
 import dev.shadowsoffire.gateways.gate.endless.EndlessModifier;
 import dev.shadowsoffire.placebo.reload.DynamicHolder;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -169,21 +171,17 @@ public class EndlessGatewayEntity extends GatewayEntity {
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
-        super.addAdditionalSaveData(tag);
-        tag.putInt("max_enemies", this.getMaxEnemies());
-        tag.putInt("modifiers_applied", this.getModifiersApplied());
+    protected void addAdditionalSaveData(ValueOutput output) {
+        super.addAdditionalSaveData(output);
+        output.putInt("max_enemies", this.getMaxEnemies());
+        output.putInt("modifiers_applied", this.getModifiersApplied());
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
-        super.readAdditionalSaveData(tag);
-        if (tag.contains("max_enemies")) {
-            this.entityData.set(MAX_ENEMIES, tag.getInt("max_enemies"));
-        }
-        if (tag.contains("modifiers_applied")) {
-            this.entityData.set(MODIFIERS, tag.getInt("modifiers_applied"));
-        }
+    protected void readAdditionalSaveData(ValueInput input) {
+        super.readAdditionalSaveData(input);
+        this.entityData.set(MAX_ENEMIES, input.getIntOr("max_enemies", -1));
+        this.entityData.set(MODIFIERS, input.getIntOr("modifiers_applied", -1));
         this.entityData.set(MAX_WAVE_TIME, this.getCurrentWave().maxWaveTime());
         this.entityData.set(SETUP_TIME, this.getCurrentWave().setupTime());
     }

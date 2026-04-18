@@ -1,0 +1,21 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "group": "gateways",
+    "key": {
+        "E": "#c:ender_pearls",
+        "G": "#c:gems/amethyst",
+        "N": "minecraft:ender_eye"
+    },
+    "pattern": [
+        "GEG",
+        "ENE",
+        "GEG"
+    ],
+    "result": {
+        "components": {
+            "gateways:gateway": "gateways:basic/enderman"
+        },
+        "id": "gateways:gate_pearl"
+    }
+}

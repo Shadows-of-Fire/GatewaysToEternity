@@ -1,7 +1,6 @@
 package dev.shadowsoffire.gateways.item;
 
 import java.util.Comparator;
-import java.util.List;
 import java.util.function.Consumer;
 
 import org.jetbrains.annotations.Nullable;
@@ -17,6 +16,7 @@ import dev.shadowsoffire.placebo.util.SpecialTooltipItem;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
@@ -25,6 +25,7 @@ import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -46,7 +47,7 @@ public class GatePearlItem extends Item implements ITabFiller, SpecialTooltipIte
         DynamicHolder<Gateway> gate = getGate(stack);
 
         if (!gate.isBound()) return InteractionResult.FAIL;
-        if (world.isClientSide) return InteractionResult.SUCCESS;
+        if (world.isClientSide()) return InteractionResult.SUCCESS;
 
         Component errMsg = gate.get().canOpen(ctx.getPlayer());
         if (errMsg != null) {
@@ -108,24 +109,24 @@ public class GatePearlItem extends Item implements ITabFiller, SpecialTooltipIte
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
+    public void appendHoverText(ItemStack stack, TooltipContext ctx, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
         DynamicHolder<Gateway> holder = GatePearlItem.getGate(stack);
         if (!holder.isBound()) {
-            tooltip.add(Gateways.lang("text", "errored_gate_pearl", holder.getId().toString()));
+            tooltip.accept(Gateways.lang("text", "errored_gate_pearl", holder.getId().toString()));
         }
-        else if (FMLEnvironment.dist.isClient()) {
+        else if (FMLEnvironment.getDist().isClient()) {
             holder.get().appendPearlTooltip(ctx, tooltip, flag);
         }
     }
 
     @Nullable
     @Override
-    public String getCreatorModId(ItemStack stack) {
+    public String getCreatorModId(HolderLookup.Provider registries, ItemStack stack) {
         DynamicHolder<Gateway> gate = getGate(stack);
         if (gate.isBound()) {
             return gate.getId().getNamespace();
         }
-        return super.getCreatorModId(stack);
+        return super.getCreatorModId(registries, stack);
     }
 
     public static void generateGatePearlStacks(Consumer<ItemStack> output) {

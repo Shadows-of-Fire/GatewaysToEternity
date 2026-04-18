@@ -54,7 +54,7 @@ public record ParticlePayload(int gateId, double x, double y, double z, int colo
         }
 
         @Override
-        public void handle(ParticlePayload msg, IPayloadContext ctx) {
+        public void handleClient(ParticlePayload msg, IPayloadContext ctx) {
             ParticleHandler.handle(msg);
         }
 

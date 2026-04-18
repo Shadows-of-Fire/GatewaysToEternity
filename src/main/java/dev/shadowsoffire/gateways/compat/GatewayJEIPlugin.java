@@ -13,9 +13,8 @@ import mezz.jei.api.ingredients.subtypes.UidContext;
 import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 @JeiPlugin
@@ -34,7 +33,7 @@ public class GatewayJEIPlugin implements IModPlugin {
     }
 
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return Gateways.loc("gateways");
     }
 
@@ -43,15 +42,6 @@ public class GatewayJEIPlugin implements IModPlugin {
         @Override
         public DynamicHolder<Gateway> getSubtypeData(ItemStack stack, UidContext context) {
             return GatePearlItem.getGate(stack);
-        }
-
-        @Override
-        public String getLegacyStringSubtypeInfo(ItemStack stack, UidContext context) {
-            DynamicHolder<Gateway> holder = GatePearlItem.getGate(stack);
-            if (holder.isBound()) {
-                return holder.getId().toString();
-            }
-            return BuiltInRegistries.ITEM.getKey(stack.getItem()).toString();
         }
 
     }
