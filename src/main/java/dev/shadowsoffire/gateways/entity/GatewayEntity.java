@@ -601,7 +601,7 @@ public abstract class GatewayEntity extends Entity implements IEntityWithComplex
      */
     public void handleConversion(Entity entity, LivingEntity outcome) {
         entity.getPersistentData().remove("gateways.owner");
-        outcome.getPersistentData().putString("gateways.owner", this.getUUID().toString());
+        outcome.getPersistentData().store("gateways.owner", UUIDUtil.CODEC, this.getUUID());
 
         if (this.unresolvedWaveEntities.contains(entity.getUUID())) {
             this.unresolvedWaveEntities.remove(entity.getUUID());

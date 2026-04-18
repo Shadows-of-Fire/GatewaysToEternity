@@ -9,6 +9,8 @@ import org.jetbrains.annotations.Nullable;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import net.minecraft.core.UUIDUtil;
+
 import dev.shadowsoffire.gateways.GatewayObjects;
 import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
@@ -111,7 +113,7 @@ public record Wave(List<WaveEntity> entities, List<WaveModifier> modifiers, List
             return null;
         }
 
-        entity.getPersistentData().putString("gateways.owner", gate.getUUID().toString());
+        entity.getPersistentData().store("gateways.owner", UUIDUtil.CODEC, gate.getUUID());
         entity.snapTo(spawnPos.x(), spawnPos.y(), spawnPos.z(), level.getRandom().nextFloat() * 360, level.getRandom().nextFloat() * 360);
 
         entity.getPassengersAndSelf().filter(e -> e instanceof LivingEntity).map(LivingEntity.class::cast).forEach(e -> {
