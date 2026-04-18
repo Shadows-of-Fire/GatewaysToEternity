@@ -220,7 +220,10 @@
                     "entity": "minecraft:zombie",
                     "finalize_spawn": false,
                     "nbt": {
-                        "CustomName": "{\"translate\":\"name.gateways.undead_legionnaire\",\"color\":\"red\"}",
+                        "CustomName": {
+                            "translate": "name.gateways.undead_legionnaire",
+                            "color": "red"
+                        },
                         "CustomNameVisible": 1
                     },
                     "modifiers": [

@@ -189,7 +189,10 @@
                     "entity": "minecraft:enderman",
                     "finalize_spawn": false,
                     "nbt": {
-                        "CustomName": "{\"translate\":\"name.gateways.flaming_enderman\",\"color\":\"red\"}",
+                        "CustomName": {
+                            "translate": "name.gateways.flaming_enderman",
+                            "color": "red"
+                        },
                         "CustomNameVisible": 1,
                         "Fire": 32767
                     },

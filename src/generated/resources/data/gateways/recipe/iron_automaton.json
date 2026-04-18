@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "group": "gateways",
+    "key": {
+        "E": "minecraft:ender_eye",
+        "I": "#c:ingots/iron",
+        "O": "minecraft:poppy",
+        "P": "minecraft:piston",
+        "S": "#c:storage_blocks/iron"
+    },
+    "pattern": [
+        "SPS",
+        "IEI",
+        "SOS"
+    ],
+    "result": {
+        "components": {
+            "gateways:gateway": "gateways:iron_automaton"
+        },
+        "id": "gateways:gate_pearl"
+    }
+}

@@ -10,13 +10,13 @@ import snownee.jade.api.WailaPlugin;
 public class GatewayJadePlugin implements IWailaPlugin {
 
     @Override
+    @SuppressWarnings("deprecation")
     public void register(IWailaCommonRegistration reg) {
         reg.entityTypeOperations().hide(GatewayObjects.NORMAL_GATEWAY.get().builtInRegistryHolder().key());
         reg.entityTypeOperations().hide(GatewayObjects.ENDLESS_GATEWAY.get().builtInRegistryHolder().key());
     }
 
     @Override
-    public void registerClient(IWailaClientRegistration reg) {
-    }
+    public void registerClient(IWailaClientRegistration reg) {}
 
 }

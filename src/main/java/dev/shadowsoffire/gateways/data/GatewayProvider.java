@@ -68,6 +68,8 @@ public class GatewayProvider extends DynamicRegistryProvider<Gateway> {
         genEmeraldGrove();
         genHellishFortress();
         genOverworldianNights();
+        genIronAutomaton();
+        genEndlessAutomatonFabricator();
     }
 
     private void genBlazeGateway() {
@@ -434,6 +436,96 @@ public class GatewayProvider extends DynamicRegistryProvider<Gateway> {
             .rules(r -> r.allowDiscarding(true)));
     }
 
+    private void genIronAutomaton() {
+        CompoundTag ironSentinelNbt = namedNbt("name.gateways.iron_sentinel", "gray");
+        CompoundTag ironJuggernautNbt = namedNbt("name.gateways.iron_juggernaut", "red");
+
+        normalGateway("iron_automaton", b -> b
+            .size(Gateway.Size.LARGE)
+            .color(0xD8D8D8)
+            // Wave 1: Simple iron golem encounter.
+            .wave(w -> w.maxWaveTime(1200).setupTime(200)
+                .entity(StandardWaveEntity.builder(EntityType.IRON_GOLEM).count(2).build())
+                .reward(new StackReward(template(Items.IRON_INGOT, 16))))
+            // Wave 2: More golems with increased health and armor.
+            .wave(w -> w.maxWaveTime(1400).setupTime(300)
+                .entity(StandardWaveEntity.builder(EntityType.IRON_GOLEM).count(3).build())
+                .modifier(AttributeModifier.create(Attributes.MAX_HEALTH, Operation.ADD_MULTIPLIED_TOTAL, 0.20F))
+                .modifier(AttributeModifier.create(Attributes.ARMOR, Operation.ADD_VALUE, 4F))
+                .modifier(AttributeModifier.create(Attributes.ATTACK_DAMAGE, Operation.ADD_MULTIPLIED_TOTAL, 0.10F))
+                .reward(new StackReward(template(Items.IRON_INGOT, 32))))
+            // Wave 3: Iron Sentinels with knockback resistance and armor pierce.
+            .wave(w -> w.maxWaveTime(1600).setupTime(400)
+                .entity(StandardWaveEntity.builder(EntityType.IRON_GOLEM)
+                    .desc("name.gateways.iron_sentinel").nbt(t -> ironSentinelNbt)
+                    .addModifier(AttributeModifier.create(Attributes.MAX_HEALTH, Operation.ADD_VALUE, 20F))
+                    .addModifier(AttributeModifier.create(ALObjects.Attributes.ARMOR_PIERCE, Operation.ADD_VALUE, 4F))
+                    .count(2).finalizeSpawn(false).build())
+                .entity(StandardWaveEntity.builder(EntityType.IRON_GOLEM).count(2).build())
+                .modifier(AttributeModifier.create(Attributes.MAX_HEALTH, Operation.ADD_MULTIPLIED_TOTAL, 0.30F))
+                .modifier(AttributeModifier.create(Attributes.ARMOR, Operation.ADD_VALUE, 6F))
+                .modifier(AttributeModifier.create(Attributes.ATTACK_DAMAGE, Operation.ADD_MULTIPLIED_TOTAL, 0.20F))
+                .modifier(AttributeModifier.create(Attributes.KNOCKBACK_RESISTANCE, Operation.ADD_VALUE, 0.25F))
+                .reward(new StackListReward(List.of(
+                    template(Items.IRON_INGOT, 32),
+                    template(Items.IRON_BLOCK, 4)))))
+            // Wave 4: The Iron Juggernaut boss with a full squad.
+            .wave(w -> w.maxWaveTime(2400).setupTime(400)
+                .entity(StandardWaveEntity.builder(EntityType.IRON_GOLEM)
+                    .desc("name.gateways.iron_juggernaut").nbt(t -> ironJuggernautNbt)
+                    .addModifier(AttributeModifier.create(Attributes.MAX_HEALTH, Operation.ADD_VALUE, 50F))
+                    .addModifier(AttributeModifier.create(Attributes.ATTACK_DAMAGE, Operation.ADD_VALUE, 8F))
+                    .addModifier(AttributeModifier.create(Attributes.KNOCKBACK_RESISTANCE, Operation.ADD_VALUE, 1.0F))
+                    .addModifier(AttributeModifier.create(ALObjects.Attributes.ARMOR_SHRED, Operation.ADD_VALUE, 0.5F))
+                    .addModifier(AttributeModifier.create(ALObjects.Attributes.LIFE_STEAL, Operation.ADD_VALUE, 0.15F))
+                    .count(1).finalizeSpawn(false).build())
+                .entity(StandardWaveEntity.builder(EntityType.IRON_GOLEM)
+                    .desc("name.gateways.iron_sentinel").nbt(t -> ironSentinelNbt)
+                    .addModifier(AttributeModifier.create(Attributes.MAX_HEALTH, Operation.ADD_VALUE, 20F))
+                    .addModifier(AttributeModifier.create(ALObjects.Attributes.ARMOR_PIERCE, Operation.ADD_VALUE, 4F))
+                    .count(3).finalizeSpawn(false).build())
+                .modifier(AttributeModifier.create(Attributes.MAX_HEALTH, Operation.ADD_MULTIPLIED_TOTAL, 0.40F))
+                .modifier(AttributeModifier.create(Attributes.ARMOR, Operation.ADD_VALUE, 8F))
+                .modifier(AttributeModifier.create(Attributes.ATTACK_DAMAGE, Operation.ADD_MULTIPLIED_TOTAL, 0.30F))
+                .modifier(AttributeModifier.create(Attributes.KNOCKBACK_RESISTANCE, Operation.ADD_VALUE, 0.5F))
+                .modifier(AttributeModifier.create(Attributes.MOVEMENT_SPEED, Operation.ADD_MULTIPLIED_TOTAL, 0.10F))
+                .reward(new StackListReward(List.of(
+                    template(Items.IRON_BLOCK, 8),
+                    template(Items.IRON_INGOT, 32)))))
+            .keyReward(new StackListReward(List.of(
+                template(Items.IRON_BLOCK, 48),
+                template(Items.POPPY, 48),
+                template(Items.ANVIL, 1))))
+            .failure(new SummonFailure(StandardWaveEntity.builder(EntityType.IRON_GOLEM).count(2).build())));
+    }
+
+    private void genEndlessAutomatonFabricator() {
+        endlessGateway("endless/automaton_fabricator", b -> b
+            .size(Gateway.Size.LARGE).color(0xC8C8C8)
+            // Base wave: 2 iron golems with a short timer. Yields 3-4 iron per golem (vanilla drop) plus 8 bonus ingots.
+            // At ~30s per wave cycle (600 wave + 100 setup), that's roughly 480 iron/hour from rewards alone, plus natural drops.
+            .baseWave(w -> w.maxWaveTime(600).setupTime(100)
+                .entity(StandardWaveEntity.builder(EntityType.IRON_GOLEM).count(2).build())
+                .reward(new StackReward(template(Items.IRON_INGOT, 12))))
+            // Every 3 waves (up to 10 times): add 1 more golem and 4 more iron per wave.
+            // By wave 30 this adds 10 golems and 40 iron per wave on top of the base.
+            .modifier(m -> m.applicationMode(new AfterEveryNWaves(3, 10))
+                .entity(StandardWaveEntity.builder(EntityType.IRON_GOLEM).count(1).build())
+                .reward(new StackReward(template(Items.IRON_INGOT, 6)))
+                .maxWaveTime(100))
+            // Every 5 waves (up to 6 times): golems get tougher. Keeps the challenge scaling with the mob count.
+            .modifier(m -> m.applicationMode(new AfterEveryNWaves(5, 6))
+                .modifier(AttributeModifier.create(Attributes.MAX_HEALTH, Operation.ADD_MULTIPLIED_TOTAL, 0.10F))
+                .modifier(AttributeModifier.create(Attributes.ATTACK_DAMAGE, Operation.ADD_MULTIPLIED_TOTAL, 0.10F)))
+            // Every 10 waves (up to 3 times): add an iron block bonus and a speed bump.
+            .modifier(m -> m.applicationMode(new AfterEveryNWaves(10, 3))
+                .reward(new StackReward(template(Items.IRON_BLOCK, 3)))
+                .modifier(AttributeModifier.create(Attributes.MOVEMENT_SPEED, Operation.ADD_MULTIPLIED_TOTAL, 0.05F))
+                .modifier(AttributeModifier.create(Attributes.KNOCKBACK_RESISTANCE, Operation.ADD_VALUE, 0.15F)))
+            .bossSettings(new BossEventSettings(BossEventSettings.Mode.NAME_PLATE, false))
+            .spawnAlgo(SpawnAlgorithms.INWARD_SPIRAL));
+    }
+
     private static CompoundTag sizeNbt(int size) {
         CompoundTag tag = new CompoundTag();
         tag.putInt("Size", size);
@@ -443,14 +535,18 @@ public class GatewayProvider extends DynamicRegistryProvider<Gateway> {
     private static CompoundTag namedNbt(String translationKey, String color) {
         CompoundTag tag = new CompoundTag();
         tag.putByte("CustomNameVisible", (byte) 1);
-        tag.putString("CustomName", "{\"translate\":\"" + translationKey + "\",\"color\":\"" + color + "\"}");
+        Component name = Component.translatable(translationKey).withStyle(net.minecraft.network.chat.Style.EMPTY.withColor(net.minecraft.network.chat.TextColor.parseColor(color).getOrThrow()));
+        net.minecraft.nbt.Tag nameTag = net.minecraft.network.chat.ComponentSerialization.CODEC.encodeStart(net.minecraft.nbt.NbtOps.INSTANCE, name).getOrThrow();
+        tag.put("CustomName", nameTag);
         return tag;
     }
 
+    @SuppressWarnings("deprecation")
     private static ItemStackTemplate template(ItemLike item, int count) {
         return new ItemStackTemplate(item.asItem().builtInRegistryHolder(), count, DataComponentPatch.EMPTY);
     }
 
+    @SuppressWarnings("deprecation")
     private static ItemStackTemplate witherSkeletonSpawnerTemplate() {
         CompoundTag spawnData = new CompoundTag();
         CompoundTag entityTag = new CompoundTag();

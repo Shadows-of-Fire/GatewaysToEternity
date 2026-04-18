@@ -96,7 +96,10 @@
                     "entity": "minecraft:slime",
                     "finalize_spawn": false,
                     "nbt": {
-                        "CustomName": "{\"translate\":\"name.gateways.acidic_slime\",\"color\":\"green\"}",
+                        "CustomName": {
+                            "translate": "name.gateways.acidic_slime",
+                            "color": "green"
+                        },
                         "CustomNameVisible": 1,
                         "Size": 3
                     },
@@ -170,7 +173,10 @@
                     "entity": "minecraft:slime",
                     "finalize_spawn": false,
                     "nbt": {
-                        "CustomName": "{\"translate\":\"name.gateways.magicbane_slime\",\"color\":\"blue\"}",
+                        "CustomName": {
+                            "translate": "name.gateways.magicbane_slime",
+                            "color": "blue"
+                        },
                         "CustomNameVisible": 1,
                         "Size": 3
                     },
@@ -243,7 +249,10 @@
                     "entity": "minecraft:slime",
                     "finalize_spawn": false,
                     "nbt": {
-                        "CustomName": "{\"translate\":\"name.gateways.huge_slime\",\"color\":\"green\"}",
+                        "CustomName": {
+                            "translate": "name.gateways.huge_slime",
+                            "color": "green"
+                        },
                         "CustomNameVisible": 1,
                         "Size": 7
                     }
@@ -255,7 +264,10 @@
                     "entity": "minecraft:slime",
                     "finalize_spawn": false,
                     "nbt": {
-                        "CustomName": "{\"translate\":\"name.gateways.magicbane_slime\",\"color\":\"blue\"}",
+                        "CustomName": {
+                            "translate": "name.gateways.magicbane_slime",
+                            "color": "blue"
+                        },
                         "CustomNameVisible": 1,
                         "Size": 3
                     },
@@ -281,7 +293,10 @@
                     "entity": "minecraft:slime",
                     "finalize_spawn": false,
                     "nbt": {
-                        "CustomName": "{\"translate\":\"name.gateways.acidic_slime\",\"color\":\"green\"}",
+                        "CustomName": {
+                            "translate": "name.gateways.acidic_slime",
+                            "color": "green"
+                        },
                         "CustomNameVisible": 1,
                         "Size": 3
                     },

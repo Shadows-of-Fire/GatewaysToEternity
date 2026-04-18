@@ -12,9 +12,11 @@ import dev.shadowsoffire.placebo.systems.gear.GearSet;
 import dev.shadowsoffire.placebo.systems.gear.GearSetRegistry;
 import dev.shadowsoffire.placebo.util.data.DynamicRegistryProvider;
 import net.minecraft.core.HolderLookup.Provider;
+import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.ItemLike;
 
 public class GearSetProvider extends DynamicRegistryProvider<GearSet> {
 
@@ -63,11 +65,12 @@ public class GearSetProvider extends DynamicRegistryProvider<GearSet> {
     }
 
     private void addGearSet(String name, List<WeightedItemStack> mainhands, List<WeightedItemStack> offhands,
-            List<WeightedItemStack> boots, List<WeightedItemStack> leggings, List<WeightedItemStack> chestplates, List<WeightedItemStack> helmets) {
+        List<WeightedItemStack> boots, List<WeightedItemStack> leggings, List<WeightedItemStack> chestplates, List<WeightedItemStack> helmets) {
         this.add(Gateways.loc(name), new GearSet(0, 0, mainhands, offhands, boots, leggings, chestplates, helmets, Set.of()));
     }
 
-    private static WeightedItemStack entry(net.minecraft.world.level.ItemLike item) {
-        return new WeightedItemStack(Optional.of(new ItemStackTemplate(item.asItem().builtInRegistryHolder(), 1, net.minecraft.core.component.DataComponentPatch.EMPTY)), 1, 0F);
+    @SuppressWarnings("deprecation")
+    private static WeightedItemStack entry(ItemLike item) {
+        return new WeightedItemStack(Optional.of(new ItemStackTemplate(item.asItem().builtInRegistryHolder(), 1, DataComponentPatch.EMPTY)), 1, 0F);
     }
 }

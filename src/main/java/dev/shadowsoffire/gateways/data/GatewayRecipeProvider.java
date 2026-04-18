@@ -14,6 +14,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potions;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.neoforged.neoforge.common.crafting.DataComponentIngredient;
 
 public class GatewayRecipeProvider extends LegacyRecipeProvider {
 
@@ -58,12 +60,23 @@ public class GatewayRecipeProvider extends LegacyRecipeProvider {
             "c:gunpowders", Items.ENDER_EYE, "c:gunpowders",
             "c:bones", Items.ROTTEN_FLESH, "c:bones");
 
+        addGatewayRecipe("iron_automaton", 3, 3,
+            "c:storage_blocks/iron", Items.PISTON, "c:storage_blocks/iron",
+            "c:ingots/iron", Items.ENDER_EYE, "c:ingots/iron",
+            "c:storage_blocks/iron", Items.POPPY, "c:storage_blocks/iron");
+
+        addGatewayRecipe("endless/automaton_fabricator", 3, 3,
+            "c:storage_blocks/iron", "c:storage_blocks/iron", "c:storage_blocks/iron",
+            "c:ingots/iron", gatePearlIngredient("iron_automaton"), "c:ingots/iron",
+            Items.PISTON, Items.ANVIL, Items.PISTON);
+
         addGatewayRecipe("endless/blaze", 3, 3,
             "c:gems/emerald", "c:gems/emerald", "c:gems/emerald",
             "c:rods/blaze", gatePearlIngredient("basic/blaze"), "c:rods/blaze",
             Items.MAGMA_CREAM, Items.MAGMA_CREAM, Items.MAGMA_CREAM);
     }
 
+    @SuppressWarnings("deprecation")
     private void addGatewayRecipe(String gatewayPath, int width, int height, Object... input) {
         Identifier key = Gateways.loc(gatewayPath);
         DataComponentPatch patch = DataComponentPatch.builder()
@@ -73,11 +86,12 @@ public class GatewayRecipeProvider extends LegacyRecipeProvider {
         addShaped(key, "gateways", result, width, height, input);
     }
 
-    private static net.minecraft.world.item.crafting.Ingredient gatePearlIngredient(String gatewayPath) {
+    @SuppressWarnings("deprecation")
+    private static Ingredient gatePearlIngredient(String gatewayPath) {
         DataComponentPatch patch = DataComponentPatch.builder()
             .set(GatewayObjects.GATEWAY_COMPONENT, GatewayRegistry.INSTANCE.holder(Gateways.loc(gatewayPath)))
             .build();
         ItemStackTemplate template = new ItemStackTemplate(GatewayObjects.GATE_PEARL.value().builtInRegistryHolder(), 1, patch);
-        return net.neoforged.neoforge.common.crafting.DataComponentIngredient.of(false, template);
+        return DataComponentIngredient.of(false, template);
     }
 }

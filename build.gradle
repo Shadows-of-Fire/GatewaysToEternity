@@ -212,33 +212,6 @@ tasks.named("generateModMetadata") {
         expand replaceProperties
         name "${modid}.mixins.json".toString()
     }
-
-    // Automatically populate coremods.json file from existing coremod js files in /coremods
-    filesMatching('coremods.json') {
-        def names = []
-        fileTree("${project.projectDir}/src/main/resources/coremods").visit { FileVisitDetails details ->
-            def name = details.file.path.replace('\\', '/')
-            name = name.substring(name.indexOf('coremods'), name.length())
-            if(name.endsWith('.js')) {
-                names.add(name)
-            }
-        }
-
-        def coremods = ''
-
-        for (int i = 0; i < names.size(); i++) {
-            def name = names[i]
-            coremods += "\t\"${modid}_" + name.substring('coremods/'.length(), name.length() - 3) + '": "' + name + '"'
-            if (i != names.size() - 1) {
-                coremods += ',\n'
-            }
-        }
-
-        replaceProperties.put('coremods', coremods)
-
-        expand replaceProperties
-        name 'META-INF/coremods.json'
-    }
 }
 
 tasks.named('processResources') {

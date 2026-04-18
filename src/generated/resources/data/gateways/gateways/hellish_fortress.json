@@ -110,7 +110,10 @@
                     "entity": "minecraft:wither_skeleton",
                     "finalize_spawn": false,
                     "nbt": {
-                        "CustomName": "{\"translate\":\"name.gateways.withered_ranger\",\"color\":\"red\"}",
+                        "CustomName": {
+                            "translate": "name.gateways.withered_ranger",
+                            "color": "red"
+                        },
                         "CustomNameVisible": 1
                     },
                     "modifiers": [
@@ -192,7 +195,10 @@
                     "entity": "minecraft:piglin_brute",
                     "finalize_spawn": false,
                     "nbt": {
-                        "CustomName": "{\"translate\":\"name.gateways.butcher\",\"color\":\"red\"}",
+                        "CustomName": {
+                            "translate": "name.gateways.butcher",
+                            "color": "red"
+                        },
                         "CustomNameVisible": 1,
                         "IsImmuneToZombification": 1
                     },
@@ -246,7 +252,10 @@
                     "entity": "minecraft:wither_skeleton",
                     "finalize_spawn": false,
                     "nbt": {
-                        "CustomName": "{\"translate\":\"name.gateways.withered_ranger\",\"color\":\"red\"}",
+                        "CustomName": {
+                            "translate": "name.gateways.withered_ranger",
+                            "color": "red"
+                        },
                         "CustomNameVisible": 1
                     },
                     "modifiers": [

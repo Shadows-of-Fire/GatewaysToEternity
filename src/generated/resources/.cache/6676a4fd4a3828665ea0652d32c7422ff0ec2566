@@ -1,8 +1,10 @@
-// 26.1.2	2026-04-17T22:57:36.225428969	Gateway Recipes
+// 26.1.2	2026-04-17T23:56:23.876396744	Gateway Recipes
 115c36782963a5a045ad9562ce40074562f1477c data/gateways/recipe/basic/blaze.json
 595354ea821df39a4613079a469178a382d6bd01 data/gateways/recipe/basic/enderman.json
 ed5f107176e68269e5e5234af0a1aa25a7c82edd data/gateways/recipe/basic/slime.json
 718ad0349644e4253de0c42c5e91db33a26c73fc data/gateways/recipe/emerald_grove.json
+2e7504e8792370100316e1ed373556c06df651ac data/gateways/recipe/endless/automaton_fabricator.json
 8dc4750614ebacef5271d4949a10e8592a2b593e data/gateways/recipe/endless/blaze.json
 567eb32b1d1cbc30952d0af227c9a0848a63ead7 data/gateways/recipe/hellish_fortress.json
+939fbc9b5fa2596a2a6dec6606b22ac93bff514b data/gateways/recipe/iron_automaton.json
 ea2162d9615caf647728dafd5eebbb2bef0cd490 data/gateways/recipe/overworldian_nights.json

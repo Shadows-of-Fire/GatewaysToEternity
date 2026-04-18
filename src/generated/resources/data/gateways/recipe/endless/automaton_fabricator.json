@@ -1,0 +1,29 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "category": "misc",
+    "group": "gateways",
+    "key": {
+        "A": "minecraft:anvil",
+        "G": {
+            "neoforge:ingredient_type": "neoforge:components",
+            "components": {
+                "gateways:gateway": "gateways:iron_automaton"
+            },
+            "items": "gateways:gate_pearl"
+        },
+        "I": "#c:ingots/iron",
+        "P": "minecraft:piston",
+        "S": "#c:storage_blocks/iron"
+    },
+    "pattern": [
+        "SSS",
+        "IGI",
+        "PAP"
+    ],
+    "result": {
+        "components": {
+            "gateways:gateway": "gateways:endless/automaton_fabricator"
+        },
+        "id": "gateways:gate_pearl"
+    }
+}

@@ -180,7 +180,10 @@
                     "entity": "minecraft:zombie_villager",
                     "finalize_spawn": false,
                     "nbt": {
-                        "CustomName": "{\"translate\":\"name.gateways.necrotic_farmer\",\"color\":\"red\"}",
+                        "CustomName": {
+                            "translate": "name.gateways.necrotic_farmer",
+                            "color": "red"
+                        },
                         "CustomNameVisible": 1,
                         "VillagerData": {
                             "profession": "minecraft:farmer"

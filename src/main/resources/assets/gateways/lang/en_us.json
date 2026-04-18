@@ -98,6 +98,9 @@
     "gateways.overworldian_nights": "Gateway of Overworldian Nights",
     "gateways.hellish_fortress": "Gateway of the Hellish Fortress",
 
+    "gateways.iron_automaton": "Gateway of the Iron Automaton",
+
+    "gateways.endless/automaton_fabricator": "Endless Gateway of the Automaton Fabricator",
     "gateways.endless/blaze": "Endless Blaze Gateway",
 
     "rewards.gateways.loot_table.simple_dungeon": "Dungeon Loot",
@@ -111,6 +114,8 @@
     "name.gateways.magicbane_slime": "Magicbane Slime",
     "name.gateways.acidic_slime": "Acidic Slime",
     "name.gateways.flaming_enderman": "Flaming Enderman",
+    "name.gateways.iron_sentinel": "Iron Sentinel",
+    "name.gateways.iron_juggernaut": "Iron Juggernaut",
 
     "subtitle.gateways.gate_warp": "Gateway spawns an object",
     "subtitle.gateways.gate_ambient": "Gateway ambient sound",
