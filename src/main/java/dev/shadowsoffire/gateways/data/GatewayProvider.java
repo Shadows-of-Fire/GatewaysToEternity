@@ -35,7 +35,12 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.effect.MobEffects;
@@ -535,8 +540,8 @@ public class GatewayProvider extends DynamicRegistryProvider<Gateway> {
     private static CompoundTag namedNbt(String translationKey, String color) {
         CompoundTag tag = new CompoundTag();
         tag.putByte("CustomNameVisible", (byte) 1);
-        Component name = Component.translatable(translationKey).withStyle(net.minecraft.network.chat.Style.EMPTY.withColor(net.minecraft.network.chat.TextColor.parseColor(color).getOrThrow()));
-        net.minecraft.nbt.Tag nameTag = net.minecraft.network.chat.ComponentSerialization.CODEC.encodeStart(net.minecraft.nbt.NbtOps.INSTANCE, name).getOrThrow();
+        Component name = Component.translatable(translationKey).withStyle(Style.EMPTY.withColor(TextColor.parseColor(color).getOrThrow()));
+        Tag nameTag = ComponentSerialization.CODEC.encodeStart(NbtOps.INSTANCE, name).getOrThrow();
         tag.put("CustomName", nameTag);
         return tag;
     }

@@ -24,8 +24,10 @@ import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.language.I18n;
 import net.minecraft.data.AtlasIds;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.ARGB;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.util.StringUtil;
 import net.minecraft.world.entity.player.Player;
@@ -282,7 +284,7 @@ public class GatewayRenderer extends EntityRenderer<GatewayEntity, GatewayRender
         int shadowColor = 0xFF000000 | shadowR << 16 | shadowG << 8 | shadowB;
 
         // Shadow behind: render the plain string (no styled FormattedCharSequence) so the color parameter is used directly.
-        net.minecraft.util.FormattedCharSequence shadowSeq = net.minecraft.util.FormattedCharSequence.forward(text.getString(), net.minecraft.network.chat.Style.EMPTY);
+        FormattedCharSequence shadowSeq = FormattedCharSequence.forward(text.getString(), Style.EMPTY);
         matrix.pushPose();
         matrix.translate(1, 1, 0.03F);
         collector.submitText(matrix, x, y, shadowSeq, false, Font.DisplayMode.NORMAL, lightCoords, shadowColor, 0, 0);
