@@ -1,11 +1,10 @@
 {
-    "type": "placebo:gear_set",
     "boots": [
         {
             "drop_chance": 0.0,
             "stack": {
                 "count": 1,
-                "id": "minecraft:golden_boots"
+                "id": "minecraft:iron_boots"
             },
             "weight": 1
         }
@@ -15,7 +14,7 @@
             "drop_chance": 0.0,
             "stack": {
                 "count": 1,
-                "id": "minecraft:golden_chestplate"
+                "id": "minecraft:iron_chestplate"
             },
             "weight": 1
         }
@@ -25,7 +24,7 @@
             "drop_chance": 0.0,
             "stack": {
                 "count": 1,
-                "id": "minecraft:golden_helmet"
+                "id": "minecraft:iron_helmet"
             },
             "weight": 1
         }
@@ -35,7 +34,7 @@
             "drop_chance": 0.0,
             "stack": {
                 "count": 1,
-                "id": "minecraft:golden_leggings"
+                "id": "minecraft:iron_leggings"
             },
             "weight": 1
         }
@@ -45,11 +44,10 @@
             "drop_chance": 0.0,
             "stack": {
                 "count": 1,
-                "id": "minecraft:golden_axe"
+                "id": "minecraft:iron_sword"
             },
             "weight": 1
         }
     ],
-    "tags": [],
     "weight": 0
 }

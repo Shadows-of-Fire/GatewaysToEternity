@@ -3,7 +3,6 @@ package dev.shadowsoffire.gateways.data;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import dev.shadowsoffire.gateways.Gateways;
@@ -66,7 +65,7 @@ public class GearSetProvider extends DynamicRegistryProvider<GearSet> {
 
     private void addGearSet(String name, List<WeightedItemStack> mainhands, List<WeightedItemStack> offhands,
         List<WeightedItemStack> boots, List<WeightedItemStack> leggings, List<WeightedItemStack> chestplates, List<WeightedItemStack> helmets) {
-        this.add(Gateways.loc(name), new GearSet(0, 0, mainhands, offhands, boots, leggings, chestplates, helmets, Set.of()));
+        this.add(Gateways.loc(name), new GearSet(0, 0, mainhands, offhands, boots, leggings, chestplates, helmets));
     }
 
     @SuppressWarnings("deprecation")

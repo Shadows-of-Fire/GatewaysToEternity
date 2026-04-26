@@ -7,7 +7,7 @@ import com.mojang.serialization.MapCodec;
 
 import dev.shadowsoffire.gateways.gate.Gateway;
 import dev.shadowsoffire.gateways.item.GatePearlItem;
-import dev.shadowsoffire.placebo.reload.DynamicHolder;
+import dev.shadowsoffire.placebo.dynreg.DynamicHolder;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.properties.select.SelectItemModelProperty;
 import net.minecraft.world.entity.LivingEntity;

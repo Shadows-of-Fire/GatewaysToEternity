@@ -16,7 +16,7 @@
             {
                 "type": "gateways:stack",
                 "stack": {
-                    "count": 8,
+                    "count": 12,
                     "id": "minecraft:iron_ingot"
                 }
             }
@@ -40,7 +40,7 @@
                 {
                     "type": "gateways:stack",
                     "stack": {
-                        "count": 4,
+                        "count": 6,
                         "id": "minecraft:iron_ingot"
                     }
                 }
@@ -91,7 +91,7 @@
                 {
                     "type": "gateways:stack",
                     "stack": {
-                        "count": 2,
+                        "count": 3,
                         "id": "minecraft:iron_block"
                     }
                 }
