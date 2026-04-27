@@ -15,8 +15,8 @@ import dev.shadowsoffire.gateways.gate.WaveModifier;
 import dev.shadowsoffire.gateways.gate.endless.ApplicationMode;
 import dev.shadowsoffire.gateways.payloads.ParticlePayload;
 import dev.shadowsoffire.placebo.datagen.DataGenBuilder;
-import dev.shadowsoffire.placebo.datagen.FieldOrderingFactory;
 import dev.shadowsoffire.placebo.datagen.FilteredOrderingFactory;
+import dev.shadowsoffire.placebo.datagen.RegisterFieldOrderingsEvent;
 import dev.shadowsoffire.placebo.network.PayloadHelper;
 import dev.shadowsoffire.placebo.tabs.TabFillingRegistry;
 import net.minecraft.data.DataProvider;
@@ -67,33 +67,12 @@ public class Gateways {
             .provider(GearSetProvider::new)
             .provider(GatewayRecipeProvider::new)
             .build(e);
-
-        setupDatagenFieldOrder();
     }
 
-    public static Identifier loc(String path) {
-        return Identifier.fromNamespaceAndPath(MODID, path);
-    }
-
-    /**
-     * Constructs a mutable component with a lang key of the form "type.modid.path", using {@link Gateways#MODID}.
-     *
-     * @param type The type of language key, "misc", "info", "title", etc...
-     * @param path The path of the language key.
-     * @param args Translation arguments passed to the created translatable component.
-     */
-    public static MutableComponent lang(String type, String path, Object... args) {
-        return Component.translatable(langKey(type, path), args);
-    }
-
-    public static String langKey(String type, String path) {
-        return type + "." + MODID + "." + path;
-    }
-
-    public static void setupDatagenFieldOrder() {
-        // Try to keep the gateway data in a consistent order.
-        FieldOrderingFactory.register(FilteredOrderingFactory.builder()
-            .forObjectPath("gateways")
+    @SubscribeEvent
+    public void fieldOrdering(RegisterFieldOrderingsEvent e) {
+        e.register(FilteredOrderingFactory.builder()
+            .registries(GatewayRegistry.INSTANCE.getId())
             .orderMap(map -> {
                 // Normal Gateway Fields
                 map.put("size", 10);
@@ -115,6 +94,25 @@ public class Gateways {
                 map.put("entities", 10);
             })
             .build());
+    }
+
+    public static Identifier loc(String path) {
+        return Identifier.fromNamespaceAndPath(MODID, path);
+    }
+
+    /**
+     * Constructs a mutable component with a lang key of the form "type.modid.path", using {@link Gateways#MODID}.
+     *
+     * @param type The type of language key, "misc", "info", "title", etc...
+     * @param path The path of the language key.
+     * @param args Translation arguments passed to the created translatable component.
+     */
+    public static MutableComponent lang(String type, String path, Object... args) {
+        return Component.translatable(langKey(type, path), args);
+    }
+
+    public static String langKey(String type, String path) {
+        return type + "." + MODID + "." + path;
     }
 
     public static void logSpawnDebug(GatewayEntity gate, WaveEntity entity, String failureReason) {
