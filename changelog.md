@@ -1,3 +1,7 @@
+## 6.0.0
+* Ported to Minecraft 26.1.2.
+* Added two new Iron Gateways.
+
 ## 5.1.0
 * A stock datapack is now generated with each Gateways release.
 * Added two new fields to `GateRules` - `lives` and `requires_nearby_player`. These allow setting more restrictions on how players must interact with a gateway.
