@@ -54,6 +54,7 @@
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:max_health",
+                    "modifier_id": "gateways:endless_modifier_0",
                     "operation": "add_multiplied_total",
                     "value": 0.15
                 }

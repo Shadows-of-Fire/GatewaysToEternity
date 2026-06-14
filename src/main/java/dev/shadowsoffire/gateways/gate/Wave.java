@@ -9,14 +9,14 @@ import org.jetbrains.annotations.Nullable;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import net.minecraft.core.UUIDUtil;
-
 import dev.shadowsoffire.gateways.GatewayObjects;
 import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.gateways.entity.GatewayEntity.FailureReason;
 import dev.shadowsoffire.gateways.event.GateEvent;
 import dev.shadowsoffire.gateways.payloads.ParticlePayload;
+import net.minecraft.core.Holder;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -26,6 +26,7 @@ import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
@@ -201,6 +202,10 @@ public record Wave(List<WaveEntity> entities, List<WaveModifier> modifiers, List
         public Builder modifier(WaveModifier modifier) {
             this.modifiers.add(modifier);
             return this;
+        }
+
+        public Builder attribute(Holder<Attribute> attribute, Operation op, float value) {
+            return this.modifier(WaveModifier.AttributeModifier.create(attribute, op, value, Gateways.loc("wave_modifier_" + this.modifiers.size())));
         }
 
         /**

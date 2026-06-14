@@ -4,10 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-
-import org.jetbrains.annotations.ApiStatus;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -17,9 +14,9 @@ import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.placebo.codec.CodecMap;
 import dev.shadowsoffire.placebo.codec.CodecProvider;
+import dev.shadowsoffire.placebo.dynreg.DynamicHolder;
 import dev.shadowsoffire.placebo.json.ChancedEffectInstance;
 import dev.shadowsoffire.placebo.json.RandomAttributeModifier;
-import dev.shadowsoffire.placebo.dynreg.DynamicHolder;
 import dev.shadowsoffire.placebo.systems.gear.GearSet;
 import dev.shadowsoffire.placebo.systems.gear.GearSetRegistry;
 import dev.shadowsoffire.placebo.util.StepFunction;
@@ -44,12 +41,6 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
 
     public static final CodecMap<WaveModifier> CODEC = new CodecMap<>("Gateway Wave Modifier");
 
-    @ApiStatus.Internal
-    public static final AtomicInteger ID_COUNTER = new AtomicInteger(0);
-
-    @Deprecated
-    default void apply(LivingEntity entity) {}
-
     /**
      * Applies this modifier to the given entity, which will have been freshly spawned by a Wave.
      * 
@@ -57,9 +48,7 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
      * @param gate     The GatewayEntity that spawned the wave.
      * @param summoner The Player that summoned the wave, or the closest player.
      */
-    default void apply(LivingEntity entity, GatewayEntity gate) {
-        apply(entity);
-    }
+    void apply(LivingEntity entity, GatewayEntity gate);
 
     /**
      * Adds this wave modifier to the gate pearl's tooltip.
@@ -135,19 +124,16 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
         public void apply(LivingEntity entity, GatewayEntity gate) {
             AttributeInstance inst = entity.getAttribute(this.modifier.attribute());
             if (inst == null) return;
-            // We need to avoid modifier ID collisions, so we generate a new ID from an atomic counter.
-            // The uniqueness doesn't need to be persistent, or even unique between entities, just unique enough to avoid collisions between
-            // modifiers applied to the same attribute on the same entity.
-            inst.addPermanentModifier(this.modifier.createDeterministic(Gateways.loc("gateway_random_modifier_" + ID_COUNTER.getAndIncrement())));
+            inst.addPermanentModifier(this.modifier.createDeterministic());
         }
 
         @Override
         public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {
-            list.accept(modifier.attribute().value().toComponent(modifier.createDeterministic(Gateways.loc("gateway_random_modifier")), ApothicAttributes.getTooltipFlag()));
+            list.accept(modifier.attribute().value().toComponent(modifier.createDeterministic(), ApothicAttributes.getTooltipFlag()));
         }
 
-        public static AttributeModifier create(Holder<Attribute> attribute, Operation op, float value) {
-            return new AttributeModifier(new RandomAttributeModifier(attribute, op, StepFunction.constant(value)));
+        public static AttributeModifier create(Holder<Attribute> attribute, Operation op, float value, Identifier id) {
+            return new AttributeModifier(new RandomAttributeModifier(attribute, op, StepFunction.constant(value), id));
         }
 
     }

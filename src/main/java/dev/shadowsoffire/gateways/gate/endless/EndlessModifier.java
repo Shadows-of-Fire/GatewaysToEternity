@@ -8,9 +8,13 @@ import com.google.common.base.Preconditions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.gate.Reward;
 import dev.shadowsoffire.gateways.gate.WaveEntity;
 import dev.shadowsoffire.gateways.gate.WaveModifier;
+import net.minecraft.core.Holder;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 
 /**
  * An Endless Modifier is a periodically applied modification to a running Endless Gateway.
@@ -79,6 +83,10 @@ public record EndlessModifier(ApplicationMode appMode, List<WaveEntity> entities
         public Builder modifier(WaveModifier modifier) {
             this.modifiers.add(modifier);
             return this;
+        }
+
+        public Builder attribute(Holder<Attribute> attribute, Operation op, float value) {
+            return this.modifier(WaveModifier.AttributeModifier.create(attribute, op, value, Gateways.loc("endless_modifier_" + this.modifiers.size())));
         }
 
         public Builder modifiers(List<WaveModifier> modifiers) {

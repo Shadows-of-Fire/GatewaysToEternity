@@ -8,7 +8,7 @@ license="MIT License"
 
 modId="gateways"
 
-version="6.0.0"
+version="6.0.1-beta0"
 
 displayName="Gateways To Eternity"
 
@@ -29,14 +29,14 @@ config="gateways.mixins.json"
 [[dependencies.gateways]]
     modId="neoforge"
     type="required"
-    versionRange="[26.1.2.64-beta,)"
+    versionRange="[26.1.2.76,)"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.gateways]]
     modId="placebo"
     type="required"
-    versionRange="[10.0.0,)"
+    versionRange="[10.0.1,)"
     ordering="NONE"
     side="BOTH"
 

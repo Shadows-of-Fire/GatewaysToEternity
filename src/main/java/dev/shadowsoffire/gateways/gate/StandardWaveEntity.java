@@ -12,6 +12,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.entity.GatewayEntity;
 import dev.shadowsoffire.placebo.json.NBTAdapter;
+import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -22,6 +23,8 @@ import net.minecraft.world.entity.EntityProcessor;
 import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attribute;
+import net.minecraft.world.entity.ai.attributes.AttributeModifier.Operation;
 
 public record StandardWaveEntity(EntityType<?> type, Optional<String> desc, Optional<CompoundTag> tag, List<WaveModifier> modifiers, boolean finalizeSpawn, int count) implements WaveEntity {
 
@@ -127,9 +130,13 @@ public record StandardWaveEntity(EntityType<?> type, Optional<String> desc, Opti
          * @param modifier The modifier to add
          * @return This builder for chaining
          */
-        public Builder addModifier(WaveModifier modifier) {
+        public Builder modifier(WaveModifier modifier) {
             this.modifiers.add(modifier);
             return this;
+        }
+
+        public Builder attribute(Holder<Attribute> attribute, Operation op, float value) {
+            return this.modifier(WaveModifier.AttributeModifier.create(attribute, op, value, Gateways.loc("wave_entity_modifier_" + this.modifiers.size())));
         }
 
         /**
@@ -138,7 +145,7 @@ public record StandardWaveEntity(EntityType<?> type, Optional<String> desc, Opti
          * @param modifiers The modifiers to add
          * @return This builder for chaining
          */
-        public Builder addModifiers(List<WaveModifier> modifiers) {
+        public Builder modifiers(List<WaveModifier> modifiers) {
             this.modifiers.addAll(modifiers);
             return this;
         }

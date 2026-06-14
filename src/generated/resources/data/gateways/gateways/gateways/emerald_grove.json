@@ -17,6 +17,7 @@
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:max_health",
+                    "modifier_id": "gateways:wave_modifier_0",
                     "operation": "add_multiplied_total",
                     "value": 0.25
                 }
@@ -45,30 +46,35 @@
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:max_health",
+                    "modifier_id": "gateways:wave_modifier_0",
                     "operation": "add_multiplied_total",
                     "value": 0.2
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:movement_speed",
+                    "modifier_id": "gateways:wave_modifier_1",
                     "operation": "add_multiplied_total",
                     "value": 0.05
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:armor",
+                    "modifier_id": "gateways:wave_modifier_2",
                     "operation": "add_value",
                     "value": 4.0
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:attack_damage",
+                    "modifier_id": "gateways:wave_modifier_3",
                     "operation": "add_value",
                     "value": 2.5
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "apothic_attributes:armor_pierce",
+                    "modifier_id": "gateways:wave_modifier_4",
                     "operation": "add_value",
                     "value": 2.0
                 }
@@ -112,36 +118,42 @@
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:max_health",
+                    "modifier_id": "gateways:wave_modifier_0",
                     "operation": "add_multiplied_total",
                     "value": 0.35
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:movement_speed",
+                    "modifier_id": "gateways:wave_modifier_1",
                     "operation": "add_multiplied_total",
                     "value": 0.15
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:armor",
+                    "modifier_id": "gateways:wave_modifier_2",
                     "operation": "add_value",
                     "value": 5.0
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:attack_damage",
+                    "modifier_id": "gateways:wave_modifier_3",
                     "operation": "add_value",
                     "value": 2.5
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "apothic_attributes:armor_pierce",
+                    "modifier_id": "gateways:wave_modifier_4",
                     "operation": "add_value",
                     "value": 3.0
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "apothic_attributes:life_steal",
+                    "modifier_id": "gateways:wave_modifier_5",
                     "operation": "add_value",
                     "value": 0.1
                 }
@@ -211,36 +223,42 @@
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:max_health",
+                    "modifier_id": "gateways:wave_modifier_0",
                     "operation": "add_multiplied_total",
                     "value": 0.4
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:knockback_resistance",
+                    "modifier_id": "gateways:wave_modifier_1",
                     "operation": "add_value",
                     "value": 0.5
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:armor",
+                    "modifier_id": "gateways:wave_modifier_2",
                     "operation": "add_value",
                     "value": 5.0
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:attack_damage",
+                    "modifier_id": "gateways:wave_modifier_3",
                     "operation": "add_value",
                     "value": 4.0
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "apothic_attributes:armor_pierce",
+                    "modifier_id": "gateways:wave_modifier_4",
                     "operation": "add_value",
                     "value": 3.0
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "apothic_attributes:life_steal",
+                    "modifier_id": "gateways:wave_modifier_5",
                     "operation": "add_value",
                     "value": 0.1
                 }

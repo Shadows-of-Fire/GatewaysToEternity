@@ -56,12 +56,14 @@
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:max_health",
+                    "modifier_id": "gateways:endless_modifier_0",
                     "operation": "add_multiplied_total",
                     "value": 0.1
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:attack_damage",
+                    "modifier_id": "gateways:endless_modifier_1",
                     "operation": "add_multiplied_total",
                     "value": 0.1
                 }
@@ -77,12 +79,14 @@
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:movement_speed",
+                    "modifier_id": "gateways:endless_modifier_0",
                     "operation": "add_multiplied_total",
                     "value": 0.05
                 },
                 {
                     "type": "gateways:attribute",
                     "attribute": "minecraft:knockback_resistance",
+                    "modifier_id": "gateways:endless_modifier_1",
                     "operation": "add_value",
                     "value": 0.15
                 }
