@@ -1,3 +1,7 @@
+## 6.0.1
+* Updated to Placebo 10.0.1.
+  * This means that various systems using `RandomAttributeModifier` now have a mandatory `modifier_id` field. This field should be unique in-context, but does not need to be globally unique.
+
 ## 6.0.0
 * Ported to Minecraft 26.1.2.
 * Added two new Iron Gateways.
