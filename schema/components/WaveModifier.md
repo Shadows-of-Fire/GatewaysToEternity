@@ -36,7 +36,8 @@ Applies an attribute modifier to the targets.
 
 Note: the `RandomAttributeModifier` is inlined, meaning all of its fields are top-level keys in this object.
 
-This modifier uses the constant mode of `RandomAttributeModifier`.
+This modifier uses the constant and generated modes of `RandomAttributeModifier` - there is no `"modifier_id"` key (it is ignored if present).
+Each application creates a unique id, so modifiers that apply multiple times (e.g. stacking [Endless Modifiers](./EndlessModifier.md)) stack instead of conflicting.
 
 ## Gear Set Modifier
 Applies a gear set to the targets.

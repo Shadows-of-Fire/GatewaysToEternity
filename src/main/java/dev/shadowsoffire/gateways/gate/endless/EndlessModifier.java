@@ -8,7 +8,6 @@ import com.google.common.base.Preconditions;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
-import dev.shadowsoffire.gateways.Gateways;
 import dev.shadowsoffire.gateways.gate.Reward;
 import dev.shadowsoffire.gateways.gate.WaveEntity;
 import dev.shadowsoffire.gateways.gate.WaveModifier;
@@ -86,7 +85,7 @@ public record EndlessModifier(ApplicationMode appMode, List<WaveEntity> entities
         }
 
         public Builder attribute(Holder<Attribute> attribute, Operation op, float value) {
-            return this.modifier(WaveModifier.AttributeModifier.create(attribute, op, value, Gateways.loc("endless_modifier_" + this.modifiers.size())));
+            return this.modifier(WaveModifier.AttributeModifier.create(attribute, op, value));
         }
 
         public Builder modifiers(List<WaveModifier> modifiers) {

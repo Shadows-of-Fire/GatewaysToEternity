@@ -205,7 +205,7 @@ public record Wave(List<WaveEntity> entities, List<WaveModifier> modifiers, List
         }
 
         public Builder attribute(Holder<Attribute> attribute, Operation op, float value) {
-            return this.modifier(WaveModifier.AttributeModifier.create(attribute, op, value, Gateways.loc("wave_modifier_" + this.modifiers.size())));
+            return this.modifier(WaveModifier.AttributeModifier.create(attribute, op, value));
         }
 
         /**

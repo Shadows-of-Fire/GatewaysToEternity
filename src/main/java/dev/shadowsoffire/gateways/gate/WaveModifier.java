@@ -110,10 +110,13 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
      * Wave modifier that applies an attribute modifier to the wave entities.
      * <p>
      * The modifier will be ignored if the entity does not have the attribute.
+     * <p>
+     * Uses generated modifier ids, since wave modifiers are ephemeral (apply-once-remove-never).
+     * Each application creates a unique id, so repeated applications stack instead of colliding.
      */
     public static record AttributeModifier(RandomAttributeModifier modifier) implements WaveModifier {
 
-        public static Codec<AttributeModifier> CODEC = RandomAttributeModifier.CONSTANT_CODEC.xmap(AttributeModifier::new, AttributeModifier::modifier);
+        public static Codec<AttributeModifier> CODEC = RandomAttributeModifier.constantGeneratedCodec(Gateways.loc("wave_modifier")).xmap(AttributeModifier::new, AttributeModifier::modifier);
 
         @Override
         public Codec<? extends WaveModifier> getCodec() {
@@ -129,11 +132,11 @@ public interface WaveModifier extends CodecProvider<WaveModifier> {
 
         @Override
         public void appendHoverText(TooltipContext ctx, Consumer<MutableComponent> list) {
-            list.accept(modifier.attribute().value().toComponent(modifier.createDeterministic(), ApothicAttributes.getTooltipFlag()));
+            list.accept(modifier.attribute().value().toComponent(modifier.createDeterministic(modifier.modifierId()), ApothicAttributes.getTooltipFlag()));
         }
 
-        public static AttributeModifier create(Holder<Attribute> attribute, Operation op, float value, Identifier id) {
-            return new AttributeModifier(new RandomAttributeModifier(attribute, op, StepFunction.constant(value), id));
+        public static AttributeModifier create(Holder<Attribute> attribute, Operation op, float value) {
+            return new AttributeModifier(RandomAttributeModifier.generated(attribute, op, StepFunction.constant(value), Gateways.loc("wave_modifier")));
         }
 
     }

@@ -136,7 +136,7 @@ public record StandardWaveEntity(EntityType<?> type, Optional<String> desc, Opti
         }
 
         public Builder attribute(Holder<Attribute> attribute, Operation op, float value) {
-            return this.modifier(WaveModifier.AttributeModifier.create(attribute, op, value, Gateways.loc("wave_entity_modifier_" + this.modifiers.size())));
+            return this.modifier(WaveModifier.AttributeModifier.create(attribute, op, value));
         }
 
         /**

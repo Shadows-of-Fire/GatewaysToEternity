@@ -1,10 +1,10 @@
-// 26.1.2	2026-06-14T14:14:02.7418558	Gateways
-d8742c3a5e4fe5207ed15c9480888f468548e885 data/gateways/gateways/gateways/basic/blaze.json
-139be91b75e5636ec482fde243ebb2a744b935f8 data/gateways/gateways/gateways/basic/enderman.json
-5c0ad179aa737c482b786c3d12727bf537cbb406 data/gateways/gateways/gateways/basic/slime.json
-17c25fb0e7540181816966f9bd7b4233d7ac3d1c data/gateways/gateways/gateways/emerald_grove.json
-05112aa58f90ff1f222545851f111f0c8351c929 data/gateways/gateways/gateways/endless/automaton_fabricator.json
-a89045d149bdd2295f7ccd3cec88fcdb98f118b1 data/gateways/gateways/gateways/endless/blaze.json
-72f614aa6fcc8fe4df74410614765b51138be923 data/gateways/gateways/gateways/hellish_fortress.json
-05b599dc512dbcad2890846a855fdea9003e232a data/gateways/gateways/gateways/iron_automaton.json
-8d1a1a89a1c8000db63a489e7c48b4898792f560 data/gateways/gateways/gateways/overworldian_nights.json
+// 26.1.2	2026-07-20T02:23:02.452446759	Gateways
+dcd8e91598c33383e2a044e27fc38342e9a5a09e data/gateways/gateways/gateways/basic/blaze.json
+7e1bc59db745a0a5f6d77e943b0409147bc5d33d data/gateways/gateways/gateways/basic/enderman.json
+457d79c36b35e9993f37faa2df0b61c4fe8e5a17 data/gateways/gateways/gateways/basic/slime.json
+6307ddb75095504cd25d0e99a3db197ca99f702c data/gateways/gateways/gateways/emerald_grove.json
+6f031d12b52f7d5290099352c0e1ca193efe696c data/gateways/gateways/gateways/endless/automaton_fabricator.json
+770eba6fb206d2c9392fed2bb429d0c3ce6951bc data/gateways/gateways/gateways/endless/blaze.json
+bfa223756d71eda0e2e7ef78d722596d57618c70 data/gateways/gateways/gateways/hellish_fortress.json
+e4f8508cb4e3d3f9ace839f15f36b9e7c9eb4053 data/gateways/gateways/gateways/iron_automaton.json
+e94ff8b58a50b87985b8408816c7c6b4e614e145 data/gateways/gateways/gateways/overworldian_nights.json
