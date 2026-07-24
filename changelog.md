@@ -1,3 +1,8 @@
+## 6.0.2
+* Updated to Placebo 10.0.2.
+* Fixed endless gateways crashing when an attribute wave modifier was applied multiple times in one wave. Fixes Apotheosis#1768.
+  * Attribute wave modifiers now use generated (ephemeral) modifier ids. The `modifier_id` field is no longer used, and is ignored if present.
+
 ## 6.0.1
 * Updated to Placebo 10.0.1.
   * This means that various systems using `RandomAttributeModifier` now have a mandatory `modifier_id` field. This field should be unique in-context, but does not need to be globally unique.
