@@ -30,7 +30,7 @@ Applies an effect instance to all nearby players.
     "type": "gateways:mob_effect",
     "effect": "string",            // [Mandatory] || Registry name of the mob effect.
     "duration": integer,           // [Mandatory] || Duration, in ticks, of the effect.
-    "amplifier": integer           // [Mandatory] || Effect amplifier. A value of zero corresponds to level 1.
+    "amplifier": integer           // [Optional]  || Effect amplifier. A value of zero corresponds to level 1. Default value = 0.
 }
 ```
 
@@ -67,7 +67,7 @@ Provides a chance to trigger any other failure.
 ```js
 {
     "type": "gateways:chanced",
-    "chance": float,               // [Mandatory] || The chance the reward is granted, in the range [0, 1].  0.5 is 50%
+    "chance": float,               // [Mandatory] || The chance the failure is triggered, in the range [0, 1].  0.5 is 50%
     "failure": Failure             // [Mandatory] || The underlying failure.
 }
 ```

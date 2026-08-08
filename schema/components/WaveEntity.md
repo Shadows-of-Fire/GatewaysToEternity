@@ -4,7 +4,7 @@ It is used in most places that Gateways attempts to spawn an entity for one reas
 
 # Dependencies
 This object references the following objects:
-1. [CompoundTag](../../../../../Placebo/blob/-/schema/CompoundTag.md)
+1. [CompoundTag](../../../../../Placebo/blob/1.21/schema/CompoundTag.md)
 2. [WaveModifier](./WaveModifier.md)
 
 # Subtypes
@@ -19,11 +19,12 @@ If no type key is provided, `"gateways:standard"` is used.
     "type": "gateways:standard",
     "entity": "string",       // [Mandatory] || Registry name of the entity being spawned.
     "desc": "string",         // [Optional]  || Lang key used when this wave entity is displayed in a tooltip. If absent, the default lang key of the entity type used.
-    "nbt": CompoundTag        // [Optional]  || NBT data that will be applied to the entity. Default value = empty NBT.
+    "nbt": CompoundTag,       // [Optional]  || NBT data that will be applied to the entity. Default value = empty NBT.
     "modifiers": [            // [Optional]  || A list of wave modifiers for the entity. Default value = no modifiers.
         WaveModifier
     ],
-    "count": integer          // [Optional]  || The number of copies of this entity to spawn. Default value = 1.
+    "count": integer,         // [Optional]  || The number of copies of this entity to spawn. Default value = 1. Range: [1, 256].
+    "finalize_spawn": boolean // [Optional]  || If vanilla spawn finalization will be run for the spawned entity. Default value = true.
 }
 ```
 

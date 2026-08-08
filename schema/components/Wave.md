@@ -10,16 +10,16 @@ This object references the following objects:
 # Schema
 ```js
 {
-    "entities": [             // [Mandatory] || The list of entities that will be spawned as part of this wave. May not be empty.
+    "entities": [             // [Mandatory] || The list of entities that will be spawned as part of this wave. Should not be empty.
         WaveEntity
-    ],              
+    ],
     "modifiers": [            // [Optional]  || A list of wave modifiers to be applied to all spawned entities.
         WaveModifier
     ],
     "rewards": [              // [Optional]  || A list of rewards that will be provided when this wave is completed.
         Reward
     ],
-    "max_wave_time": integer  // [Mandatory] || The maximum time (in ticks) that a player may take to complete this wave.
+    "max_wave_time": integer, // [Mandatory] || The maximum time (in ticks) that a player may take to complete this wave.
     "setup_time": integer     // [Mandatory] || The setup time (in ticks) before this wave begins, after the last wave was completed.
 }
 ```

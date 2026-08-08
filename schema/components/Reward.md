@@ -3,8 +3,8 @@ A Reward is something provided by a Gateway when an objective is completed.
 
 # Dependencies
 This object references the following objects:
-1. [CompoundTag](../../../../../Placebo/blob/-/schema/CompoundTag.md)
-2. [ItemStack](../../../../../Placebo/blob/-/schema/ItemStack.md)
+1. [CompoundTag](../../../../../Placebo/blob/1.21/schema/CompoundTag.md)
+2. [ItemStack](../../../../../Placebo/blob/1.21/schema/ItemStack.md)
 3. [WaveEntity](./WaveEntity.md)
 
 # Subtypes
@@ -17,7 +17,8 @@ Rewards a single ItemStack.
 ```js
 {
     "type": "gateways:stack",
-    "stack": ItemStack      // [Mandatory] || The ItemStack this reward will provide.
+    "stack": ItemStack,     // [Mandatory] || The ItemStack this reward will provide.
+    "desc": "string"        // [Optional]  || Lang key (or english text) overriding the name shown for this reward in tooltips. If absent, the stack's own name is used.
 }
 ```
 
@@ -108,5 +109,17 @@ Provides a chance to receive any other reward.
     "type": "gateways:chanced",
     "chance": float,        // [Mandatory] || The chance the reward is granted, in the range [0, 1].  0.5 is 50%
     "reward": Reward        // [Mandatory] || The underlying reward.
+}
+```
+
+## Counted Reward
+Provides another reward multiple times.
+
+### Schema
+```js
+{
+    "type": "gateways:counted",
+    "reward": Reward,       // [Mandatory] || The underlying reward.
+    "count": integer        // [Mandatory] || The number of times the underlying reward will be granted. Range: [1, 1024].
 }
 ```

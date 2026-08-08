@@ -15,14 +15,14 @@ This object references the following objects:
     "entities": [                         // [Optional]  || A list of additional entities that will be spawned each time the modifier is applied.
         WaveEntity
     ],
-    "rewards": [                          // [Optional]  || A list of rewards that will be added to the wave rewards each tim the modifier is applied.
+    "rewards": [                          // [Optional]  || A list of rewards that will be added to the wave rewards each time the modifier is applied.
         Reward
     ],
     "modifiers": [                        // [Optional]  || A list of wave modifiers that will be applied to all entities each time the modifier is applied.
         WaveModifier
     ],
-    "max_wave_time": integer,             // [Optional]  || The time (in ticks) that this modifier will add/remove to/from the max wave time.
-    "setup_time": integer                 // [Optional]  || The time (in ticks) that this modifier will add/remove to/from the setup time.
+    "max_wave_time": integer,             // [Optional]  || The time (in ticks) that this modifier will add/remove to/from the max wave time. Default value = 0.
+    "setup_time": integer                 // [Optional]  || The time (in ticks) that this modifier will add/remove to/from the setup time. Default value = 0.
 }
 ```
 

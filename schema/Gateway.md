@@ -4,7 +4,7 @@ A Gateway is the core object you will create when working with Gateways to Etern
 # Dependencies
 This object references the following objects:
 1. [Size](./components/Size.md)
-2. [Color](../../../../Placebo/blob/-/schema/Color.md)
+2. [Color](../../../../Placebo/blob/1.21/schema/Color.md)
 3. [WaveEntity](./components/WaveEntity.md)
 4. [Wave](./components/Wave.md)
 5. [Reward](./components/Reward.md)
@@ -16,6 +16,7 @@ This object references the following objects:
 
 # Subtypes
 Gateways are subtyped, meaning each subtype declares a `"type"` key and its own parameters.
+If no type key is provided, `"gateways:normal"` is used.
 
 ## Normal Gateways
 A Normal (or "Classic") Gateway defines a predefined list of waves, modifiers, rewards, and failure penalties.
@@ -23,6 +24,7 @@ A Normal (or "Classic") Gateway defines a predefined list of waves, modifiers, r
 ### Schema
 ```js
 {
+    "type": "gateways:normal",
     "size": Size,                        // [Mandatory] || The size of the Gateway.
     "color": Color,                      // [Mandatory] || The color of the Gateway.
     "waves": [                           // [Mandatory] || The list of waves for this Gateway.
@@ -33,7 +35,7 @@ A Normal (or "Classic") Gateway defines a predefined list of waves, modifiers, r
     ],
     "failures": [                        // [Optional]  || Failure penalties that will be applied if the Gateway is not completed. Default value = empty list.
         Failure
-    ]
+    ],
     "spawn_algorithm": SpawnAlgorithm,   // [Optional]  || The Spawn Algorithm to use. Default value = "gateways:open_field".
     "rules": GateRules,                  // [Optional]  || Potential rule edits for this Gateway. Default value = The default GateRules object.
     "boss_event": BossEventSettings,     // [Optional]  || Potential boss event settings for this Gateway. Default value = The default BossEventSettings object.
@@ -47,6 +49,7 @@ The Gateway will continue running until a wave fails, at which point it will clo
 ### Schema
 ```js
 {
+    "type": "gateways:endless",
     "size": Size,                        // [Mandatory] || The size of the Gateway.
     "color": Color,                      // [Mandatory] || The color of the Gateway.
     "base_wave": Wave,                   // [Mandatory] || The base wave for this Gateway. It will be augmented by the provided Endless Modifiers as waves pass.
@@ -55,10 +58,11 @@ The Gateway will continue running until a wave fails, at which point it will clo
     ],
     "failures": [                        // [Optional]  || Failure penalties that will be applied if the Gateway is not completed. Default value = empty list.
         Failure
-    ]
+    ],
     "spawn_algorithm": SpawnAlgorithm,   // [Optional]  || The Spawn Algorithm to use. Default value = "gateways:open_field".
     "rules": GateRules,                  // [Optional]  || Potential rule edits for this Gateway. Default value = The default GateRules object.
     "boss_event": BossEventSettings,     // [Optional]  || Potential boss event settings for this Gateway. Default value = The default BossEventSettings object.
+    "soundtrack": "string"               // [Optional]  || Registry name of the ambient sound used by the Gateway while it is active. Default value = "gateways:gate_ambient".
 }
 ```
 

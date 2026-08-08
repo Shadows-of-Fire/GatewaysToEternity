@@ -11,7 +11,7 @@ Adds the modifier(s) on the specified wave, remaining for all subsequent waves.
 ```js
 {
     "type": "gateways:after_wave",
-    "wave": integer      // [Mandatory] || The wave on which the modifier(s) are applied. The modifier remains applied on subsequent waves.
+    "wave": integer      // [Mandatory] || The wave on which the modifier(s) are applied. The modifier remains applied on subsequent waves. Range: [1, 1024].
 }
 ```
 
@@ -22,8 +22,8 @@ Applies the modifier(s) once every N waves, stacking with prior applications, up
 ```js
 {
     "type": "gateways:after_every_n_waves",
-    "waves": integer,    // [Mandatory] || The number of waves that must elapse before the modifier(s) are applied and reapplied.
-    "max": integer       // [Mandatory] || The maximum number of times the modifier(s) will be applied.
+    "waves": integer,    // [Mandatory] || The number of waves that must elapse before the modifier(s) are applied and reapplied. Range: [1, 1024].
+    "max": integer       // [Mandatory] || The maximum number of times the modifier(s) will be applied. Range: [1, 1024].
 }
 ```
 
@@ -34,7 +34,7 @@ Applies the modifier only on the specified wave, and not on subsequent waves.
 ```js
 {
     "type": "gateways:only_on_wave",
-    "wave": integer      // [Mandatory] || The wave on which the modifier(s) apply.
+    "wave": integer      // [Mandatory] || The wave on which the modifier(s) apply. Range: [1, 1024].
 }
 ```
 
@@ -44,7 +44,7 @@ Applies the modifier once every N waves, but not on any others.
 ### Schema
 ```js
 {
-    "type": "gateways:after_every_n_waves",
-    "waves": integer,    // [Mandatory] || The number of waves that must elapse between applications.
+    "type": "gateways:only_on_every_n_waves",
+    "waves": integer     // [Mandatory] || The number of waves that must elapse between applications. Range: [1, 1024].
 }
 ```
