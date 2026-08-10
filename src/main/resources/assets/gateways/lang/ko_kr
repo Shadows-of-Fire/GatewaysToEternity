@@ -1,0 +1,121 @@
+{
+    "entity.gateways.gateway": "Gateway to Eternity",
+    "item.gateways.gate_pearl": "관문 진주",
+    "gateways.gate_pearl": "관문 진주 - %s",
+    "itemGroup.gateways": "Gateways to Eternity",
+
+    "info.gateways.gate_pearl": "관문 진주는 블록에 대고 사용하여 게이트를 열 수 있게 해줍니다.\n\n현재 위치를 기준으로 다른 게이트가 너무 가깝지 않을 때만 생성할 수 있습니다.",
+    "info.gateways.gate_pearl.2": "열려 있는 게이트는 몹을 생성할 수 없거나, 활성화된 몹이 너무 멀리 이동하거나, 웨이브 타이머가 만료되면 번개가 치며 작동이 중단됩니다.\n\n보상은 획득하는 대로 게이트에서 생성됩니다.",
+
+    "tooltip.gateways.with_count": "%s %s",
+    "tooltip.gateways.dot_with_count": "• %s %s",
+    "tooltip.gateways.dot": "• %s",
+
+    "tooltip.gateways.scroll": "[scroll]",
+    "tooltip.gateways.shift": "[shift]",
+    "tooltip.gateways.ctrl": "[ctrl]",
+    "tooltip.gateways.alt": "[alt]",
+    "tooltip.gateways.true": "활성화",
+    "tooltip.gateways.false": "비활성화",
+
+    "tooltip.gateways.num_wave": "%s 웨이브",
+    "tooltip.gateways.num_waves": "%s 웨이브",
+    "tooltip.gateways.wave": "웨이브 %s/%s",
+    "tooltip.gateways.entities": "개체: ",
+    "tooltip.gateways.modifiers": "강화: ",
+    "tooltip.gateways.rewards": "보상: ",
+
+    "tooltip.gateways.num_failures": "%s 패널티",
+    "tooltip.gateways.num_failure": "%s 패널티",
+    "tooltip.gateways.failures": "실패 패널티",
+
+    "tooltip.gateways.num_rule": "%s 규칙 변경",
+    "tooltip.gateways.num_rules": "%s 규칙 변경",
+    "tooltip.gateways.rules": "규칙 변경점",
+
+    "tooltip.gateways.key_rewards": "주요 보상",
+
+    "tooltip.gateways.endless.base_wave": "기본 웨이브",
+    "tooltip.gateways.endless.num_modif": "%s 무한 강화",
+    "tooltip.gateways.endless.num_modifs": "%s 무한 강화",
+    "tooltip.gateways.endless.modifier": "무한 강화 %s/%s",
+    "tooltip.gateways.endless.wave_time": "%s 최대 웨이브 시간",
+    "tooltip.gateways.endless.setup_time": "%s 설정 시간",
+
+    "boss.gateways.wave": "웨이브: %d/%d | 시간: %s | 적: %d",
+    "boss.gateways.done": "게이트 클리어!",
+    "boss.gateways.starting": "웨이브 %d 시작: %s",
+    "boss.gateways.endless.top": "웨이브: %d/%d | 남은 시간: %d",
+    "boss.gateways.endless.bot": "적: %d/%d | 부여된 강화: %d",
+    "boss.gateways.endless.incoming": "적이 옵니다: %d",
+
+    "reward.gateways.stack": "%s %s",
+    "reward.gateways.entity": "%s %s 보상 굴림",
+    "reward.gateways.loot_table": "%s %s 굴림",
+    "reward.gateways.chance": "%s 확률 %s",
+    "reward.gateways.experience": "%s 경험치",
+    "reward.gateways.summon": "소환: %s",
+
+    "failure.gateways.explosion": "폭발 범위 %s",
+    "failure.gateways.mob_effect": "%s",
+    "failure.gateways.summon": "소환 %s",
+    "failure.gateways.chance": "%s 확률로 %s",
+
+    "rule.gateways.default": "[was %s]",
+    "rule.gateways.spawn_range": "생성 범위: %s",
+    "rule.gateways.leash_range": "속박 범위: %s",
+    "rule.gateways.allow_discarding": "버리기 허용: %s",
+    "rule.gateways.allow_dim_change": "차원 이동 허용: %s",
+    "rule.gateways.player_damage_only": "플레이어 피해만: %s",
+    "rule.gateways.remove_mobs_on_failure": "실패 시 몹 제거: %s",
+    "rule.gateways.fail_on_out_of_bounds": "범위를 벗어날 경우 실패: %s",
+    "rule.gateways.spacing": "공간: %s",
+    "rule.gateways.requires_nearby_player": "주변에 플레이어 필요: %s",
+    "rule.gateways.lives": "목숨: %s",
+
+    "error.gateways.no_space": "게이트를 열기에 충분한 공간이 없습니다",
+    "error.gateways.wave_failed": "다음 웨이브를 생성할 공간이 없어 게이트가 붕괴했습니다",
+    "error.gateways.too_far": "웨이브 몹이 너무 멀리 달아나 게이트가 붕괴했습니다",
+    "error.gateways.wave_elapsed": "웨이브 제한시간 만료",
+    "error.gateways.entity_discarded": "개체가 죽지 않고 제거되어 게이트가 붕괴했습니다",
+    "error.gateways.no_nearby_player": "플레이어가 주변에 없어 게이트가 붕괴했습니다",
+    "error.gateways.out_of_lives": "당신의 목숨이 다해 게이트가 붕괴했습니다",
+
+    "appmode.gateways.after_wave": "웨이브에 적용됨: %s.",
+    "appmode.gateways.after_every_n_waves": "매 %s 웨이브 마다 적용. 최대 %s회 적용.",
+    "appmode.gateways.only_on_wave": "웨이브 %s 에만 적용.",
+    "appmode.gateways.only_on_every_n_waves": "매 %s 웨이브에만 적용됩니다.",
+
+    "stat.gateways.gates_defeated": "게이트 패배",
+
+    "modifier.gateways.gear_set": "%s 장착됨",
+
+    "gateways.basic/blaze": "블레이즈 게이트",
+    "gateways.basic/slime": "슬라임 게이트",
+    "gateways.basic/enderman": "엔더맨 게이트",
+
+    "gateways.emerald_grove": "에메랄드 언덕의 게이트",
+    "gateways.overworldian_nights": "오버월드의 밤의 게이트",
+    "gateways.hellish_fortress": "지옥같은 요새의 게이트",
+
+    "gateways.endless/blaze": "끝없는 블레이즈 게이트",
+
+    "rewards.gateways.loot_table.simple_dungeon": "던전 보상",
+    "rewards.gateways.loot_table.nether_bridge": "네더 요새 보상",
+
+    "name.gateways.necrotic_farmer": "강령된 농부",
+    "name.gateways.undead_legionnaire": "언데드 군단병",
+    "name.gateways.withered_ranger": "시들은 레인저",
+    "name.gateways.butcher": "도살자",
+    "name.gateways.huge_slime": "거대 슬라임",
+    "name.gateways.magicbane_slime": "마법사냥 슬라임",
+    "name.gateways.acidic_slime": "산성 슬라임",
+    "name.gateways.flaming_enderman": "불타는 엔더맨",
+
+    "subtitle.gateways.gate_warp": "게이트가 개체를 생성",
+    "subtitle.gateways.gate_ambient": "게이트 환경음",
+    "subtitle.gateways.gate_start": "게이트 열림",
+    "subtitle.gateways.gate_end": "게이트 닫힘",
+
+    "text.gateways.errored_gate_pearl": "알수없는 게이트: %s"
+}
