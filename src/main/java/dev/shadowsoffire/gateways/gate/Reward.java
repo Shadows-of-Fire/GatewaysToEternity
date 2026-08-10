@@ -308,6 +308,8 @@ public interface Reward extends CodecProvider<Reward> {
      */
     public static record ExperienceReward(int xp, int orbSize) implements Reward {
 
+        public static final int MAX_ORB_VALUE = 32767; // Maximum value for a 16-bit signed integer
+
         public static Codec<ExperienceReward> CODEC = RecordCodecBuilder.create(inst -> inst
             .group(
                 Codec.INT.fieldOf("experience").forGetter(ExperienceReward::xp),
@@ -317,9 +319,13 @@ public interface Reward extends CodecProvider<Reward> {
         @Override
         public void generateLoot(ServerLevel level, GatewayEntity gate, Player summoner, Consumer<ItemStack> list) {
             int remaining = this.xp;
+            // Clamp orbSize to the maximum XP orb value
+            int clampedOrbSize = Math.min(this.orbSize, MAX_ORB_VALUE);
+
             while (remaining > 0) {
-                remaining -= orbSize;
-                level.addFreshEntity(new ExperienceOrb(level, gate.getX(), gate.getY(), gate.getZ(), orbSize));
+                int orbValue = Math.min(remaining, clampedOrbSize);
+                gate.queueXP(orbValue);
+                remaining -= orbValue;
             }
         }
 
